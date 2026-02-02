@@ -31,7 +31,7 @@ if st.session_state.get("show_market"):
 # Local app modules (root)
 # =========================
 import user_profile as profile
-import careon_bank as bank
+#import careon_bank as bank
 
 # =========================
 # Optional utils (safe to expand later)
