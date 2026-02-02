@@ -1,15 +1,29 @@
-# streamlit_app.py
+# =========================
+# Standard library
+# =========================
 import os
 import time
 import random
 from collections import Counter
 
+# =========================
+# Third-party
+# =========================
 import requests
 import streamlit as st
 
+# =========================
+# Local app modules (root)
+# =========================
 import user_profile as profile
-import careon_bank as bank  # change to careon_bank_v2 if that's your file
+import careon_bank as bank
 
+# =========================
+# Optional utils (safe to expand later)
+# =========================
+# from utils.ai import ask_ai
+# from utils.deck import draw_card, zenith_check
+# from utils.stats import init_stats
 
 # =========================
 # CONFIG
