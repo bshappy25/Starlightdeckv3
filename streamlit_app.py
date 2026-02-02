@@ -11,6 +11,8 @@ from collections import Counter
 # =========================
 import requests
 import streamlit as st
+import ui_header
+ui_header.render_header(["Clarity over noise", "Action beats fear", "Curiosity first"])
 
 # =========================
 # Local app modules (root)
