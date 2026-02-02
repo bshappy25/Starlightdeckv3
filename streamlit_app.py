@@ -14,6 +14,14 @@ import streamlit as st
 import ui_header
 ui_header.render_header(["Clarity over noise", "Action beats fear", "Curiosity first"])
 
+import careon_bubble
+
+careon_bubble.render_bubble()
+
+if st.session_state.get("show_market"):
+    st.subheader("Careon Market")
+    # render market UI here
+
 # =========================
 # Local app modules (root)
 # =========================
