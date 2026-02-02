@@ -22,10 +22,10 @@ if st.session_state.get("show_market"):
     st.subheader("Careon Market")
     # render market UI here
 
-import careon_market
-import careon_bank as bank
+#import careon_market
+#import careon_bank as bank
 
-careon_market.render_market(bank_module=bank, bank_path="careon_bank_v2.json")
+#careon_market.render_market(bank_module=bank, bank_path="careon_bank_v2.json")
 
 # =========================
 # Local app modules (root)
