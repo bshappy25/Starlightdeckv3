@@ -174,3 +174,6 @@ def get_stats(careon: dict) -> dict:
         "rounds": int(careon.get("rounds", 0)),
         "last_bonus_date": careon.get("last_bonus_date"),
     }
+
+"sld_network_fund": 0,
+"used_deposit_codes": [],
