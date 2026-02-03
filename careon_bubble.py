@@ -20,7 +20,8 @@ def render_careon_bubble():
     st.session_state.setdefault("show_market", False)
 
     # ---- Configure your image path here (SAFE TO EDIT) ----
-    img_path = os.path.join(os.path.dirname(__file__), "assets", "careon_badge.png")
+    img_path = os.path.join(os.path.dirname(__file__), "assets", "images", "ui", "careon_badge.png")
+
 
     # Cache the data URL so we don’t re-encode every rerun
     if "careon_bubble_data_url" not in st.session_state:
