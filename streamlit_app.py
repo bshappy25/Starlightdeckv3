@@ -483,12 +483,13 @@ def render_card_tile(
     placeholder_label: str | None = None,
     height_px: int = 360,
 ):
-    """
-    Safe card renderer:
-      - If image exists → show it
-      - Else → show a styled placeholder
-    Uses the E theme utility class .sld-glass if present.
-    """
+   """
+Safe card renderer:
+  - If image exists → show it
+  - Else → show a styled placeholder
+Uses the E theme utility class .sld-glass if present.
+"""
+
     # One-time CSS for the card tile (kept minimal)
     if not st.session_state.get("_card_tile_css", False):
         st.markdown(
