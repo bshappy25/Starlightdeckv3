@@ -1,1 +1,16 @@
+assets/
+  images/
+    ui/
+    icons/
+    backgrounds/
+  cards/
+    base/
+    expansions/
+    promos/
+    thumbs/
+  audio/
+    sfx/
+    music/
+  fonts/
+  data/
 
