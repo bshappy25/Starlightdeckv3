@@ -619,9 +619,7 @@ elif view == "Join (Redeem Code)":
         )
         st.caption("You now have full hub access (Admin is locked).")
         st.rerun()
-# ----------------------------
-# Cards (Read-only)
-# ----------------------------
+
 # ----------------------------
 # Cards (Read-only)
 # ----------------------------
@@ -642,23 +640,51 @@ elif view == "Cards":
     if not sets:
         st.info("No card sets yet. Add sets/cards to assets/manifests/cards_manifest.json")
         st.stop()
+        
 
     # ----------------------------
     # Flatten cards + enrich with set info
     # ----------------------------
     all_cards = []
     for s in sets:
-        set_id = s.get("set_id", "unknown")
-        set_name = s.get("set_name", "Unnamed Set")
-        for card in s.get("cards", []):
-            c = dict(card)
-            c["_set_id"] = set_id
-            c["_set_name"] = set_name
-            all_cards.append(c)
 
-    if not all_cards:
-        st.info("Sets exist, but no cards yet.")
-        st.stop()
+    # ============================
+    # D — Set Ticker Header
+    # ============================
+    set_name = s.get("set_name", "Unnamed Set")
+
+    st.markdown(
+        f"""
+        <div style="
+            margin-top: 16px;
+            margin-bottom: 12px;
+            padding: 10px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.20);
+            background: rgba(255,255,255,0.06);
+            font-weight: 900;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            display: inline-block;
+        ">
+            {set_name}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Optional banner per set
+    banner = s.get("banner")
+    if banner:
+        banner_path = os.path.join(APP_DIR, banner)
+        if os.path.exists(banner_path):
+            st.image(banner_path, use_container_width=True)
+        else:
+            st.caption("⚠️ Set banner missing.")
+
+    # ---- existing code continues below ----
+    cards = s.get("cards", [])
+
 
     # ----------------------------
     # Filters (C6)
