@@ -977,43 +977,6 @@ with st.expander("Filters", expanded=True):
     search = st.text_input("Search name", value="", placeholder="type to filter…")
 
 
-
-    # ============================================================
-    # Grid (C7) — never crash the whole page
-    # ============================================================
-    if not cards:
-        st.info("No cards match your filters.")
-    else:
-        cols = st.columns(4)
-        for i, card in enumerate(cards):
-            with cols[i % 4]:
-                name = card.get("name", "Unnamed Card")
-                rarity = (card.get("rarity") or "").strip()
-                thumb = card.get("thumb") or card.get("image")
-
-                if "render_card_tile" in globals():
-                    render_card_tile(
-                        name=name,
-                        image_path=thumb,
-                        subtitle=(rarity if rarity else None),
-                        placeholder_color="#8EC5FF",
-                        height_px=240,
-                    )
-                else:
-                    full_thumb = os.path.join(APP_DIR, thumb) if thumb else None
-                    if full_thumb and os.path.exists(full_thumb):
-                        st.image(full_thumb, use_container_width=True)
-                    else:
-                        st.caption("missing thumbnail/image")
-                        st.markdown("⬜")
-
-                    if rarity:
-                        st.caption(rarity)
-
-                if st.button(f"View: {name}", key=f"cardpick_{_card_key(card)}", use_container_width=True):
-                    st.session_state["selected_card_id"] = _card_key(card)
-                    st.rerun()
-
 # ----------------------------
 # Economy
 # ----------------------------
