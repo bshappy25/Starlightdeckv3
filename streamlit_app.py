@@ -4,6 +4,31 @@ from datetime import datetime, timezone
 
 import streamlit as st
 
+# ============================================================
+# 🎨🎨🎨 DESIGN / CSS ZONE — SAFE TO EDIT (OBNOXIOUS ON PURPOSE)
+# ------------------------------------------------------------
+# Only edit CSS + UI styling here.
+# DO NOT change logic, JSON loading, deposit/spend, onboarding here.
+# If something breaks after design edits, revert this block first.
+# ============================================================
+
+CUSTOM_CSS = """
+<style>
+/* === SAFE STYLING ZONE === */
+
+/* Example:
+.main { background: #0b1020; color: #e6e6e6; }
+[data-testid="stSidebar"] { background: #0f1630; }
+*/
+
+/* === END SAFE STYLING ZONE === */
+</style>
+"""
+
+# ============================================================
+# CORE CONFIG — DO NOT EDIT UNLESS YOU KNOW WHY
+# ============================================================
+
 APP_DIR = os.path.dirname(__file__)
 
 BANK_PATH = os.path.join(APP_DIR, "careon_bank_v2.json")
@@ -61,9 +86,10 @@ def load_text_safe(path: str) -> str | None:
 def default_bank():
     return {
         "balance": 0,
-        "sld_network_fund": 0,
+        "sld_network_fund": 0,          # C5: visible to everyone, intentional changes only
         "total_earned": 0,
         "total_spent": 0,
+        "balances_by_user": {},         # B1: per-user balances
         "txs": [],
         "meta": {"version": "v3", "updated_at": _now_iso()},
     }
@@ -90,6 +116,50 @@ def default_users():
     }
 
 
+def ensure_user_balances(bank: dict):
+    bank.setdefault("balances_by_user", {})
+    if bank["balances_by_user"] is None:
+        bank["balances_by_user"] = {}
+
+
+def get_user_balance(bank: dict, user_id: str) -> int:
+    ensure_user_balances(bank)
+    return int(bank["balances_by_user"].get(user_id, 0))
+
+
+def set_user_balance(bank: dict, user_id: str, value: int):
+    ensure_user_balances(bank)
+    bank["balances_by_user"][user_id] = int(value)
+
+
+def rebuild_user_balances_from_txs(bank: dict):
+    """
+    B5: Backward compatible migration.
+    Rebuild personal balances by replaying txs:
+    - deposit => personal +amount
+    - spend   => personal -amount (floored at 0)
+    Global bank balance is NOT recomputed here.
+    """
+    ensure_user_balances(bank)
+    balances = {}
+
+    # txs are newest-first; replay oldest-first for correctness
+    for t in reversed(bank.get("txs", [])):
+        uid = t.get("user_id") or "user-1"
+        amt = int(t.get("amount", 0))
+        typ = t.get("type")
+
+        bal = int(balances.get(uid, 0))
+        if typ == "deposit":
+            bal += amt
+        elif typ == "spend":
+            bal = max(0, bal - amt)
+        balances[uid] = bal
+
+    bank["balances_by_user"] = balances
+    bank["meta"]["updated_at"] = _now_iso()
+
+
 def record_tx(bank: dict, user_id: str, tx_type: str, amount: int, description: str):
     tx = {
         "ts": _now_iso(),
@@ -107,7 +177,11 @@ def deposit(bank: dict, user_id: str, amount: int, description: str = ""):
     amount = int(amount)
     if amount <= 0:
         raise ValueError("Deposit amount must be greater than 0.")
+
+    # B4a: deposit adds to BOTH global + personal
     bank["balance"] = int(bank.get("balance", 0)) + amount
+    set_user_balance(bank, user_id, get_user_balance(bank, user_id) + amount)
+
     bank["total_earned"] = int(bank.get("total_earned", 0)) + amount
     return record_tx(bank, user_id, "deposit", amount, description)
 
@@ -116,10 +190,16 @@ def spend(bank: dict, user_id: str, amount: int, description: str = ""):
     amount = int(amount)
     if amount <= 0:
         raise ValueError("Spend amount must be greater than 0.")
-    bal = int(bank.get("balance", 0))
-    if amount > bal:
-        raise ValueError(f"Insufficient balance. You have {bal}, tried to spend {amount}.")
-    bank["balance"] = bal - amount
+
+    # B10: guardrail on PERSONAL balance
+    personal = get_user_balance(bank, user_id)
+    if amount > personal:
+        raise ValueError(f"Insufficient personal balance. You have {personal}, tried to spend {amount}.")
+
+    # B3 NO: spend transfers into global pool (global INCREASES on spend)
+    set_user_balance(bank, user_id, personal - amount)
+    bank["balance"] = int(bank.get("balance", 0)) + amount
+
     bank["total_spent"] = int(bank.get("total_spent", 0)) + amount
     return record_tx(bank, user_id, "spend", amount, description)
 
@@ -173,7 +253,6 @@ def admin_unlocked(active_user_id: str) -> bool:
     return bool(st.session_state.get("admin_ok", False))
 
 
-# -------- Branch A helper (identity badge) --------
 def get_user_record(users_db: dict, user_id: str) -> dict:
     for u in users_db.get("users", []):
         if u.get("user_id") == user_id:
@@ -185,6 +264,7 @@ def get_user_record(users_db: dict, user_id: str) -> dict:
 # UI
 # ============================================================
 st.set_page_config(page_title=APP_TITLE, page_icon=APP_ICON, layout="wide")
+st.markdown(CUSTOM_CSS, unsafe_allow_html=True)  # ✅ safe design injection
 
 # Branch A: allow auto-select after redeem
 st.session_state.setdefault("active_user_override", None)
@@ -199,6 +279,12 @@ if json_warnings:
 bank = load_json_safe(BANK_PATH, default_bank())
 ledger = load_json_safe(CODES_PATH, default_codes())
 users_db = load_json_safe(USERS_PATH, default_users())
+
+# Branch B: ensure per-user balances exist and rebuild from txs if missing/empty
+ensure_user_balances(bank)
+if not bank.get("balances_by_user"):
+    rebuild_user_balances_from_txs(bank)
+    save_json(BANK_PATH, bank)
 
 # Sidebar identity + navigation
 st.sidebar.markdown(f"## {APP_ICON} {APP_TITLE}")
@@ -225,10 +311,8 @@ st.session_state["active_user_override"] = None
 # Sidebar status
 st.sidebar.markdown("### Status")
 st.sidebar.metric("Global Balance", int(bank.get("balance", 0)))
-
-# C5: show SLD network fund to everyone
 st.sidebar.metric("🌍 SLD Network Fund", int(bank.get("sld_network_fund", 0)))
-
+st.sidebar.metric("My Balance", get_user_balance(bank, active_user))
 st.sidebar.caption(f"Signed in as: **{display_map.get(active_user, active_user)}**")
 
 # Branch A: identity badge
@@ -263,13 +347,14 @@ view = st.sidebar.radio("Navigate", nav, index=0)
 
 st.title("🎴 Starlight Deck — v3 Hub")
 
-# Top metrics (C5 adds the globe metric)
-c1, c2, c3, c4, c5 = st.columns(5)
+# Top metrics (B2 + C5 + B9)
+c1, c2, c3, c4, c5, c6 = st.columns(6)
 c1.metric("Global Balance", int(bank.get("balance", 0)))
 c2.metric("🌍 SLD Network Fund", int(bank.get("sld_network_fund", 0)))
-c3.metric("Total Earned", int(bank.get("total_earned", 0)))
-c4.metric("Total Spent", int(bank.get("total_spent", 0)))
-c5.metric("Codes Tracked", len(ledger.get("codes", [])))
+c3.metric("My Balance", get_user_balance(bank, active_user))
+c4.metric("Total Earned", int(bank.get("total_earned", 0)))
+c5.metric("Total Spent", int(bank.get("total_spent", 0)))
+c6.metric("Codes Tracked", len(ledger.get("codes", [])))
 st.divider()
 
 # ----------------------------
@@ -281,7 +366,7 @@ if view == "Overview":
         "This hub supports **Frontier onboarding** (access code → username/vibe → +500 Careon) "
         "and keeps Admin protected."
     )
-    st.markdown("### Recent activity")
+    st.markdown("### Recent activity (global)")
     txs = recent_txs(bank, 10)
     if txs:
         st.dataframe(txs, use_container_width=True, hide_index=True)
@@ -293,7 +378,7 @@ if view == "Overview":
 # ----------------------------
 elif view == "Join (Redeem Code)":
     st.subheader("Redeem Access Code")
-    st.caption("Frontier Wave: redeem a code to create your profile and receive +500 Careon (global).")
+    st.caption("Frontier Wave: redeem a code to create your profile and receive +500 Careon (global + personal).")
 
     vibes = ["Calm", "Bold", "Mystic", "Cozy", "Electric", "Ocean", "Forest", "Cosmic"]
 
@@ -356,7 +441,7 @@ elif view == "Join (Redeem Code)":
         row["used_at"] = _now_iso()
         ledger["meta"]["updated_at"] = _now_iso()
 
-        # Combine options: add bonus to GLOBAL bank + record tx
+        # Sign-on: deposit adds to GLOBAL + PERSONAL (B4a)
         deposit(bank, new_user["user_id"], bonus, description=f"Sign-on bonus ({title}) via access code")
 
         # Save everything
@@ -374,7 +459,7 @@ elif view == "Join (Redeem Code)":
 **Username:** {new_user['display_name']}  
 **Vibe:** {new_user['vibe']}  
 **Title:** {new_user['title']}  
-**Bonus:** +{bonus} Careon (added to global)
+**Bonus:** +{bonus} Careon (global + personal)
 """
         )
         st.caption("You now have full hub access (Admin is locked).")
@@ -384,11 +469,19 @@ elif view == "Join (Redeem Code)":
 # Economy
 # ----------------------------
 elif view == "Economy":
-    # C4b: players can spend; deposits are admin-only
+    # C4b + Branch B behavior:
+    # - Deposits are admin-only
+    # - Players can spend from PERSONAL balance
+    # - Spending transfers into GLOBAL balance (global increases on spend)
     is_admin = admin_unlocked(active_user)
 
     st.subheader("Economy")
-    st.caption("Players can spend. Deposits are admin-only. Guardrails prevent negative balance.")
+    st.caption("Personal economy. Deposits are admin-only. Spending transfers into the global pool.")
+
+    # B6c: leave obnoxiously obvious placeholder for careon_bubble.py later
+    st.markdown("## 🫧 CAREON_BUBBLE PLACEHOLDER (DO NOT REMOVE)")
+    st.info("This space is reserved for careon_bubble.py UI later.")
+    st.empty()
 
     with st.form("economy_form"):
         if is_admin:
@@ -416,9 +509,8 @@ elif view == "Economy":
         except Exception as e:
             st.error(f"{e}")
 
-    st.markdown("### Recent transactions")
-    show_only_me = st.toggle("Show only active user", value=True)
-    txs = recent_txs(bank, 25, user_id=active_user if show_only_me else None)
+    st.markdown("### Recent transactions (me)")
+    txs = recent_txs(bank, 25, user_id=active_user)
     if txs:
         st.dataframe(txs, use_container_width=True, hide_index=True)
     else:
@@ -501,4 +593,3 @@ elif view == "Admin":
                     st.rerun()
         else:
             st.info("Resets are locked until you type RESET.")
-
