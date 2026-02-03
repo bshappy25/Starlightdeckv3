@@ -386,24 +386,29 @@ c5.metric("Total Spent", int(bank.get("total_spent", 0)))
 c6.metric("Codes Tracked", len(ledger.get("codes", [])))
 st.divider()
 
-# --- Careon ticker (visual) ---
-careon_bubble_ticker.render_careon_ticker()
+# --- Careon ticker (optional / safe) ---
+try:
+    import careon_bubble_ticker
+    if hasattr(careon_bubble_ticker, "render_careon_ticker"):
+        careon_bubble_ticker.render_careon_ticker()
+    elif hasattr(careon_bubble_ticker, "render_careon_bubble"):
+        careon_bubble_ticker.render_careon_bubble()
+    else:
+        st.info("Ticker file loaded, but no render function found.")
+except Exception as e:
+    st.warning(f"Ticker disabled (error): {e}")
 
 # --- Careon bubble button (clickable) ---
 careon_bubble.render_careon_bubble()
 
-# --- Careon ticker (visual) ---
-careon_bubble_ticker.render_careon_ticker()
+# --- Careon Market UI ---
+careon_market.render_market(
+    bank=bank,
+    active_user=active_user,
+    deposit_fn=deposit,
+    save_fn=lambda: save_json(BANK_PATH, bank),
+)
 
-# --- Careon bubble button (clickable) ---
-careon_bubble.render_careon_bubble()
-# --- Careon Bubble UI (top-right under metrics) ---
-careon_bubble.render_careon_bubble()
-
-# Optional: simple placeholder until the market is built
-if st.session_state.get("show_market", False):
-    st.info("🛍️ Market coming soon… (this is the bubble toggle working)")
-careon_market.render_market(bank=bank, active_user=active_user)
 
 # ----------------------------
 # Overview
