@@ -522,6 +522,9 @@ elif view == "Join (Redeem Code)":
 # ----------------------------
 # Cards (Read-only)
 # ----------------------------
+# ----------------------------
+# Cards (Read-only)
+# ----------------------------
 elif view == "Cards":
     st.subheader("🃏 Cards Library")
     st.caption("Read-only preview from the cards manifest. No economy logic here.")
@@ -540,32 +543,138 @@ elif view == "Cards":
         st.info("No card sets yet. Add sets/cards to assets/manifests/cards_manifest.json")
         st.stop()
 
-    # Render sets + card grid
+    # ----------------------------
+    # Flatten cards + enrich with set info
+    # ----------------------------
+    all_cards = []
     for s in sets:
-        st.markdown(f"### {s.get('set_name', 'Unnamed Set')}")
-        cards = s.get("cards", [])
-        if not cards:
-            st.caption("No cards in this set yet.")
-            continue
+        set_id = s.get("set_id", "unknown")
+        set_name = s.get("set_name", "Unnamed Set")
+        for card in s.get("cards", []):
+            c = dict(card)
+            c["_set_id"] = set_id
+            c["_set_name"] = set_name
+            all_cards.append(c)
 
-        cols = st.columns(4)
-        for i, card in enumerate(cards):
-            with cols[i % 4]:
-                name = card.get("name", "Unnamed Card")
-                rarity = card.get("rarity", "")
-                thumb = card.get("thumb") or card.get("image")
+    if not all_cards:
+        st.info("Sets exist, but no cards yet.")
+        st.stop()
 
-                # Manifest paths are repo-root relative; join with APP_DIR for Streamlit runtime
-                full_path = os.path.join(APP_DIR, thumb) if thumb else None
+    # ----------------------------
+    # Filters (C6)
+    # ----------------------------
+    set_options = sorted({c.get("_set_name", "Unnamed Set") for c in all_cards})
+    rarity_options = sorted({(c.get("rarity") or "").strip() for c in all_cards if (c.get("rarity") or "").strip()})
+    tag_options = sorted({t for c in all_cards for t in (c.get("tags") or []) if isinstance(t, str)})
 
-                if full_path and os.path.exists(full_path):
-                    st.image(full_path, use_container_width=True)
-                else:
-                    st.markdown("⬜ Missing image")
+    with st.expander("Filters", expanded=True):
+        f_set = st.selectbox("Set", options=["All"] + set_options, index=0)
+        f_rarity = st.selectbox("Rarity", options=["All"] + rarity_options, index=0) if rarity_options else "All"
+        f_tags = st.multiselect("Tags", options=tag_options) if tag_options else []
 
-                st.markdown(f"**{name}**")
-                if rarity:
-                    st.caption(rarity)
+        search = st.text_input("Search name", value="", placeholder="type to filter…")
+
+    def _match(card: dict) -> bool:
+        if f_set != "All" and card.get("_set_name") != f_set:
+            return False
+        if f_rarity != "All" and (card.get("rarity") or "").strip() != f_rarity:
+            return False
+        if f_tags:
+            ct = set(card.get("tags") or [])
+            if not all(t in ct for t in f_tags):
+                return False
+        if search.strip():
+            if search.strip().lower() not in (card.get("name", "") or "").lower():
+                return False
+        return True
+
+    cards = [c for c in all_cards if _match(c)]
+
+    st.caption(f"Showing {len(cards)} card(s)")
+
+    # ----------------------------
+    # Card Inspector (C5)
+    # ----------------------------
+    st.session_state.setdefault("selected_card_id", None)
+
+    def _card_key(c: dict) -> str:
+        return c.get("card_id") or f"{c.get('_set_id','set')}-{c.get('name','card')}"
+
+    selected = None
+    if st.session_state.get("selected_card_id"):
+        for c in all_cards:
+            if _card_key(c) == st.session_state["selected_card_id"]:
+                selected = c
+                break
+
+    if selected:
+        st.markdown("### 🔎 Card Inspector")
+        colA, colB = st.columns([2, 3])
+
+        img_path = selected.get("image") or selected.get("thumb")
+        full_img = os.path.join(APP_DIR, img_path) if img_path else None
+
+        with colA:
+            if full_img and os.path.exists(full_img):
+                st.image(full_img, use_container_width=True)
+            else:
+                st.warning("Missing card image.")
+                st.markdown("⬜")
+
+        with colB:
+            st.markdown(f"**{selected.get('name', 'Unnamed Card')}**")
+            st.caption(f"Set: {selected.get('_set_name', 'Unnamed Set')}")
+            if selected.get("rarity"):
+                st.write(f"Rarity: `{selected.get('rarity')}`")
+            tags = selected.get("tags") or []
+            if tags:
+                st.write("Tags: " + ", ".join([f"`{t}`" for t in tags]))
+            if selected.get("text"):
+                st.markdown(f"> {selected.get('text')}")
+
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("Clear selection", use_container_width=True):
+                    st.session_state["selected_card_id"] = None
+                    st.rerun()
+            with c2:
+                if st.button("Close inspector", use_container_width=True):
+                    st.session_state["selected_card_id"] = None
+                    st.rerun()
+
+        st.divider()
+
+    # ----------------------------
+    # Grid (C7 guardrails: warn but never crash)
+    # ----------------------------
+    if not cards:
+        st.info("No cards match your filters.")
+        st.stop()
+
+    cols = st.columns(4)
+    for i, card in enumerate(cards):
+        with cols[i % 4]:
+            name = card.get("name", "Unnamed Card")
+            rarity = (card.get("rarity") or "").strip()
+            thumb = card.get("thumb") or card.get("image")
+
+            full_thumb = os.path.join(APP_DIR, thumb) if thumb else None
+
+            if full_thumb and os.path.exists(full_thumb):
+                st.image(full_thumb, use_container_width=True)
+            else:
+                # C7: guardrail warning (non-fatal)
+                st.caption("⚠️ missing thumbnail/image")
+                st.markdown("⬜")
+
+            if rarity:
+                st.caption(rarity)
+
+            # Click → select card for inspector
+            if st.button(f"View: {name}", key=f"cardpick_{_card_key(card)}", use_container_width=True):
+                st.session_state["selected_card_id"] = _card_key(card)
+                st.rerun()
+
 
 
 
