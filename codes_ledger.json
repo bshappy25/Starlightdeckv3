@@ -8,13 +8,7 @@
       "used_by": "",
       "used_at": "",
       "note": "Frontier wave 1"
-    }
-  ],
-  "meta": { "version": "v3" }
-}
-
-{
-  "codes": [
+    },
     {
       "code": "FRONTIER-H7Q4",
       "status": "new",
@@ -23,13 +17,7 @@
       "used_by": "",
       "used_at": "",
       "note": "Frontier wave 1"
-    }
-  ],
-  "meta": { "version": "v3" }
-}
-
-{
-  "codes": [
+    },
     {
       "code": "FRONTIER-M3T8",
       "status": "new",
@@ -38,12 +26,7 @@
       "used_by": "",
       "used_at": "",
       "note": "Frontier wave 1"
-    }
-  ],
-  "meta": { "version": "v3" }
-}
-{
-  "codes": [
+    },
     {
       "code": "FRONTIER-R5V1",
       "status": "new",
@@ -52,12 +35,7 @@
       "used_by": "",
       "used_at": "",
       "note": "Frontier wave 1"
-    }
-  ],
-  "meta": { "version": "v3" }
-}
-{
-  "codes": [
+    },
     {
       "code": "FRONTIER-L2P6",
       "status": "new",
@@ -66,13 +44,7 @@
       "used_by": "",
       "used_at": "",
       "note": "Frontier wave 1"
-    }
-  ],
-  "meta": { "version": "v3" }
-}
-
-{
-  "codes": [
+    },
     {
       "code": "FRONTIER-X8N3",
       "status": "new",
@@ -81,13 +53,7 @@
       "used_by": "",
       "used_at": "",
       "note": "Frontier wave 1"
-    }
-  ],
-  "meta": { "version": "v3" }
-}
-
-{
-  "codes": [
+    },
     {
       "code": "FRONTIER-D4S7",
       "status": "new",
@@ -96,41 +62,16 @@
       "used_by": "",
       "used_at": "",
       "note": "Frontier wave 1"
-    }
-  ],
-  "meta": { "version": "v3" }
-}
-
-{
-  "codes": [
+    },
     {
-      "code": "FRONTIER-X8N3",
+      "code": "FRONTIER-Z1J9",
       "status": "new",
       "package": { "title": "Frontier", "sign_on_bonus": 500 },
       "created_at": "2026-02-03T00:00:00Z",
       "used_by": "",
       "used_at": "",
       "note": "Frontier wave 1"
-    }
-  ],
-  "meta": { "version": "v3" }
-}
-{
-  "codes": [
-    {
-      "code": "FRONTIER-Z17J",
-      "status": "new",
-      "package": { "title": "Frontier", "sign_on_bonus": 500 },
-      "created_at": "2026-02-03T00:00:00Z",
-      "used_by": "",
-      "used_at": "",
-      "note": "Frontier wave 1"
-    }
-  ],
-  "meta": { "version": "v3" }
-}
-{
-  "codes": [
+    },
     {
       "code": "FRONTIER-C6W5",
       "status": "new",
@@ -139,13 +80,7 @@
       "used_by": "",
       "used_at": "",
       "note": "Frontier wave 1"
-    }
-  ],
-  "meta": { "version": "v3" }
-}
-
-{
-  "codes": [
+    },
     {
       "code": "FRONTIER-B7Y2",
       "status": "new",
@@ -156,6 +91,5 @@
       "note": "Frontier wave 1"
     }
   ],
-  "meta": { "version": "v3" }
+  "meta": { "version": "v3", "updated_at": "2026-02-03T00:00:00Z" }
 }
-
