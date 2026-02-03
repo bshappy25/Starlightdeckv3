@@ -957,6 +957,7 @@ else:
 # ============================================================
 # Filters (C6)
 # ============================================================
+
 set_options = sorted({c.get("_set_name", "Unnamed Set") for c in all_cards})
 rarity_options = sorted(
     {(c.get("rarity") or "").strip() for c in all_cards if (c.get("rarity") or "").strip()}
