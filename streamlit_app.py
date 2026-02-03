@@ -643,6 +643,75 @@ elif view == "Join (Redeem Code)":
 elif view == "Cards":
     st.subheader("🃏 Cards Library")
     st.caption("Read-only preview from the cards manifest.")
+# ----------------------------
+# Glass "Set Window" (featured card preview)
+# ----------------------------
+st.markdown(
+    """
+    <style>
+    .sld-glass-window{
+        border-radius: 18px;
+        padding: 14px 16px;
+        margin: 12px 0 18px 0;
+        border: 1px solid rgba(255,255,255,0.18);
+        background: linear-gradient(135deg,
+            rgba(255,255,255,0.08) 0%,
+            rgba(180,130,255,0.06) 50%,
+            rgba(120,220,210,0.05) 100%
+        );
+        backdrop-filter: blur(14px);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+        position: relative;
+        overflow: hidden;
+    }
+    .sld-glass-window::before{
+        content:'';
+        position:absolute;
+        top:-60%;
+        left:-60%;
+        width:220%;
+        height:220%;
+        background: radial-gradient(circle, rgba(255,210,122,0.10), transparent 55%);
+        animation: sldGlow 18s linear infinite;
+        pointer-events:none;
+    }
+    @keyframes sldGlow{
+        from{ transform: rotate(0deg); }
+        to{ transform: rotate(360deg); }
+    }
+    .sld-glass-title{
+        font-weight: 900;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(245,245,247,0.90);
+        margin-bottom: 8px;
+        position: relative;
+        z-index: 2;
+    }
+    .sld-glass-sub{
+        font-size: 0.9rem;
+        color: rgba(245,245,247,0.65);
+        margin-top: -2px;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 2;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
+    <div class="sld-glass-window">
+        <div class="sld-glass-title">SET WINDOW</div>
+        <div class="sld-glass-sub">Featured preview (updates when you select a card)</div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+# We'll render the featured image right under this after cards are loaded.
 
     manifest_path = os.path.join(APP_DIR, "assets", "manifests", "cards_manifest.json")
 
