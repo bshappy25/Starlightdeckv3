@@ -281,9 +281,31 @@ elif view == "Join (Redeem Code)":
         display_name = (display_name or "").strip()
 
         if len(display_name) < 3:
-            st.error("Username must be at least 3 characters.")
-            st.stop()
+    st.error("Username must be at least 3 characters.")
+    st.stop()
 
+# Normalize whitespace (optional but helps)
+display_name = " ".join(display_name.split())
+
+# Reserved names (case-insensitive)
+reserved = {"admin", "administrator", "mod", "moderator", "bshapp"}
+if display_name.lower() in reserved:
+    st.error("That username is reserved. Choose another.")
+    st.stop()
+
+# Duplicate display_name check (case-insensitive)
+existing_names = {u.get("display_name", "").strip().lower() for u in users_db.get("users", [])}
+if display_name.lower() in existing_names:
+    st.error("That username is already taken. Choose another.")
+    st.stop()
+    
+    if not display_name:
+    st.error("Username cannot be blank.")
+    st.stop()
+
+if len(display_name) > 20:
+    st.error("Username must be 20 characters or fewer.")
+    st.stop()
         row = find_code(ledger, code)
         if not row:
             st.error("Invalid code.")
