@@ -637,81 +637,9 @@ elif view == "Join (Redeem Code)":
         st.caption("You now have full hub access (Admin is locked).")
         st.rerun()
 
-# ----------------------------
-# Cards (Read-only)
-# ----------------------------
 elif view == "Cards":
     st.subheader("🃏 Cards Library")
     st.caption("Read-only preview from the cards manifest.")
-# ----------------------------
-# Glass "Set Window" (featured card preview)
-# ----------------------------
-st.markdown(
-    """
-    <style>
-    .sld-glass-window{
-        border-radius: 18px;
-        padding: 14px 16px;
-        margin: 12px 0 18px 0;
-        border: 1px solid rgba(255,255,255,0.18);
-        background: linear-gradient(135deg,
-            rgba(255,255,255,0.08) 0%,
-            rgba(180,130,255,0.06) 50%,
-            rgba(120,220,210,0.05) 100%
-        );
-        backdrop-filter: blur(14px);
-        box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-        position: relative;
-        overflow: hidden;
-    }
-    .sld-glass-window::before{
-        content:'';
-        position:absolute;
-        top:-60%;
-        left:-60%;
-        width:220%;
-        height:220%;
-        background: radial-gradient(circle, rgba(255,210,122,0.10), transparent 55%);
-        animation: sldGlow 18s linear infinite;
-        pointer-events:none;
-    }
-    @keyframes sldGlow{
-        from{ transform: rotate(0deg); }
-        to{ transform: rotate(360deg); }
-    }
-    .sld-glass-title{
-        font-weight: 900;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: rgba(245,245,247,0.90);
-        margin-bottom: 8px;
-        position: relative;
-        z-index: 2;
-    }
-    .sld-glass-sub{
-        font-size: 0.9rem;
-        color: rgba(245,245,247,0.65);
-        margin-top: -2px;
-        margin-bottom: 10px;
-        position: relative;
-        z-index: 2;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    """
-    <div class="sld-glass-window">
-        <div class="sld-glass-title">SET WINDOW</div>
-        <div class="sld-glass-sub">Featured preview (updates when you select a card)</div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-# We'll render the featured image right under this after cards are loaded.
 
     manifest_path = os.path.join(APP_DIR, "assets", "manifests", "cards_manifest.json")
 
@@ -727,9 +655,9 @@ st.markdown(
     sets = manifest.get("sets", [])
     if not sets:
         st.info("No card sets yet. Add sets/cards to assets/manifests/cards_manifest.json")
+        sets = []
 
-
-        # ----------------------------
+    # ----------------------------
     # Flatten cards + enrich with set info
     # ----------------------------
     all_cards = []
@@ -742,51 +670,147 @@ st.markdown(
             c = dict(card)  # copy
             c["_set_id"] = set_id
             c["_set_name"] = set_name
+            c["_banner"] = s.get("banner")
             all_cards.append(c)
 
-    if not all_cards:
-        st.info("Sets exist, but no cards yet.")
-        # Do not st.stop() — just show message and keep page stable
-        all_cards = []
+    # Helper to create a stable key for selection
+    def _card_key(c: dict) -> str:
+        return c.get("card_id") or f"{c.get('_set_id','set')}-{c.get('name','card')}"
 
+    # ----------------------------
+    # Selection state (C5)
+    # ----------------------------
+    st.session_state.setdefault("selected_card_id", None)
 
-    # ============================
-    # D — Set Ticker Header
-    # ============================
-    set_name = s.get("set_name", "Unnamed Set")
+    selected = None
+    sel_id = st.session_state.get("selected_card_id")
+    if sel_id:
+        for c in all_cards:
+            if _card_key(c) == sel_id:
+                selected = c
+                break
 
+    # ----------------------------
+    # Set Window (glimmer glass)
+    # ----------------------------
     st.markdown(
-        f"""
-        <div style="
-            margin-top: 16px;
-            margin-bottom: 12px;
-            padding: 10px 16px;
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.20);
-            background: rgba(255,255,255,0.06);
+        """
+        <style>
+        .sld-glass-window{
+            border-radius: 18px;
+            padding: 14px 16px;
+            margin: 12px 0 14px 0;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: linear-gradient(135deg,
+                rgba(255,255,255,0.08) 0%,
+                rgba(180,130,255,0.06) 50%,
+                rgba(120,220,210,0.05) 100%
+            );
+            backdrop-filter: blur(14px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+            position: relative;
+            overflow: hidden;
+        }
+        .sld-glass-window::before{
+            content:'';
+            position:absolute;
+            top:-60%;
+            left:-60%;
+            width:220%;
+            height:220%;
+            background: radial-gradient(circle, rgba(255,210,122,0.10), transparent 55%);
+            animation: sldGlow 18s linear infinite;
+            pointer-events:none;
+        }
+        @keyframes sldGlow{
+            from{ transform: rotate(0deg); }
+            to{ transform: rotate(360deg); }
+        }
+        .sld-glass-title{
             font-weight: 900;
             letter-spacing: 0.14em;
             text-transform: uppercase;
-            display: inline-block;
-        ">
-            {set_name}
+            color: rgba(245,245,247,0.92);
+            margin-bottom: 6px;
+            position: relative;
+            z-index: 2;
+        }
+        .sld-glass-sub{
+            font-size: 0.9rem;
+            color: rgba(245,245,247,0.65);
+            margin-top: -2px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 2;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div class="sld-glass-window">
+            <div class="sld-glass-title">SET WINDOW</div>
+            <div class="sld-glass-sub">Featured preview (select a card to update)</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    # Optional banner per set
-    banner = s.get("banner")
-    if banner:
-        banner_path = os.path.join(APP_DIR, banner)
-        if os.path.exists(banner_path):
-            st.image(banner_path, use_container_width=True)
+    # Choose a featured card: selected > first available
+    featured = selected if selected else (all_cards[0] if all_cards else None)
+
+    if featured:
+        featured_name = featured.get("name", "Featured Card")
+        featured_img = featured.get("image") or featured.get("thumb")
+
+        # If you have a helper like render_card_tile(), it will show placeholders safely.
+        if "render_card_tile" in globals():
+            render_card_tile(name=featured_name, image_path=featured_img, idx=0)
         else:
-            st.caption("⚠️ Set banner missing.")
+            full_path = os.path.join(APP_DIR, featured_img) if featured_img else None
+            if full_path and os.path.exists(full_path):
+                st.image(full_path, use_container_width=True)
+            else:
+                st.info("Featured image missing (placeholder system not found).")
+    else:
+        st.info("No cards available yet to preview.")
 
-    # ---- existing code continues below ----
-    cards = s.get("cards", [])
+    # ----------------------------
+    # Card Inspector (C5) — show only when selected
+    # ----------------------------
+    if selected:
+        st.markdown("### 🔎 Card Inspector")
+        colA, colB = st.columns([2, 3])
 
+        img_path = selected.get("image") or selected.get("thumb")
+        with colA:
+            if "render_card_tile" in globals():
+                render_card_tile(name=selected.get("name", "Card"), image_path=img_path, idx=1)
+            else:
+                full_img = os.path.join(APP_DIR, img_path) if img_path else None
+                if full_img and os.path.exists(full_img):
+                    st.image(full_img, use_container_width=True)
+                else:
+                    st.warning("Missing card image.")
+
+        with colB:
+            st.markdown(f"**{selected.get('name', 'Unnamed Card')}**")
+            st.caption(f"Set: {selected.get('_set_name', 'Unnamed Set')}")
+            if selected.get("rarity"):
+                st.write(f"Rarity: `{selected.get('rarity')}`")
+            tags = selected.get("tags") or []
+            if tags:
+                st.write("Tags: " + ", ".join([f"`{t}`" for t in tags]))
+            if selected.get("text"):
+                st.markdown(f"> {selected.get('text')}")
+
+            if st.button("Clear selection", use_container_width=True):
+                st.session_state["selected_card_id"] = None
+                st.rerun()
+
+        st.divider()
 
     # ----------------------------
     # Filters (C6)
