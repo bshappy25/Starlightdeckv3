@@ -834,22 +834,8 @@ elif view == "Cards":
     # --- Header row with Reset (simple + reliable) ---
     h1, h2 = st.columns([4, 1])
     with h1:
-        st.markdown(
-            """
-            <div style="
-                font-weight: 950;
-                letter-spacing: 0.10em;
-                font-size: 1.35rem;
-                margin-bottom: 2px;
-            ">
-                🃏 CARDS LIBRARY ✦ Starlight Index
-            </div>
-            <div style="color: rgba(245,245,247,0.70); margin-bottom: 10px;">
-                Read-only preview from the cards manifest.
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        st.markdown('<div class="sld-title">Cards Library</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sld-muted">Read-only preview from the cards manifest.</div>', unsafe_allow_html=True)
     with h2:
         st.write("")
         if st.button("Reset View", use_container_width=True):
@@ -898,75 +884,21 @@ elif view == "Cards":
                 break
 
     # ============================================================
-    # CENTRAL GLASS STAGE (Set Window + Inspector combined)
+    # CENTRAL STAGE (Preview + Inspector combined) — NO INLINE CSS
     # ============================================================
-    st.markdown(
-        """
-        <style>
-        .sld-stage{
-            border-radius: 20px;
-            padding: 16px 18px;
-            margin: 8px 0 14px 0;
-            border: 1px solid rgba(255,255,255,0.20);
-            background: linear-gradient(135deg,
-                rgba(255,255,255,0.09) 0%,
-                rgba(180,130,255,0.06) 55%,
-                rgba(120,220,210,0.05) 100%
-            );
-            backdrop-filter: blur(14px);
-            box-shadow: 0 12px 46px rgba(0,0,0,0.28);
-            position: relative;
-            overflow: hidden;
-        }
-        .sld-stage::before{
-            content:'';
-            position:absolute;
-            top:-60%;
-            left:-60%;
-            width:220%;
-            height:220%;
-            background: radial-gradient(circle, rgba(255,210,122,0.12), transparent 58%);
-            animation: sldGlow 18s linear infinite;
-            pointer-events:none;
-        }
-        @keyframes sldGlow{
-            from{ transform: rotate(0deg); }
-            to{ transform: rotate(360deg); }
-        }
-        .sld-stage-title{
-            font-weight: 950;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: rgba(245,245,247,0.92);
-            margin-bottom: 8px;
-            position: relative;
-            z-index: 2;
-        }
-        .sld-stage-sub{
-            font-size: 0.9rem;
-            color: rgba(245,245,247,0.65);
-            margin-top: -6px;
-            margin-bottom: 12px;
-            position: relative;
-            z-index: 2;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # Stage target: selected card > first available
     stage_card = selected if selected else (all_cards[0] if all_cards else None)
 
     st.markdown(
-        f"""
-        <div class="sld-stage">
-            <div class="sld-stage-title">CARD STAGE</div>
-            <div class="sld-stage-sub">
-                {"Inspector view (Reset View to return)" if selected else "Featured preview (select a card below to inspect)"}
+        """
+        <div class="sld-glass" style="margin-top:10px;">
+            <div class="sld-title" style="font-size:1.05rem;">Card Stage</div>
+            <div class="sld-muted" style="margin-top:6px;">
+                {msg}
             </div>
         </div>
-        """,
+        """.format(
+            msg=("Inspector view (Reset View to return)" if selected else "Featured preview (select a card below to inspect)")
+        ),
         unsafe_allow_html=True,
     )
 
@@ -980,7 +912,13 @@ elif view == "Cards":
 
         with colA:
             if "render_card_tile" in globals():
-                render_card_tile(name=card_name, image_path=card_img, idx=0)
+                # IMPORTANT: no idx parameter (prevents helper mismatch)
+                render_card_tile(
+                    name=card_name,
+                    image_path=card_img,
+                    subtitle=None,
+                    placeholder_color="#8EC5FF",
+                )
             else:
                 full = os.path.join(APP_DIR, card_img) if card_img else None
                 if full and os.path.exists(full):
@@ -991,11 +929,16 @@ elif view == "Cards":
         with colB:
             st.markdown(f"**{card_name}**")
             st.caption(f"Set: {stage_card.get('_set_name', 'Unnamed Set')}")
-            if stage_card.get("rarity"):
-                st.write(f"Rarity: `{(stage_card.get('rarity') or '').strip()}`")
+
+            rarity = (stage_card.get("rarity") or "").strip()
+            if rarity:
+                st.write(f"Rarity: `{rarity}`")
+
             tags = stage_card.get("tags") or []
-            if tags:
-                st.write("Tags: " + ", ".join([f"`{t}`" for t in tags if isinstance(t, str)]))
+            safe_tags = [t for t in tags if isinstance(t, str) and t.strip()]
+            if safe_tags:
+                st.write("Tags: " + ", ".join([f"`{t}`" for t in safe_tags]))
+
             if stage_card.get("text"):
                 st.markdown(f"> {stage_card.get('text')}")
 
@@ -1016,7 +959,7 @@ elif view == "Cards":
         f_set = st.selectbox("Set", options=["All"] + set_options, index=0)
         f_rarity = st.selectbox("Rarity", options=["All"] + rarity_options, index=0) if rarity_options else "All"
         f_tags = st.multiselect("Tags", options=tag_options) if tag_options else []
-        search = st.text_input("Search name", value="", placeholder="type to filter…")
+        search = st.text_input("Search name", value="", placeholder="type to filter...")
 
     def _match(card: dict) -> bool:
         if f_set != "All" and card.get("_set_name") != f_set:
@@ -1049,23 +992,27 @@ elif view == "Cards":
                 thumb = card.get("thumb") or card.get("image")
 
                 if "render_card_tile" in globals():
-                    render_card_tile(name=name, image_path=thumb, idx=i)
+                    render_card_tile(
+                        name=name,
+                        image_path=thumb,
+                        subtitle=(rarity if rarity else None),
+                        placeholder_color="#8EC5FF",
+                        height_px=240,
+                    )
                 else:
                     full_thumb = os.path.join(APP_DIR, thumb) if thumb else None
                     if full_thumb and os.path.exists(full_thumb):
                         st.image(full_thumb, use_container_width=True)
                     else:
-                        st.caption("⚠️ missing thumbnail/image")
+                        st.caption("missing thumbnail/image")
                         st.markdown("⬜")
 
-                if rarity:
-                    st.caption(rarity)
+                    if rarity:
+                        st.caption(rarity)
 
                 if st.button(f"View: {name}", key=f"cardpick_{_card_key(card)}", use_container_width=True):
                     st.session_state["selected_card_id"] = _card_key(card)
                     st.rerun()
-
-
 
 # ----------------------------
 # Economy
