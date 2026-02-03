@@ -367,7 +367,7 @@ if active_user != "bshapp" and not st.session_state.get("admin_ok", False):
                 st.sidebar.error("Incorrect password (or secrets not configured).")
 
 # C2: Codes + Admin are admin-only in navigation
-nav = ["Overview", "Join (Redeem Code)", "Economy", "Docs"]
+nav = ["Overview", "Join (Redeem Code)", "Economy", "Cards", "Codes", "Docs"]
 if admin_unlocked(active_user):
     nav.insert(3, "Codes")  # shows only for admin
     nav.append("Admin")
@@ -519,6 +519,55 @@ elif view == "Join (Redeem Code)":
         )
         st.caption("You now have full hub access (Admin is locked).")
         st.rerun()
+# ----------------------------
+# Cards (Read-only)
+# ----------------------------
+elif view == "Cards":
+    st.subheader("🃏 Cards Library")
+    st.caption("Read-only preview from the cards manifest. No economy logic here.")
+
+    manifest_path = os.path.join(APP_DIR, "assets", "manifests", "cards_manifest.json")
+
+    try:
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            manifest = json.load(f)
+    except Exception as e:
+        st.error(f"Could not load cards_manifest.json: {e}")
+        st.stop()
+
+    sets = manifest.get("sets", [])
+    if not sets:
+        st.info("No card sets yet. Add sets/cards to assets/manifests/cards_manifest.json")
+        st.stop()
+
+    # Render sets + card grid
+    for s in sets:
+        st.markdown(f"### {s.get('set_name', 'Unnamed Set')}")
+        cards = s.get("cards", [])
+        if not cards:
+            st.caption("No cards in this set yet.")
+            continue
+
+        cols = st.columns(4)
+        for i, card in enumerate(cards):
+            with cols[i % 4]:
+                name = card.get("name", "Unnamed Card")
+                rarity = card.get("rarity", "")
+                thumb = card.get("thumb") or card.get("image")
+
+                # Manifest paths are repo-root relative; join with APP_DIR for Streamlit runtime
+                full_path = os.path.join(APP_DIR, thumb) if thumb else None
+
+                if full_path and os.path.exists(full_path):
+                    st.image(full_path, use_container_width=True)
+                else:
+                    st.markdown("⬜ Missing image")
+
+                st.markdown(f"**{name}**")
+                if rarity:
+                    st.caption(rarity)
+
+
 
 # ----------------------------
 # Economy
