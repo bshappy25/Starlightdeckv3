@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timezone
 
 import streamlit as st
+import careon_bubble
 
 # ============================================================
 # 🎨🎨🎨 DESIGN / CSS ZONE — SAFE TO EDIT (OBNOXIOUS ON PURPOSE)
@@ -356,6 +357,13 @@ c4.metric("Total Earned", int(bank.get("total_earned", 0)))
 c5.metric("Total Spent", int(bank.get("total_spent", 0)))
 c6.metric("Codes Tracked", len(ledger.get("codes", [])))
 st.divider()
+
+# --- Careon Bubble UI (top-right under metrics) ---
+careon_bubble.render_careon_bubble()
+
+# Optional: simple placeholder until the market is built
+if st.session_state.get("show_market", False):
+    st.info("🛍️ Market coming soon… (this is the bubble toggle working)")
 
 # ----------------------------
 # Overview
