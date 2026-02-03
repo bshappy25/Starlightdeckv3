@@ -1,17 +1,34 @@
+# ================================
+# Starlight Deck — Main App
+# ================================
+
 import json
 import os
 from datetime import datetime, timezone
 
 import streamlit as st
+
+# Local modules (must exist in repo root)
 import careon_bubble
 import careon_market
 
-# ...
-#careon_market.render_market(
-    bank=bank,
-    active_user=active_user,
-    deposit_fn=deposit,
-    save_fn=lambda: save_json(BANK_PATH, bank),
+
+# ----------------
+# App constants
+# ----------------
+APP_DIR = os.path.dirname(__file__)
+
+BANK_PATH = os.path.join(APP_DIR, "careon_bank_v2.json")
+CODES_PATH = os.path.join(APP_DIR, "codes_ledger.json")
+USERS_PATH = os.path.join(APP_DIR, "user_profile.json")
+
+RULES_MD = os.path.join(APP_DIR, "rules.md")
+CURRENCY_MD = os.path.join(APP_DIR, "currency.md")
+USERS_MD = os.path.join(APP_DIR, "users.md")
+
+APP_TITLE = "Starlight Deck"
+APP_ICON = "🎴"
+
 
 
 
