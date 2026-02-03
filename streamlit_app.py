@@ -458,55 +458,152 @@ def get_user_record(users_db: dict, user_id: str) -> dict:
     return {}
 
 # ============================================================
-# Cards View Helpers (placeholders + safe image handling)
+# 🃏 CARD VIEWER HELPER — SAFE / NO LOGIC SIDE EFFECTS
+# ------------------------------------------------------------
+# Put this BEFORE the main UI block.
+# Used by Cards grid + Card Stage. Never crashes if assets missing.
 # ============================================================
 
-_PLACEHOLDER_COLORS = ["#4da3ff", "#ff4d4d", "#ffd24d"]  # blue, red, yellow
+def _safe_join_app_path(app_dir: str, rel_path: str | None) -> str | None:
+    if not rel_path:
+        return None
+    rel_path = str(rel_path).lstrip("/").strip()
+    if not rel_path:
+        return None
+    return os.path.join(app_dir, rel_path)
 
 
-def render_card_tile(name: str, image_path: str | None, idx: int = 0, caption: str = ""):
+def render_card_tile(
+    name: str,
+    image_path: str | None,
+    idx: int = 0,
+    *,
+    subtitle: str | None = None,
+    placeholder_color: str = "#8EC5FF",  # blue default
+    placeholder_label: str | None = None,
+    height_px: int = 360,
+):
     """
-    Render a card tile:
-      - If image_path exists, show image.
-      - Otherwise show a colored placeholder (blue/red/yellow rotating by idx).
+    Safe card renderer:
+      - If image exists → show it
+      - Else → show a styled placeholder
+    Uses the E theme utility class .sld-glass if present.
     """
-    # Try image if provided
-    full_img = os.path.join(APP_DIR, image_path) if image_path else None
-    if full_img and os.path.exists(full_img):
-        st.image(full_img, use_container_width=True)
-        if caption:
-            st.caption(caption)
-        return
+    # One-time CSS for the card tile (kept minimal)
+    if not st.session_state.get("_card_tile_css", False):
+        st.markdown(
+            """
+            <style>
+            .sld-card-tile{
+                border-radius: 16px;
+                padding: 10px;
+                border: 1px solid rgba(255,255,255,0.16);
+                background: rgba(255,255,255,0.06);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+                overflow: hidden;
+            }
+            .sld-card-title{
+                font-weight: 900;
+                letter-spacing: 0.06em;
+                margin-top: 8px;
+                margin-bottom: 2px;
+            }
+            .sld-card-sub{
+                color: rgba(245,245,247,0.65);
+                font-size: 0.9rem;
+                margin-top: 0px;
+            }
+            .sld-card-img{
+                width: 100%;
+                height: auto;
+                border-radius: 12px;
+                border: 1px solid rgba(255,255,255,0.12);
+            }
+            .sld-card-ph{
+                width: 100%;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                padding: 12px;
+                font-weight: 950;
+                letter-spacing: 0.10em;
+                color: rgba(0,0,0,0.78);
+                box-shadow: 0 8px 24px rgba(0,0,0,0.20);
+                user-select: none;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.session_state["_card_tile_css"] = True
 
-    # Placeholder fallback
-    color = _PLACEHOLDER_COLORS[idx % len(_PLACEHOLDER_COLORS)]
-    safe_name = (name or "CARD").strip()[:28]
+    # Resolve file
+    full_path = _safe_join_app_path(APP_DIR, image_path)
+    exists = bool(full_path and os.path.exists(full_path))
 
-    st.markdown(
-        f"""
-        <div style="
-            width: 100%;
-            aspect-ratio: 3 / 4;
-            border-radius: 14px;
-            background: {color};
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px;
-            text-align: center;
-            font-weight: 900;
-            letter-spacing: 0.10em;
-            color: rgba(0,0,0,0.75);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-        ">
-            {safe_name}
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    if caption:
-        st.caption(caption)
+    # Container (glassy if your E theme exists)
+    st.markdown('<div class="sld-card-tile sld-glass">', unsafe_allow_html=True)
 
+    if exists:
+        # Use Streamlit image (safe sizing)
+        st.image(full_path, use_container_width=True)
+    else:
+        # Placeholder label
+        label = placeholder_label if placeholder_label is not None else (name or "CARD")
+
+        # Placeholder height using inline style (avoids aspect-ratio quirks)
+        ph_style = (
+            "height:" + str(int(height_px)) + "px;"
+            "background:" + str(placeholder_color) + ";"
+        )
+        html = (
+            '<div class="sld-card-ph" style="' + ph_style + '">'
+            + str(label)
+            + "</div>"
+        )
+        st.markdown(html, unsafe_allow_html=True)
+
+    # Titles
+    safe_name = name or "Unnamed Card"
+    st.markdown(f'<div class="sld-card-title">{safe_name}</div>', unsafe_allow_html=True)
+    if subtitle:
+        st.markdown(f'<div class="sld-card-sub">{subtitle}</div>', unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+def render_card_placeholder_set():
+    """
+    Optional helper: standard placeholders for your early-stage sets.
+    Blue for 1, Red for 2, Yellow for 3 (as you described).
+    """
+    cols = st.columns(3)
+    with cols[0]:
+        render_card_tile(
+            name="INTRO 1",
+            image_path=None,
+            placeholder_color="#8EC5FF",
+            placeholder_label="INTRO\nCARD 1",
+            height_px=320,
+        )
+    with cols[1]:
+        render_card_tile(
+            name="INTRO 2",
+            image_path=None,
+            placeholder_color="#FF7A7A",
+            placeholder_label="INTRO\nCARD 2",
+            height_px=320,
+        )
+    with cols[2]:
+        render_card_tile(
+            name="INTRO 3",
+            image_path=None,
+            placeholder_color="#FFE07A",
+            placeholder_label="INTRO\nCARD 3",
+            height_px=320,
+        )
 
 # ============================================================
 # UI
