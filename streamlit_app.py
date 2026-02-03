@@ -840,21 +840,20 @@ elif view == "Join (Redeem Code)":
 
 elif view == "Cards":
     # ============================================================
-    # CARDS — Read-only Library (Manifest-driven)
+    # 🃏 CARDS — Read-only Library (Manifest-driven)
     # ============================================================
 
-    # --- Header row with Reset (simple + reliable) ---
+    # --- Header row with Reset ---
     h1, h2 = st.columns([4, 1])
     with h1:
-        st.markdown('<div class="sld-title">Cards Library</div>', unsafe_allow_html=True)
-        st.markdown('<div class="sld-muted">Read-only preview from the cards manifest.</div>', unsafe_allow_html=True)
+        st.markdown("## 🃏 Cards Library")
+        st.caption("Read-only preview from the cards manifest.")
     with h2:
-        st.write("")
         if st.button("Reset View", use_container_width=True):
             st.session_state["selected_card_id"] = None
             st.rerun()
 
-    # --- Load manifest safely (never lock out app) ---
+    # --- Load manifest safely ---
     manifest_path = os.path.join(APP_DIR, "assets", "manifests", "cards_manifest.json")
     manifest = {"version": "v1", "sets": []}
 
@@ -868,139 +867,110 @@ elif view == "Cards":
     if not sets:
         st.info("No card sets yet. Add sets/cards to assets/manifests/cards_manifest.json")
 
-    # --- Flatten cards + enrich with set info ---
+    # --- Flatten cards ---
     all_cards = []
     for s in sets:
-        set_id = s.get("set_id", "unknown")
         set_name = s.get("set_name", "Unnamed Set")
-        banner = s.get("banner")
-        cards_in_set = s.get("cards", []) or []
-        for card in cards_in_set:
+        for card in s.get("cards", []) or []:
             c = dict(card)
-            c["_set_id"] = set_id
             c["_set_name"] = set_name
-            c["_banner"] = banner
             all_cards.append(c)
 
     def _card_key(c: dict) -> str:
-        return c.get("card_id") or f"{c.get('_set_id','set')}-{c.get('name','card')}"
+        return c.get("card_id") or f"{c.get('_set_name','set')}-{c.get('name','card')}"
 
-    # --- Selection state (single source of truth) ---
+    # --- Selection state ---
     st.session_state.setdefault("selected_card_id", None)
     selected = None
-    sel_id = st.session_state.get("selected_card_id")
-    if sel_id:
+    if st.session_state["selected_card_id"]:
         for c in all_cards:
-            if _card_key(c) == sel_id:
+            if _card_key(c) == st.session_state["selected_card_id"]:
                 selected = c
                 break
 
     # ============================================================
-    # CENTRAL STAGE (Preview + Inspector combined) — NO INLINE CSS
+    # CARD STAGE (single unified preview)
     # ============================================================
+    st.markdown("### ✦ Card Stage")
+
     stage_card = selected if selected else (all_cards[0] if all_cards else None)
-stage_msg = "Inspector view (Reset View to return)" if selected else "Featured preview (select a card below to inspect)"
 
-st.markdown(
-    f'''
-    <div class="sld-glass" style="margin-top:10px;">
-        <div class="sld-title" style="font-size:1.05rem;">Card Stage</div>
-        <div class="sld-muted" style="margin-top:6px;">
-            {stage_msg}
-        </div>
-    </div>
-if not stage_card:
-    st.info("No cards available yet to preview.")
-else:
-    ...
+    if not stage_card:
+        st.info("No cards available yet to preview.")
+    else:
+        colA, colB = st.columns([2, 3])
 
-        card_name = stage_card.get("name", "Card")
-        card_img = stage_card.get("image") or stage_card.get("thumb")
+        name = stage_card.get("name", "Card")
+        img = stage_card.get("image") or stage_card.get("thumb")
 
         with colA:
-            if "render_card_tile" in globals():
-                # IMPORTANT: no idx parameter (prevents helper mismatch)
-                render_card_tile(
-                    name=card_name,
-                    image_path=card_img,
-                    subtitle=None,
-                    placeholder_color="#8EC5FF",
-                )
-            else:
-                full = os.path.join(APP_DIR, card_img) if card_img else None
-                if full and os.path.exists(full):
-                    st.image(full, use_container_width=True)
-                else:
-                    st.markdown("⬜")
+            render_card_tile(
+                name=name,
+                image_path=img,
+                subtitle=None,
+            )
 
         with colB:
-            st.markdown(f"**{card_name}**")
+            st.markdown(f"**{name}**")
             st.caption(f"Set: {stage_card.get('_set_name', 'Unnamed Set')}")
-
-            rarity = (stage_card.get("rarity") or "").strip()
-            if rarity:
-                st.write(f"Rarity: `{rarity}`")
-
-            tags = stage_card.get("tags") or []
-            safe_tags = [t for t in tags if isinstance(t, str) and t.strip()]
-            if safe_tags:
-                st.write("Tags: " + ", ".join([f"`{t}`" for t in safe_tags]))
-
+            if stage_card.get("rarity"):
+                st.write(f"Rarity: `{stage_card.get('rarity')}`")
+            if stage_card.get("tags"):
+                st.write("Tags: " + ", ".join(stage_card.get("tags")))
             if stage_card.get("text"):
                 st.markdown(f"> {stage_card.get('text')}")
 
-            # Placeholder action (safe)
-            if st.button("View / Open", use_container_width=True):
-                st.info("Open action placeholder (input later).")
+            st.button("Open (placeholder)", use_container_width=True)
+
+    st.divider()
 
     # ============================================================
-    # Filters (C6)
+    # Filters
     # ============================================================
     set_options = sorted({c.get("_set_name", "Unnamed Set") for c in all_cards})
     rarity_options = sorted(
         {(c.get("rarity") or "").strip() for c in all_cards if (c.get("rarity") or "").strip()}
     )
-    tag_options = sorted(
-        {t for c in all_cards for t in (c.get("tags") or []) if isinstance(t, str) and t.strip()}
-    )
 
     with st.expander("Filters", expanded=True):
-        f_set = st.selectbox("Set", options=["All"] + set_options, index=0)
+        f_set = st.selectbox("Set", ["All"] + set_options)
+        f_rarity = st.selectbox("Rarity", ["All"] + rarity_options) if rarity_options else "All"
+        search = st.text_input("Search name")
 
-        if rarity_options:
-            f_rarity = st.selectbox("Rarity", options=["All"] + rarity_options, index=0)
-        else:
-            f_rarity = "All"
-
-        if tag_options:
-            f_tags = st.multiselect("Tags", options=tag_options)
-        else:
-            f_tags = []
-
-        search = st.text_input("Search name", value="", placeholder="type to filter...")
-
-    def _match(card: dict) -> bool:
-        if f_set != "All" and card.get("_set_name") != f_set:
+    def _match(c: dict) -> bool:
+        if f_set != "All" and c.get("_set_name") != f_set:
             return False
-
-        if f_rarity != "All" and (card.get("rarity") or "").strip() != f_rarity:
+        if f_rarity != "All" and (c.get("rarity") or "").strip() != f_rarity:
             return False
-
-        if f_tags:
-            ct = set(card.get("tags") or [])
-            for t in f_tags:
-                if t not in ct:
-                    return False
-
-        if search.strip():
-            if search.strip().lower() not in (card.get("name", "") or "").lower():
-                return False
-
+        if search and search.lower() not in (c.get("name", "") or "").lower():
+            return False
         return True
 
     cards = [c for c in all_cards if _match(c)]
     st.caption(f"Showing {len(cards)} card(s)")
 
+    # ============================================================
+    # Card Grid
+    # ============================================================
+    if not cards:
+        st.info("No cards match your filters.")
+    else:
+        cols = st.columns(4)
+        for i, card in enumerate(cards):
+            with cols[i % 4]:
+                render_card_tile(
+                    name=card.get("name", "Card"),
+                    image_path=card.get("thumb") or card.get("image"),
+                    subtitle=card.get("rarity"),
+                )
+
+                if st.button(
+                    f"View: {card.get('name','Card')}",
+                    key=f"cardpick_{_card_key(card)}",
+                    use_container_width=True,
+                ):
+                    st.session_state["selected_card_id"] = _card_key(card)
+                    st.rerun()
 
 # ----------------------------
 # Economy
