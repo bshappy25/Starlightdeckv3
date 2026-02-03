@@ -42,29 +42,32 @@ APP_ICON = "🎴"
 # ============================================================
 
 THEME = {
-    # Core palette
-    "bg": "#0b1020",
+    # Core palette (slightly lighter + supports scroll gradient)
+    "bg_top": "#111a33",
+    "bg_bottom": "#0b1020",
+
     "panel": "rgba(255,255,255,0.06)",
     "panel2": "rgba(255,255,255,0.09)",
-    "text": "rgba(245,245,247,0.92)",
-    "muted": "rgba(245,245,247,0.65)",
+    "text": "rgba(15, 18, 25, 0.95)",     # <-- for sidebar white
+    "muted": "rgba(25, 28, 36, 0.70)",    # <-- for sidebar white
 
-    # Accents (edit these freely)
+    # Accents (gold-forward)
     "gold": "#ffd27a",
     "violet": "#b482ff",
     "teal": "#78dcd2",
 
-    # Effects (edit these freely)
-    "glow": "0.18",          # 0.00–0.35 (higher = more glow)
-    "sparkle": "0.10",       # 0.00–0.25 (higher = more sparkle)
-    "blur": "14px",          # glass blur
-    "radius": "18px",        # rounding
+    # Effects (subtle)
+    "glow": "0.12",
+    "sparkle": "0.06",
+    "blur": "14px",
+    "radius": "18px",
 
-    # Lettering (edit these freely)
-    "title_weight": "950",
-    "title_spacing": "0.14em",
-    "caps": "uppercase"
+    # Lettering (E4-B: normal case + softer spacing)
+    "title_weight": "900",
+    "title_spacing": "0.06em",
+    "caps": "none"
 }
+
 
 CUSTOM_CSS = f"""
 <style>
@@ -74,7 +77,10 @@ CUSTOM_CSS = f"""
    ============================ */
 
 :root {{
-  --bg: {THEME["bg"]};
+  --bg-top: {THEME["bg_top"]};
+  --bg-bottom: {THEME["bg_bottom"]};
+
+  
   --panel: {THEME["panel"]};
   --panel2: {THEME["panel2"]};
   --text: {THEME["text"]};
@@ -95,24 +101,29 @@ CUSTOM_CSS = f"""
 }}
 
 /* --- Page background --- */
-.stApp {{
-  background: radial-gradient(circle at 20% 15%,
+.stApp {
+  background:
+    radial-gradient(circle at 20% 15%,
       rgba(180,130,255, calc(var(--sparkle))) 0%,
-      transparent 40%),
+      transparent 42%),
     radial-gradient(circle at 85% 25%,
       rgba(120,220,210, calc(var(--sparkle))) 0%,
-      transparent 40%),
-    var(--bg);
-  color: var(--text);
-}}
+      transparent 42%),
+    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 70%);
+  color: rgba(245,245,247,0.92); /* main app text stays light */
+}
+
 
 /* --- Sidebar --- */
-[data-testid="stSidebar"] {{
-  background: linear-gradient(180deg,
-      rgba(255,255,255,0.06),
-      rgba(255,255,255,0.02));
-  border-right: 1px solid rgba(255,255,255,0.10);
-}}
+[data-testid="stSidebar"] {
+  background: #ffffff !important;
+  border-right: 1px solid rgba(0,0,0,0.18) !important;
+  box-shadow: none !important;
+}
+
+[data-testid="stSidebar"] * {
+  color: rgba(15,18,25,0.95) !important;
+}
 
 /* --- Global typography nudges --- */
 html, body, [class*="css"] {{
