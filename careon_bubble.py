@@ -34,86 +34,74 @@ def render_careon_bubble():
 
     # ---- CSS (isolated) ----
     st.markdown(
-        f"""
-        <style>
-        /* ===== Careon Bubble Button (Image) ===== */
-        .careon-bubble-wrap {{
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            margin-top: 6px;
-            margin-bottom: 10px;
+    f"""
+    <style>
+    /* ===== Careon Bubble Button (Image-based, FIXED) ===== */
+
+    .careon-bubble-wrap {{
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 6px;
+        margin-bottom: 10px;
+    }}
+
+    /* Target the ACTUAL button */
+    .careon-bubble-wrap button {{
+        all: unset !important;
+        cursor: pointer !important;
+
+        width: 240px;
+        height: 72px;
+
+        background-image: url("{img_url}") !important;
+        background-repeat: no-repeat !important;
+        background-position: center !important;
+        background-size: contain !important;
+
+        border-radius: 20px;
+        display: block;
+
+        /* Glow */
+        box-shadow:
+            0 0 22px rgba(246,193,119,0.6),
+            0 0 38px rgba(180,130,255,0.45),
+            0 0 64px rgba(120,220,210,0.35);
+
+        animation: careonPulse 1.8s ease-in-out infinite;
+    }}
+
+    /* Kill Streamlit's internal button div */
+    .careon-bubble-wrap button > div {{
+        display: none !important;
+    }}
+
+    @keyframes careonPulse {{
+        0% {{
+            transform: scale(1.0);
+            filter: drop-shadow(0 6px 16px rgba(246,193,119,0.35));
         }}
-
-        /* Target the button inside our wrap */
-        .careon-bubble-wrap div[data-testid="stButton"] > button {{
-            width: 220px !important;      /* adjust as needed */
-            height: 64px !important;      /* adjust as needed */
-            border-radius: 18px !important;
-            border: 0 !important;
-            background: transparent !important;
-
-            background-image: url("{img_url}") !important;
-            background-repeat: no-repeat !important;
-            background-position: center !important;
-            background-size: contain !important;
-
-            box-shadow:
-                0 0 18px rgba(180,130,255,0.55),
-                0 0 32px rgba(120,220,210,0.35) !important;
-
-            filter: drop-shadow(0 6px 18px rgba(246,193,119,0.35));
-            transition: transform 0.12s ease, filter 0.12s ease;
-            padding: 0 !important;
+        50% {{
+            transform: scale(1.04);
+            filter: drop-shadow(0 10px 28px rgba(246,193,119,0.55));
         }}
-
-        /* Hide the button text (we use image) */
-        .careon-bubble-wrap div[data-testid="stButton"] > button span {{
-            opacity: 0 !important;
+        100% {{
+            transform: scale(1.0);
+            filter: drop-shadow(0 6px 16px rgba(246,193,119,0.35));
         }}
+    }}
 
-        /* Pulsating glow */
-        @keyframes careonPulse {{
-            0% {{
-                transform: scale(1.0);
-                box-shadow:
-                    0 0 14px rgba(180,130,255,0.45),
-                    0 0 24px rgba(120,220,210,0.25);
-                filter: drop-shadow(0 6px 14px rgba(246,193,119,0.28));
-            }}
-            50% {{
-                transform: scale(1.03);
-                box-shadow:
-                    0 0 22px rgba(180,130,255,0.75),
-                    0 0 42px rgba(120,220,210,0.45);
-                filter: drop-shadow(0 8px 20px rgba(246,193,119,0.42));
-            }}
-            100% {{
-                transform: scale(1.0);
-                box-shadow:
-                    0 0 14px rgba(180,130,255,0.45),
-                    0 0 24px rgba(120,220,210,0.25);
-                filter: drop-shadow(0 6px 14px rgba(246,193,119,0.28));
-            }}
-        }}
+    .careon-bubble-wrap button:hover {{
+        transform: scale(1.06);
+    }}
 
-        .careon-bubble-wrap div[data-testid="stButton"] > button {{
-            animation: careonPulse 1.8s ease-in-out infinite;
-        }}
+    .careon-bubble-wrap button:active {{
+        transform: scale(0.98);
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-        /* Hover */
-        .careon-bubble-wrap div[data-testid="stButton"] > button:hover {{
-            transform: translateY(-1px) scale(1.04);
-            filter: drop-shadow(0 10px 26px rgba(246,193,119,0.55));
-        }}
-
-        .careon-bubble-wrap div[data-testid="stButton"] > button:active {{
-            transform: scale(0.99);
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
 
     # ---- UI ----
     st.markdown('<div class="careon-bubble-wrap">', unsafe_allow_html=True)
