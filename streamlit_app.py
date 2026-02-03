@@ -41,42 +41,142 @@ APP_ICON = "🎴"
 # If something breaks after design edits, revert this block first.
 # ============================================================
 
-CUSTOM_CSS = """
+THEME = {
+    # Core palette
+    "bg": "#0b1020",
+    "panel": "rgba(255,255,255,0.06)",
+    "panel2": "rgba(255,255,255,0.09)",
+    "text": "rgba(245,245,247,0.92)",
+    "muted": "rgba(245,245,247,0.65)",
+
+    # Accents (edit these freely)
+    "gold": "#ffd27a",
+    "violet": "#b482ff",
+    "teal": "#78dcd2",
+
+    # Effects (edit these freely)
+    "glow": "0.18",          # 0.00–0.35 (higher = more glow)
+    "sparkle": "0.10",       # 0.00–0.25 (higher = more sparkle)
+    "blur": "14px",          # glass blur
+    "radius": "18px",        # rounding
+
+    # Lettering (edit these freely)
+    "title_weight": "950",
+    "title_spacing": "0.14em",
+    "caps": "uppercase"
+}
+
+CUSTOM_CSS = f"""
 <style>
-/* === SAFE STYLING ZONE === */
+/* ============================
+   E — HUB AESTHETIC (SAFE)
+   Change THEME values only
+   ============================ */
 
-/* Example:
-.main { background: #0b1020; color: #e6e6e6; }
-[data-testid="stSidebar"] { background: #0f1630; }
-*/
+:root {{
+  --bg: {THEME["bg"]};
+  --panel: {THEME["panel"]};
+  --panel2: {THEME["panel2"]};
+  --text: {THEME["text"]};
+  --muted: {THEME["muted"]};
 
-/* === END SAFE STYLING ZONE === */
+  --gold: {THEME["gold"]};
+  --violet: {THEME["violet"]};
+  --teal: {THEME["teal"]};
+
+  --glow: {THEME["glow"]};
+  --sparkle: {THEME["sparkle"]};
+  --blur: {THEME["blur"]};
+  --radius: {THEME["radius"]};
+
+  --title-weight: {THEME["title_weight"]};
+  --title-spacing: {THEME["title_spacing"]};
+  --caps: {THEME["caps"]};
+}}
+
+/* --- Page background --- */
+.stApp {{
+  background: radial-gradient(circle at 20% 15%,
+      rgba(180,130,255, calc(var(--sparkle))) 0%,
+      transparent 40%),
+    radial-gradient(circle at 85% 25%,
+      rgba(120,220,210, calc(var(--sparkle))) 0%,
+      transparent 40%),
+    var(--bg);
+  color: var(--text);
+}}
+
+/* --- Sidebar --- */
+[data-testid="stSidebar"] {{
+  background: linear-gradient(180deg,
+      rgba(255,255,255,0.06),
+      rgba(255,255,255,0.02));
+  border-right: 1px solid rgba(255,255,255,0.10);
+}}
+
+/* --- Global typography nudges --- */
+html, body, [class*="css"] {{
+  color: var(--text);
+}}
+
+/* --- “Glassy card” utility class you can reuse --- */
+.sld-glass {{
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: linear-gradient(135deg,
+      rgba(255,255,255,0.08) 0%,
+      rgba(180,130,255,0.06) 55%,
+      rgba(120,220,210,0.05) 100%);
+  backdrop-filter: blur(var(--blur));
+  box-shadow:
+      0 10px 40px rgba(0,0,0,0.25),
+      0 0 28px rgba(255,210,122, calc(var(--glow)));
+  position: relative;
+  overflow: hidden;
+}}
+
+.sld-glass::before {{
+  content:'';
+  position:absolute;
+  top:-60%;
+  left:-60%;
+  width:220%;
+  height:220%;
+  background: radial-gradient(circle,
+      rgba(255,210,122, calc(var(--sparkle))) 0%,
+      transparent 58%);
+  animation: sldGlow 18s linear infinite;
+  pointer-events:none;
+}}
+
+@keyframes sldGlow {{
+  from {{ transform: rotate(0deg); }}
+  to   {{ transform: rotate(360deg); }}
+}}
+
+/* --- Title style utility --- */
+.sld-title {{
+  font-weight: var(--title-weight);
+  letter-spacing: var(--title-spacing);
+  text-transform: var(--caps);
+  background: linear-gradient(135deg, var(--gold), var(--violet), var(--teal));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 2px 10px rgba(255,210,122, calc(var(--glow))));
+}}
+
+/* --- Small muted text utility --- */
+.sld-muted {{
+  color: var(--muted);
+}}
+
+/* ============================
+   END E — HUB AESTHETIC (SAFE)
+   ============================ */
 </style>
 """
-
-
-def render_card_placeholder(color: str, label: str):
-    st.markdown(
-        f"""
-        <div style="
-            width: 100%;
-            aspect-ratio: 3 / 4;
-            border-radius: 14px;
-            background: {color};
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            letter-spacing: 0.12em;
-            color: rgba(0,0,0,0.75);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-        ">
-            {label}
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
 
 # ============================================================
 # CORE CONFIG — DO NOT EDIT UNLESS YOU KNOW WHY
