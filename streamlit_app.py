@@ -483,13 +483,12 @@ def render_card_tile(
     placeholder_label: str | None = None,
     height_px: int = 360,
 ):
-"""
-Safe card renderer:
-  - If image exists: show it
-  - Else: show a styled placeholder
-Uses the E theme utility class .sld-glass if present.
-"""
-
+    """
+    Safe card renderer:
+      - If image exists: show it
+      - Else: show a styled placeholder
+    Uses the E theme utility class .sld-glass if present.
+    """
 
     # One-time CSS for the card tile (kept minimal)
     if not st.session_state.get("_card_tile_css", False):
@@ -515,12 +514,6 @@ Uses the E theme utility class .sld-glass if present.
                 font-size: 0.9rem;
                 margin-top: 0px;
             }
-            .sld-card-img{
-                width: 100%;
-                height: auto;
-                border-radius: 12px;
-                border: 1px solid rgba(255,255,255,0.12);
-            }
             .sld-card-ph{
                 width: 100%;
                 border-radius: 12px;
@@ -534,6 +527,7 @@ Uses the E theme utility class .sld-glass if present.
                 color: rgba(0,0,0,0.78);
                 box-shadow: 0 8px 24px rgba(0,0,0,0.20);
                 user-select: none;
+                white-space: pre-line;
             }
             </style>
             """,
@@ -555,15 +549,16 @@ Uses the E theme utility class .sld-glass if present.
         # Placeholder label
         label = placeholder_label if placeholder_label is not None else (name or "CARD")
 
-        # Placeholder height using inline style (avoids aspect-ratio quirks)
+        # Inline style avoids aspect-ratio quirks and keeps it simple
         ph_style = (
-            "height:" + str(int(height_px)) + "px;"
-            "background:" + str(placeholder_color) + ";"
+            'height:' + str(int(height_px)) + 'px;'
+            'background:' + str(placeholder_color) + ';'
         )
+
         html = (
             '<div class="sld-card-ph" style="' + ph_style + '">'
             + str(label)
-            + "</div>"
+            + '</div>'
         )
         st.markdown(html, unsafe_allow_html=True)
 
@@ -578,8 +573,8 @@ Uses the E theme utility class .sld-glass if present.
 
 def render_card_placeholder_set():
     """
-    Optional helper: standard placeholders for your early-stage sets.
-    Blue for 1, Red for 2, Yellow for 3 (as you described).
+    Optional helper: standard placeholders for early-stage sets.
+    Blue for 1, Red for 2, Yellow for 3.
     """
     cols = st.columns(3)
     with cols[0]:
