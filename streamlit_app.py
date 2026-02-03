@@ -638,12 +638,37 @@ elif view == "Join (Redeem Code)":
         st.rerun()
 
 elif view == "Cards":
-    st.subheader("🃏 Cards Library")
-    st.caption("Read-only preview from the cards manifest.")
+    # ============================================================
+    # CARDS — Read-only Library (Manifest-driven)
+    # ============================================================
 
+    # --- Header row with Reset (simple + reliable) ---
+    h1, h2 = st.columns([4, 1])
+    with h1:
+        st.markdown(
+            """
+            <div style="
+                font-weight: 950;
+                letter-spacing: 0.10em;
+                font-size: 1.35rem;
+                margin-bottom: 2px;
+            ">
+                🃏 CARDS LIBRARY ✦ Starlight Index
+            </div>
+            <div style="color: rgba(245,245,247,0.70); margin-bottom: 10px;">
+                Read-only preview from the cards manifest.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with h2:
+        st.write("")
+        if st.button("Reset View", use_container_width=True):
+            st.session_state["selected_card_id"] = None
+            st.rerun()
+
+    # --- Load manifest safely (never lock out app) ---
     manifest_path = os.path.join(APP_DIR, "assets", "manifests", "cards_manifest.json")
-
-    # Always start with a safe default (prevents app lockout)
     manifest = {"version": "v1", "sets": []}
 
     try:
@@ -652,36 +677,29 @@ elif view == "Cards":
     except Exception as e:
         st.warning(f"Cards manifest not ready yet: {e}")
 
-    sets = manifest.get("sets", [])
+    sets = manifest.get("sets", []) or []
     if not sets:
         st.info("No card sets yet. Add sets/cards to assets/manifests/cards_manifest.json")
-        sets = []
 
-    # ----------------------------
-    # Flatten cards + enrich with set info
-    # ----------------------------
+    # --- Flatten cards + enrich with set info ---
     all_cards = []
     for s in sets:
         set_id = s.get("set_id", "unknown")
         set_name = s.get("set_name", "Unnamed Set")
+        banner = s.get("banner")
         cards_in_set = s.get("cards", []) or []
-
         for card in cards_in_set:
-            c = dict(card)  # copy
+            c = dict(card)
             c["_set_id"] = set_id
             c["_set_name"] = set_name
-            c["_banner"] = s.get("banner")
+            c["_banner"] = banner
             all_cards.append(c)
 
-    # Helper to create a stable key for selection
     def _card_key(c: dict) -> str:
         return c.get("card_id") or f"{c.get('_set_id','set')}-{c.get('name','card')}"
 
-    # ----------------------------
-    # Selection state (C5)
-    # ----------------------------
+    # --- Selection state (single source of truth) ---
     st.session_state.setdefault("selected_card_id", None)
-
     selected = None
     sel_id = st.session_state.get("selected_card_id")
     if sel_id:
@@ -690,35 +708,35 @@ elif view == "Cards":
                 selected = c
                 break
 
-    # ----------------------------
-    # Set Window (glimmer glass)
-    # ----------------------------
+    # ============================================================
+    # CENTRAL GLASS STAGE (Set Window + Inspector combined)
+    # ============================================================
     st.markdown(
         """
         <style>
-        .sld-glass-window{
-            border-radius: 18px;
-            padding: 14px 16px;
-            margin: 12px 0 14px 0;
-            border: 1px solid rgba(255,255,255,0.18);
+        .sld-stage{
+            border-radius: 20px;
+            padding: 16px 18px;
+            margin: 8px 0 14px 0;
+            border: 1px solid rgba(255,255,255,0.20);
             background: linear-gradient(135deg,
-                rgba(255,255,255,0.08) 0%,
-                rgba(180,130,255,0.06) 50%,
+                rgba(255,255,255,0.09) 0%,
+                rgba(180,130,255,0.06) 55%,
                 rgba(120,220,210,0.05) 100%
             );
             backdrop-filter: blur(14px);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+            box-shadow: 0 12px 46px rgba(0,0,0,0.28);
             position: relative;
             overflow: hidden;
         }
-        .sld-glass-window::before{
+        .sld-stage::before{
             content:'';
             position:absolute;
             top:-60%;
             left:-60%;
             width:220%;
             height:220%;
-            background: radial-gradient(circle, rgba(255,210,122,0.10), transparent 55%);
+            background: radial-gradient(circle, rgba(255,210,122,0.12), transparent 58%);
             animation: sldGlow 18s linear infinite;
             pointer-events:none;
         }
@@ -726,20 +744,20 @@ elif view == "Cards":
             from{ transform: rotate(0deg); }
             to{ transform: rotate(360deg); }
         }
-        .sld-glass-title{
-            font-weight: 900;
+        .sld-stage-title{
+            font-weight: 950;
             letter-spacing: 0.14em;
             text-transform: uppercase;
             color: rgba(245,245,247,0.92);
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             position: relative;
             z-index: 2;
         }
-        .sld-glass-sub{
+        .sld-stage-sub{
             font-size: 0.9rem;
             color: rgba(245,245,247,0.65);
-            margin-top: -2px;
-            margin-bottom: 10px;
+            margin-top: -6px;
+            margin-bottom: 12px;
             position: relative;
             z-index: 2;
         }
@@ -748,73 +766,59 @@ elif view == "Cards":
         unsafe_allow_html=True,
     )
 
+    # Stage target: selected card > first available
+    stage_card = selected if selected else (all_cards[0] if all_cards else None)
+
     st.markdown(
-        """
-        <div class="sld-glass-window">
-            <div class="sld-glass-title">SET WINDOW</div>
-            <div class="sld-glass-sub">Featured preview (select a card to update)</div>
+        f"""
+        <div class="sld-stage">
+            <div class="sld-stage-title">CARD STAGE</div>
+            <div class="sld-stage-sub">
+                {"Inspector view (Reset View to return)" if selected else "Featured preview (select a card below to inspect)"}
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    # Choose a featured card: selected > first available
-    featured = selected if selected else (all_cards[0] if all_cards else None)
-
-    if featured:
-        featured_name = featured.get("name", "Featured Card")
-        featured_img = featured.get("image") or featured.get("thumb")
-
-        # If you have a helper like render_card_tile(), it will show placeholders safely.
-        if "render_card_tile" in globals():
-            render_card_tile(name=featured_name, image_path=featured_img, idx=0)
-        else:
-            full_path = os.path.join(APP_DIR, featured_img) if featured_img else None
-            if full_path and os.path.exists(full_path):
-                st.image(full_path, use_container_width=True)
-            else:
-                st.info("Featured image missing (placeholder system not found).")
-    else:
+    if not stage_card:
         st.info("No cards available yet to preview.")
-
-    # ----------------------------
-    # Card Inspector (C5) — show only when selected
-    # ----------------------------
-    if selected:
-        st.markdown("### 🔎 Card Inspector")
+    else:
         colA, colB = st.columns([2, 3])
 
-        img_path = selected.get("image") or selected.get("thumb")
+        card_name = stage_card.get("name", "Card")
+        card_img = stage_card.get("image") or stage_card.get("thumb")
+
         with colA:
             if "render_card_tile" in globals():
-                render_card_tile(name=selected.get("name", "Card"), image_path=img_path, idx=1)
+                render_card_tile(name=card_name, image_path=card_img, idx=0)
             else:
-                full_img = os.path.join(APP_DIR, img_path) if img_path else None
-                if full_img and os.path.exists(full_img):
-                    st.image(full_img, use_container_width=True)
+                full = os.path.join(APP_DIR, card_img) if card_img else None
+                if full and os.path.exists(full):
+                    st.image(full, use_container_width=True)
                 else:
-                    st.warning("Missing card image.")
+                    st.markdown("⬜")
 
         with colB:
-            st.markdown(f"**{selected.get('name', 'Unnamed Card')}**")
-            st.caption(f"Set: {selected.get('_set_name', 'Unnamed Set')}")
-            if selected.get("rarity"):
-                st.write(f"Rarity: `{selected.get('rarity')}`")
-            tags = selected.get("tags") or []
+            st.markdown(f"**{card_name}**")
+            st.caption(f"Set: {stage_card.get('_set_name', 'Unnamed Set')}")
+            if stage_card.get("rarity"):
+                st.write(f"Rarity: `{(stage_card.get('rarity') or '').strip()}`")
+            tags = stage_card.get("tags") or []
             if tags:
-                st.write("Tags: " + ", ".join([f"`{t}`" for t in tags]))
-            if selected.get("text"):
-                st.markdown(f"> {selected.get('text')}")
+                st.write("Tags: " + ", ".join([f"`{t}`" for t in tags if isinstance(t, str)]))
+            if stage_card.get("text"):
+                st.markdown(f"> {stage_card.get('text')}")
 
-            if st.button("Clear selection", use_container_width=True):
-                st.session_state["selected_card_id"] = None
-                st.rerun()
+            # Placeholder action (safe)
+            if st.button("View / Open", use_container_width=True):
+                st.info("Open action placeholder (input later).")
 
-        st.divider()
+    st.divider()
 
-    # ----------------------------
+    # ============================================================
     # Filters (C6)
-    # ----------------------------
+    # ============================================================
     set_options = sorted({c.get("_set_name", "Unnamed Set") for c in all_cards})
     rarity_options = sorted({(c.get("rarity") or "").strip() for c in all_cards if (c.get("rarity") or "").strip()})
     tag_options = sorted({t for c in all_cards for t in (c.get("tags") or []) if isinstance(t, str)})
@@ -823,7 +827,6 @@ elif view == "Cards":
         f_set = st.selectbox("Set", options=["All"] + set_options, index=0)
         f_rarity = st.selectbox("Rarity", options=["All"] + rarity_options, index=0) if rarity_options else "All"
         f_tags = st.multiselect("Tags", options=tag_options) if tag_options else []
-
         search = st.text_input("Search name", value="", placeholder="type to filter…")
 
     def _match(card: dict) -> bool:
@@ -841,92 +844,37 @@ elif view == "Cards":
         return True
 
     cards = [c for c in all_cards if _match(c)]
-
     st.caption(f"Showing {len(cards)} card(s)")
 
-    # ----------------------------
-    # Card Inspector (C5)
-    # ----------------------------
-    st.session_state.setdefault("selected_card_id", None)
-
-    def _card_key(c: dict) -> str:
-        return c.get("card_id") or f"{c.get('_set_id','set')}-{c.get('name','card')}"
-
-    selected = None
-    if st.session_state.get("selected_card_id"):
-        for c in all_cards:
-            if _card_key(c) == st.session_state["selected_card_id"]:
-                selected = c
-                break
-
-    if selected:
-        st.markdown("### 🔎 Card Inspector")
-        colA, colB = st.columns([2, 3])
-
-        img_path = selected.get("image") or selected.get("thumb")
-        full_img = os.path.join(APP_DIR, img_path) if img_path else None
-
-        with colA:
-            if full_img and os.path.exists(full_img):
-                st.image(full_img, use_container_width=True)
-            else:
-                st.warning("Missing card image.")
-                st.markdown("⬜")
-
-        with colB:
-            st.markdown(f"**{selected.get('name', 'Unnamed Card')}**")
-            st.caption(f"Set: {selected.get('_set_name', 'Unnamed Set')}")
-            if selected.get("rarity"):
-                st.write(f"Rarity: `{selected.get('rarity')}`")
-            tags = selected.get("tags") or []
-            if tags:
-                st.write("Tags: " + ", ".join([f"`{t}`" for t in tags]))
-            if selected.get("text"):
-                st.markdown(f"> {selected.get('text')}")
-
-            c1, c2 = st.columns(2)
-            with c1:
-                if st.button("Clear selection", use_container_width=True):
-                    st.session_state["selected_card_id"] = None
-                    st.rerun()
-            with c2:
-                if st.button("Close inspector", use_container_width=True):
-                    st.session_state["selected_card_id"] = None
-                    st.rerun()
-
-        st.divider()
-
-    # ----------------------------
-    # Grid (C7 guardrails: warn but never crash)
-    # ----------------------------
+    # ============================================================
+    # Grid (C7) — never crash the whole page
+    # ============================================================
     if not cards:
         st.info("No cards match your filters.")
-        st.stop()
+    else:
+        cols = st.columns(4)
+        for i, card in enumerate(cards):
+            with cols[i % 4]:
+                name = card.get("name", "Unnamed Card")
+                rarity = (card.get("rarity") or "").strip()
+                thumb = card.get("thumb") or card.get("image")
 
-    cols = st.columns(4)
-    for i, card in enumerate(cards):
-        with cols[i % 4]:
-            name = card.get("name", "Unnamed Card")
-            rarity = (card.get("rarity") or "").strip()
-            thumb = card.get("thumb") or card.get("image")
+                if "render_card_tile" in globals():
+                    render_card_tile(name=name, image_path=thumb, idx=i)
+                else:
+                    full_thumb = os.path.join(APP_DIR, thumb) if thumb else None
+                    if full_thumb and os.path.exists(full_thumb):
+                        st.image(full_thumb, use_container_width=True)
+                    else:
+                        st.caption("⚠️ missing thumbnail/image")
+                        st.markdown("⬜")
 
-            full_thumb = os.path.join(APP_DIR, thumb) if thumb else None
+                if rarity:
+                    st.caption(rarity)
 
-            if full_thumb and os.path.exists(full_thumb):
-                st.image(full_thumb, use_container_width=True)
-            else:
-                # C7: guardrail warning (non-fatal)
-                st.caption("⚠️ missing thumbnail/image")
-                st.markdown("⬜")
-
-            if rarity:
-                st.caption(rarity)
-
-            # Click → select card for inspector
-            if st.button(f"View: {name}", key=f"cardpick_{_card_key(card)}", use_container_width=True):
-                st.session_state["selected_card_id"] = _card_key(card)
-                st.rerun()
-
+                if st.button(f"View: {name}", key=f"cardpick_{_card_key(card)}", use_container_width=True):
+                    st.session_state["selected_card_id"] = _card_key(card)
+                    st.rerun()
 
 
 
