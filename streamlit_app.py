@@ -1141,4 +1141,14 @@ elif view == "Admin":
                     st.success("Users reset.")
                     st.rerun()
         else:
-            st.info("Resets are locked until you type RESET.")
+        st.session_state.setdefault("reset_unlocked", False)
+
+code = st.text_input("Type RESET to unlock resets", key="reset_confirm")
+
+if code.strip().upper() == "RESET":
+    st.session_state["reset_unlocked"] = True
+
+if not st.session_state["reset_unlocked"]:
+    st.info("Resets are locked until you type RESET.")
+    st.stop()
+
