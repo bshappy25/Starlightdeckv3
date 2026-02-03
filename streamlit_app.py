@@ -660,11 +660,26 @@ elif view == "Cards":
         st.info("No card sets yet. Add sets/cards to assets/manifests/cards_manifest.json")
 
 
-    # ----------------------------
+        # ----------------------------
     # Flatten cards + enrich with set info
     # ----------------------------
     all_cards = []
     for s in sets:
+        set_id = s.get("set_id", "unknown")
+        set_name = s.get("set_name", "Unnamed Set")
+        cards_in_set = s.get("cards", []) or []
+
+        for card in cards_in_set:
+            c = dict(card)  # copy
+            c["_set_id"] = set_id
+            c["_set_name"] = set_name
+            all_cards.append(c)
+
+    if not all_cards:
+        st.info("Sets exist, but no cards yet.")
+        # Do not st.stop() — just show message and keep page stable
+        all_cards = []
+
 
     # ============================
     # D — Set Ticker Header
