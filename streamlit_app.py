@@ -312,6 +312,56 @@ def get_user_record(users_db: dict, user_id: str) -> dict:
             return u
     return {}
 
+# ============================================================
+# Cards View Helpers (placeholders + safe image handling)
+# ============================================================
+
+_PLACEHOLDER_COLORS = ["#4da3ff", "#ff4d4d", "#ffd24d"]  # blue, red, yellow
+
+
+def render_card_tile(name: str, image_path: str | None, idx: int = 0, caption: str = ""):
+    """
+    Render a card tile:
+      - If image_path exists, show image.
+      - Otherwise show a colored placeholder (blue/red/yellow rotating by idx).
+    """
+    # Try image if provided
+    full_img = os.path.join(APP_DIR, image_path) if image_path else None
+    if full_img and os.path.exists(full_img):
+        st.image(full_img, use_container_width=True)
+        if caption:
+            st.caption(caption)
+        return
+
+    # Placeholder fallback
+    color = _PLACEHOLDER_COLORS[idx % len(_PLACEHOLDER_COLORS)]
+    safe_name = (name or "CARD").strip()[:28]
+
+    st.markdown(
+        f"""
+        <div style="
+            width: 100%;
+            aspect-ratio: 3 / 4;
+            border-radius: 14px;
+            background: {color};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            text-align: center;
+            font-weight: 900;
+            letter-spacing: 0.10em;
+            color: rgba(0,0,0,0.75);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        ">
+            {safe_name}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    if caption:
+        st.caption(caption)
+
 
 # ============================================================
 # UI
