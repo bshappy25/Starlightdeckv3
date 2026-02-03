@@ -211,6 +211,9 @@ CUSTOM_CSS = f"""
 .stButton > button {{
   border-radius: 12px !important;
 }}
+</style>
+"""
+
 # ============================
 # END E — HUB AESTHETIC
 # ============================ 
@@ -887,20 +890,20 @@ elif view == "Cards":
     # CENTRAL STAGE (Preview + Inspector combined) — NO INLINE CSS
     # ============================================================
     stage_card = selected if selected else (all_cards[0] if all_cards else None)
+stage_msg = "Inspector view (Reset View to return)" if selected else "Featured preview (select a card below to inspect)"
 
-    st.markdown(
-        """
-        <div class="sld-glass" style="margin-top:10px;">
-            <div class="sld-title" style="font-size:1.05rem;">Card Stage</div>
-            <div class="sld-muted" style="margin-top:6px;">
-                {msg}
-            </div>
+st.markdown(
+    f'''
+    <div class="sld-glass" style="margin-top:10px;">
+        <div class="sld-title" style="font-size:1.05rem;">Card Stage</div>
+        <div class="sld-muted" style="margin-top:6px;">
+            {stage_msg}
         </div>
-        """.format(
-            msg=("Inspector view (Reset View to return)" if selected else "Featured preview (select a card below to inspect)")
-        ),
-        unsafe_allow_html=True,
-    )
+    </div>
+    ''',
+    unsafe_allow_html=True,
+)
+
 
     if not stage_card:
         st.info("No cards available yet to preview.")
