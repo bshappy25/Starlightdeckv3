@@ -1,4 +1,11 @@
+
 {
   "version": "v1",
-  "sets": []
+  "sets": [
+    {
+      "set_id": "base",
+      "set_name": "Base Set",
+      "cards": []
+    }
+  ]
 }
