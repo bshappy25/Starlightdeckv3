@@ -162,9 +162,11 @@ def default_users():
                 "title": "Founder",
                 "role": "admin",
                 "created_at": _now_iso(),
-                "claims": {"admin_auto": True},
-
-,
+                "claims": {
+                    "admin_auto": True,
+                    "intro_access": True,
+                    "all_access": True
+                },
             }
         ],
         "meta": {"version": "v3", "updated_at": _now_iso()},
@@ -299,13 +301,18 @@ def create_user(users_db: dict, display_name: str, vibe: str, title: str, role: 
     users_db["meta"]["updated_at"] = _now_iso()
     return user
 
-
 def admin_unlocked(active_user_id: str) -> bool:
+    # Admin can choose to hide admin access temporarily
+    if active_user_id == "bshapp" and st.session_state.get("admin_view_as_player", False):
+        return False
+
     # Auto admin for bshapp
     if active_user_id == "bshapp":
         return True
+
     # Otherwise require password session
     return bool(st.session_state.get("admin_ok", False))
+
 
 
 def get_user_record(users_db: dict, user_id: str) -> dict:
@@ -409,6 +416,17 @@ active_user = st.sidebar.selectbox(
     index=default_index,
     format_func=lambda uid: f"{display_map.get(uid, uid)} ({uid})",
 )
+
+# ⭐ Admin can simulate non-admin view
+st.session_state.setdefault("admin_view_as_player", False)
+if active_user == "bshapp":
+    st.sidebar.markdown("### ⭐ Admin View")
+    st.session_state["admin_view_as_player"] = st.sidebar.toggle(
+        "⭐ View as Player",
+        value=st.session_state["admin_view_as_player"],
+        help="Hide admin-only pages to preview what normal users see.",
+    )
+
 
 # clear override after it takes effect
 st.session_state["active_user_override"] = None
