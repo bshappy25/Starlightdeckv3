@@ -225,6 +225,10 @@ st.session_state["active_user_override"] = None
 # Sidebar status
 st.sidebar.markdown("### Status")
 st.sidebar.metric("Global Balance", int(bank.get("balance", 0)))
+
+# C5: show SLD network fund to everyone
+st.sidebar.metric("🌍 SLD Network Fund", int(bank.get("sld_network_fund", 0)))
+
 st.sidebar.caption(f"Signed in as: **{display_map.get(active_user, active_user)}**")
 
 # Branch A: identity badge
@@ -233,41 +237,39 @@ st.sidebar.caption(f"Title: **{u.get('title','—')}**")
 st.sidebar.caption(f"Vibe: **{u.get('vibe','—')}**")
 st.sidebar.caption(f"Role: **{u.get('role','player')}**")
 
-# Navigation (Admin only appears if unlocked)
-nav = ["Overview", "Join (Redeem Code)", "Economy", "Codes", "Docs"]
-if admin_unlocked(active_user):
-    nav.append("Admin")
-
-view = st.sidebar.radio("Navigate", nav, index=0)
-
-# Admin password gate (only for non-bshapp users)
-if "Admin" in nav and active_user != "bshapp":
-    # If they click Admin and aren't unlocked, prompt
-    if view == "Admin" and not st.session_state.get("admin_ok", False):
-        st.title("🔒 Admin Locked")
-        st.write("Enter admin password to continue.")
-        pw = st.text_input("Admin password", type="password")
-        if st.button("Unlock"):
+# C1: Admin unlock control (non-bshapp only)
+if active_user != "bshapp" and not st.session_state.get("admin_ok", False):
+    with st.sidebar.expander("🔒 Admin Unlock", expanded=False):
+        pw = st.text_input("Admin password", type="password", key="admin_pw_sidebar")
+        if st.button("Unlock Admin", key="admin_unlock_btn"):
             try:
                 secret_pw = st.secrets.get("ADMIN_PASSWORD", "")
             except Exception:
                 secret_pw = ""
             if secret_pw and pw == secret_pw:
                 st.session_state["admin_ok"] = True
-                st.success("Unlocked.")
+                st.sidebar.success("Admin unlocked.")
                 st.rerun()
             else:
-                st.error("Incorrect password (or secrets not configured).")
-        st.stop()
+                st.sidebar.error("Incorrect password (or secrets not configured).")
+
+# C2: Codes + Admin are admin-only in navigation
+nav = ["Overview", "Join (Redeem Code)", "Economy", "Docs"]
+if admin_unlocked(active_user):
+    nav.insert(3, "Codes")  # shows only for admin
+    nav.append("Admin")
+
+view = st.sidebar.radio("Navigate", nav, index=0)
 
 st.title("🎴 Starlight Deck — v3 Hub")
 
-# Top metrics
-c1, c2, c3, c4 = st.columns(4)
+# Top metrics (C5 adds the globe metric)
+c1, c2, c3, c4, c5 = st.columns(5)
 c1.metric("Global Balance", int(bank.get("balance", 0)))
-c2.metric("Total Earned", int(bank.get("total_earned", 0)))
-c3.metric("Total Spent", int(bank.get("total_spent", 0)))
-c4.metric("Codes Tracked", len(ledger.get("codes", [])))
+c2.metric("🌍 SLD Network Fund", int(bank.get("sld_network_fund", 0)))
+c3.metric("Total Earned", int(bank.get("total_earned", 0)))
+c4.metric("Total Spent", int(bank.get("total_spent", 0)))
+c5.metric("Codes Tracked", len(ledger.get("codes", [])))
 st.divider()
 
 # ----------------------------
@@ -382,11 +384,19 @@ elif view == "Join (Redeem Code)":
 # Economy
 # ----------------------------
 elif view == "Economy":
+    # C4b: players can spend; deposits are admin-only
+    is_admin = admin_unlocked(active_user)
+
     st.subheader("Economy")
-    st.caption("Manual deposit/spend (global ledger). Guardrails prevent negative balance.")
+    st.caption("Players can spend. Deposits are admin-only. Guardrails prevent negative balance.")
 
     with st.form("economy_form"):
-        tx_type = st.selectbox("Type", ["deposit", "spend"])
+        if is_admin:
+            tx_type = st.selectbox("Type", ["deposit", "spend"])
+        else:
+            tx_type = "spend"
+            st.info("Deposits are admin-only. You can spend what you’ve earned.")
+
         amount = st.number_input("Amount (integer)", min_value=0, step=1, value=0)
         desc = st.text_input("Description (optional)")
         submitted = st.form_submit_button("Record")
@@ -394,9 +404,12 @@ elif view == "Economy":
     if submitted:
         try:
             if tx_type == "deposit":
+                if not is_admin:
+                    raise ValueError("Deposits are admin-only.")
                 tx = deposit(bank, active_user, int(amount), desc)
             else:
                 tx = spend(bank, active_user, int(amount), desc)
+
             save_json(BANK_PATH, bank)
             st.success(f"Recorded {tx_type}: {tx['amount']}")
             st.rerun()
@@ -412,24 +425,15 @@ elif view == "Economy":
         st.info("No transactions yet.")
 
 # ----------------------------
-# Codes
+# Codes (admin-only; hidden from players by nav)
 # ----------------------------
 elif view == "Codes":
     st.subheader("Codes Ledger")
-    st.caption("Read-only for players. Admin can reset/edit via Admin panel.")
+    st.caption("Admin view. (Hidden from players.)")
 
-    # Show limited fields for players
     rows = ledger.get("codes", [])
-    safe_rows = [
-        {
-            "code": r.get("code"),
-            "status": r.get("status"),
-            "used_at": r.get("used_at"),
-        }
-        for r in rows
-    ]
-    if safe_rows:
-        st.dataframe(safe_rows, use_container_width=True, hide_index=True)
+    if rows:
+        st.dataframe(rows, use_container_width=True, hide_index=True)
     else:
         st.info("No codes yet.")
 
@@ -453,7 +457,7 @@ elif view == "Docs":
         st.markdown(txt) if txt else st.info("Add content to `users.md`.")
 
 # ----------------------------
-# Admin (protected)
+# Admin (protected; hidden unless unlocked)
 # ----------------------------
 elif view == "Admin":
     st.subheader("Admin")
@@ -468,25 +472,33 @@ elif view == "Admin":
         st.json(users_db)
 
     st.warning("Reset actions overwrite files.")
-    colA, colB, colC = st.columns(3)
 
-    with colA:
-        if st.button("Reset bank"):
-            bank = default_bank()
-            save_json(BANK_PATH, bank)
-            st.success("Bank reset.")
-            st.rerun()
+    # C3: Danger Zone confirmation
+    with st.expander("☠️ Danger Zone (Resets)", expanded=False):
+        confirm = st.text_input('Type RESET to enable destructive actions', value="")
+        if confirm.strip().upper() == "RESET":
+            colA, colB, colC = st.columns(3)
 
-    with colB:
-        if st.button("Reset codes (empty)"):
-            ledger = default_codes()
-            save_json(CODES_PATH, ledger)
-            st.success("Codes reset.")
-            st.rerun()
+            with colA:
+                if st.button("Reset bank"):
+                    bank = default_bank()
+                    save_json(BANK_PATH, bank)
+                    st.success("Bank reset.")
+                    st.rerun()
 
-    with colC:
-        if st.button("Reset users (admin only)"):
-            users_db = default_users()
-            save_json(USERS_PATH, users_db)
-            st.success("Users reset.")
-            st.rerun()
+            with colB:
+                if st.button("Reset codes (empty)"):
+                    ledger = default_codes()
+                    save_json(CODES_PATH, ledger)
+                    st.success("Codes reset.")
+                    st.rerun()
+
+            with colC:
+                if st.button("Reset users (admin only)"):
+                    users_db = default_users()
+                    save_json(USERS_PATH, users_db)
+                    st.success("Users reset.")
+                    st.rerun()
+        else:
+            st.info("Resets are locked until you type RESET.")
+
