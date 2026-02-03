@@ -952,7 +952,7 @@ else:
             # Placeholder action (safe)
             if st.button("View / Open", use_container_width=True):
                 st.info("Open action placeholder (input later).")
-    st.divider()
+
     # ============================================================
     # Filters (C6)
     # ============================================================
