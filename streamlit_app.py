@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 
 import streamlit as st
 import careon_bubble
+import careon_market
+
 
 # ============================================================
 # 🎨🎨🎨 DESIGN / CSS ZONE — SAFE TO EDIT (OBNOXIOUS ON PURPOSE)
@@ -364,6 +366,7 @@ careon_bubble.render_careon_bubble()
 # Optional: simple placeholder until the market is built
 if st.session_state.get("show_market", False):
     st.info("🛍️ Market coming soon… (this is the bubble toggle working)")
+careon_market.render_market(bank=bank, active_user=active_user)
 
 # ----------------------------
 # Overview
