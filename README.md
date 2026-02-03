@@ -12,3 +12,11 @@ starlight-deck/
 ├── rules.md                  # Game rules
 └── .streamlit/               # Streamlit configuration
 
+assets/images/ui/        # buttons, logos, icons
+assets/images/backgrounds/ # background textures
+assets/cards/base/       # main card images
+assets/cards/expansions/ # expansion card images
+assets/audio/sfx/        # sound effects
+assets/audio/music/      # loops / ambient
+
+
