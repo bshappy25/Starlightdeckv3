@@ -386,22 +386,21 @@ c5.metric("Total Spent", int(bank.get("total_spent", 0)))
 c6.metric("Codes Tracked", len(ledger.get("codes", [])))
 st.divider()
 
-# --- Careon ticker (optional / safe) ---
+# ============================
+# Careon UI (ticker → bubble → market)
+# ============================
+
+# --- Careon ticker (visual only) ---
 try:
     import careon_bubble_ticker
-    if hasattr(careon_bubble_ticker, "render_careon_ticker"):
-        careon_bubble_ticker.render_careon_ticker()
-    elif hasattr(careon_bubble_ticker, "render_careon_bubble"):
-        careon_bubble_ticker.render_careon_bubble()
-    else:
-        st.info("Ticker file loaded, but no render function found.")
+    careon_bubble_ticker.render_careon_ticker()
 except Exception as e:
-    st.warning(f"Ticker disabled (error): {e}")
+    st.warning(f"Ticker disabled: {e}")
 
 # --- Careon bubble button (clickable) ---
 careon_bubble.render_careon_bubble()
 
-# --- Careon Market UI ---
+# --- Careon Market UI (renders only when show_market == True) ---
 careon_market.render_market(
     bank=bank,
     active_user=active_user,
@@ -409,6 +408,9 @@ careon_market.render_market(
     save_fn=lambda: save_json(BANK_PATH, bank),
 )
 
+# ============================
+# Main Views
+# ============================
 
 # ----------------------------
 # Overview
@@ -425,7 +427,7 @@ if view == "Overview":
         st.dataframe(txs, use_container_width=True, hide_index=True)
     else:
         st.info("No transactions yet. Use **Join** or **Economy**.")
-
+        
 # ----------------------------
 # Join (Redeem Code)
 # ----------------------------
