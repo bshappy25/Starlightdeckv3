@@ -54,6 +54,30 @@ CUSTOM_CSS = """
 </style>
 """
 
+
+def render_card_placeholder(color: str, label: str):
+    st.markdown(
+        f"""
+        <div style="
+            width: 100%;
+            aspect-ratio: 3 / 4;
+            border-radius: 14px;
+            background: {color};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            color: rgba(0,0,0,0.75);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        ">
+            {label}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 # ============================================================
 # CORE CONFIG — DO NOT EDIT UNLESS YOU KNOW WHY
 # ============================================================
