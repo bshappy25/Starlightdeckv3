@@ -570,6 +570,12 @@ elif view == "Join (Redeem Code)":
         row["used_at"] = _now_iso()
         ledger["meta"]["updated_at"] = _now_iso()
 
+       # Grant intro card access (permission only, no card ownership)
+        new_user.setdefault("claims", {})
+        new_user["claims"]["intro_access"] = True
+
+
+
         # Sign-on: deposit adds to GLOBAL + PERSONAL (B4a)
         deposit(bank, new_user["user_id"], bonus, description=f"Sign-on bonus ({title}) via access code")
 
