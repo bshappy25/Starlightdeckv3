@@ -953,38 +953,30 @@ else:
             if st.button("View / Open", use_container_width=True):
                 st.info("Open action placeholder (input later).")
 
-    st.divider()
+st.divider()
 
-    # ============================================================
-    # Filters (C6)
-    # ============================================================
+# ============================================================
+# Filters (C6)
+# ============================================================
+set_options = sorted({c.get("_set_name", "Unnamed Set") for c in all_cards})
+rarity_options = sorted(
+    {(c.get("rarity") or "").strip() for c in all_cards if (c.get("rarity") or "").strip()}
+)
+tag_options = sorted(
+    {t for c in all_cards for t in (c.get("tags") or []) if isinstance(t, str)}
+)
 
-    set_options = sorted({c.get("_set_name", "Unnamed Set") for c in all_cards})
-    rarity_options = sorted({(c.get("rarity") or "").strip() for c in all_cards if (c.get("rarity") or "").strip()})
-    tag_options = sorted({t for c in all_cards for t in (c.get("tags") or []) if isinstance(t, str)})
+with st.expander("Filters", expanded=True):
+    f_set = st.selectbox("Set", options=["All"] + set_options, index=0)
+    f_rarity = (
+        st.selectbox("Rarity", options=["All"] + rarity_options, index=0)
+        if rarity_options
+        else "All"
+    )
+    f_tags = st.multiselect("Tags", options=tag_options) if tag_options else []
+    search = st.text_input("Search name", value="", placeholder="type to filter…")
 
-    with st.expander("Filters", expanded=True):
-        f_set = st.selectbox("Set", options=["All"] + set_options, index=0)
-        f_rarity = st.selectbox("Rarity", options=["All"] + rarity_options, index=0) if rarity_options else "All"
-        f_tags = st.multiselect("Tags", options=tag_options) if tag_options else []
-        search = st.text_input("Search name", value="", placeholder="type to filter...")
 
-    def _match(card: dict) -> bool:
-        if f_set != "All" and card.get("_set_name") != f_set:
-            return False
-        if f_rarity != "All" and (card.get("rarity") or "").strip() != f_rarity:
-            return False
-        if f_tags:
-            ct = set(card.get("tags") or [])
-            if not all(t in ct for t in f_tags):
-                return False
-        if search.strip():
-            if search.strip().lower() not in (card.get("name", "") or "").lower():
-                return False
-        return True
-
-    cards = [c for c in all_cards if _match(c)]
-    st.caption(f"Showing {len(cards)} card(s)")
 
     # ============================================================
     # Grid (C7) — never crash the whole page
