@@ -909,15 +909,10 @@ st.markdown(
             {stage_msg}
         </div>
     </div>
-    ''',
-    unsafe_allow_html=True,
-)
-
-
-    if not stage_card:
-        st.info("No cards available yet to preview.")
-    else:
-        colA, colB = st.columns([2, 3])
+if not stage_card:
+    st.info("No cards available yet to preview.")
+else:
+    ...
 
         card_name = stage_card.get("name", "Card")
         card_img = stage_card.get("image") or stage_card.get("thumb")
