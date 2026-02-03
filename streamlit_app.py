@@ -11,6 +11,7 @@ import streamlit as st
 # Local modules (must exist in repo root)
 import careon_bubble
 import careon_market
+import careon_bubble_ticker
 
 
 # ----------------
@@ -385,6 +386,17 @@ c5.metric("Total Spent", int(bank.get("total_spent", 0)))
 c6.metric("Codes Tracked", len(ledger.get("codes", [])))
 st.divider()
 
+# --- Careon ticker (visual) ---
+careon_bubble_ticker.render_careon_ticker()
+
+# --- Careon bubble button (clickable) ---
+careon_bubble.render_careon_bubble()
+
+# --- Careon ticker (visual) ---
+careon_bubble_ticker.render_careon_ticker()
+
+# --- Careon bubble button (clickable) ---
+careon_bubble.render_careon_bubble()
 # --- Careon Bubble UI (top-right under metrics) ---
 careon_bubble.render_careon_bubble()
 
