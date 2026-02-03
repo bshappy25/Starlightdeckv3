@@ -15,6 +15,15 @@ import careon_bubble
 import careon_market
 import careon_bubble_ticker
 
+try:
+    # --- everything below stays the same ---
+    pass
+except Exception as e:
+    import streamlit as st
+    st.error("App crashed during load.")
+    st.exception(e)
+    st.stop()
+
 
 # ----------------
 # App constants
