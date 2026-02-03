@@ -162,7 +162,8 @@ def default_users():
                 "title": "Founder",
                 "role": "admin",
                 "created_at": _now_iso(),
-                "claims": {"admin_auto": True},
+                "claims": {"admin_auto": True, "intro_access": True},
+,
             }
         ],
         "meta": {"version": "v3", "updated_at": _now_iso()},
