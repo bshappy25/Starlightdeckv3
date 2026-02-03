@@ -7,12 +7,11 @@ import careon_bubble
 import careon_market
 
 # ...
-careon_market.render_market(
+#careon_market.render_market(
     bank=bank,
     active_user=active_user,
     deposit_fn=deposit,
     save_fn=lambda: save_json(BANK_PATH, bank),
-)
 
 
 
