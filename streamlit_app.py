@@ -173,10 +173,21 @@ def admin_unlocked(active_user_id: str) -> bool:
     return bool(st.session_state.get("admin_ok", False))
 
 
+# -------- Branch A helper (identity badge) --------
+def get_user_record(users_db: dict, user_id: str) -> dict:
+    for u in users_db.get("users", []):
+        if u.get("user_id") == user_id:
+            return u
+    return {}
+
+
 # ============================================================
 # UI
 # ============================================================
 st.set_page_config(page_title=APP_TITLE, page_icon=APP_ICON, layout="wide")
+
+# Branch A: allow auto-select after redeem
+st.session_state.setdefault("active_user_override", None)
 
 json_warnings = st.session_state.get("_json_warnings", set())
 if json_warnings:
@@ -196,17 +207,31 @@ user_ids = [u.get("user_id", "user-1") for u in users_db.get("users", [])] or ["
 display_map = {u.get("user_id"): u.get("display_name", u.get("user_id")) for u in users_db.get("users", [])}
 
 st.sidebar.markdown("### Identity")
+
+default_index = 0
+if st.session_state.get("active_user_override") in user_ids:
+    default_index = user_ids.index(st.session_state["active_user_override"])
+
 active_user = st.sidebar.selectbox(
     "Active user",
     options=user_ids,
-    index=0,
+    index=default_index,
     format_func=lambda uid: f"{display_map.get(uid, uid)} ({uid})",
 )
+
+# clear override after it takes effect
+st.session_state["active_user_override"] = None
 
 # Sidebar status
 st.sidebar.markdown("### Status")
 st.sidebar.metric("Global Balance", int(bank.get("balance", 0)))
 st.sidebar.caption(f"Signed in as: **{display_map.get(active_user, active_user)}**")
+
+# Branch A: identity badge
+u = get_user_record(users_db, active_user)
+st.sidebar.caption(f"Title: **{u.get('title','—')}**")
+st.sidebar.caption(f"Vibe: **{u.get('vibe','—')}**")
+st.sidebar.caption(f"Role: **{u.get('role','player')}**")
 
 # Navigation (Admin only appears if unlocked)
 nav = ["Overview", "Join (Redeem Code)", "Economy", "Codes", "Docs"]
@@ -280,32 +305,33 @@ elif view == "Join (Redeem Code)":
         code = (code or "").strip()
         display_name = (display_name or "").strip()
 
+        # -------- Branch A1: username rules --------
         if len(display_name) < 3:
-    st.error("Username must be at least 3 characters.")
-    st.stop()
+            st.error("Username must be at least 3 characters.")
+            st.stop()
 
-# Normalize whitespace (optional but helps)
-display_name = " ".join(display_name.split())
+        # Normalize whitespace
+        display_name = " ".join(display_name.split())
 
-# Reserved names (case-insensitive)
-reserved = {"admin", "administrator", "mod", "moderator", "bshapp"}
-if display_name.lower() in reserved:
-    st.error("That username is reserved. Choose another.")
-    st.stop()
+        if not display_name:
+            st.error("Username cannot be blank.")
+            st.stop()
 
-# Duplicate display_name check (case-insensitive)
-existing_names = {u.get("display_name", "").strip().lower() for u in users_db.get("users", [])}
-if display_name.lower() in existing_names:
-    st.error("That username is already taken. Choose another.")
-    st.stop()
-    
-    if not display_name:
-    st.error("Username cannot be blank.")
-    st.stop()
+        if len(display_name) > 20:
+            st.error("Username must be 20 characters or fewer.")
+            st.stop()
 
-if len(display_name) > 20:
-    st.error("Username must be 20 characters or fewer.")
-    st.stop()
+        reserved = {"admin", "administrator", "mod", "moderator", "bshapp"}
+        if display_name.lower() in reserved:
+            st.error("That username is reserved. Choose another.")
+            st.stop()
+
+        existing_names = {u.get("display_name", "").strip().lower() for u in users_db.get("users", [])}
+        if display_name.lower() in existing_names:
+            st.error("That username is already taken. Choose another.")
+            st.stop()
+        # ------------------------------------------
+
         row = find_code(ledger, code)
         if not row:
             st.error("Invalid code.")
@@ -336,8 +362,20 @@ if len(display_name) > 20:
         save_json(CODES_PATH, ledger)
         save_json(BANK_PATH, bank)
 
-        st.success(f"Welcome, {display_name}! Title: {title}. +{bonus} Careon added.")
-        st.info(f"Your user id is: {new_user['user_id']}. Select it from the sidebar to continue.")
+        # Branch A3: auto-select the new user after redeem
+        st.session_state["active_user_override"] = new_user["user_id"]
+
+        # Branch A4: better confirmation card
+        st.success("✅ Access code accepted. Welcome to the Frontier.")
+        st.markdown(
+            f"""
+**Username:** {new_user['display_name']}  
+**Vibe:** {new_user['vibe']}  
+**Title:** {new_user['title']}  
+**Bonus:** +{bonus} Careon (added to global)
+"""
+        )
+        st.caption("You now have full hub access (Admin is locked).")
         st.rerun()
 
 # ----------------------------
