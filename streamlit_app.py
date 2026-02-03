@@ -31,60 +31,58 @@ APP_TITLE = "Starlight Deck"
 APP_ICON = "🎴"
 
 
-
-
 # ============================================================
 # 🎨🎨🎨 DESIGN / CSS ZONE — SAFE TO EDIT (OBNOXIOUS ON PURPOSE)
 # ------------------------------------------------------------
 # Only edit CSS + UI styling here.
-# DO NOT change logic, JSON loading, deposit/spend, onboarding here.
+# DO NOT change logic, JSON loading, economy, onboarding here.
 # If something breaks after design edits, revert this block first.
 # ============================================================
 
 THEME = {
-    # Core palette (slightly lighter + supports scroll gradient)
+    # Background (E1)
     "bg_top": "#111a33",
     "bg_bottom": "#0b1020",
 
+    # Panels
     "panel": "rgba(255,255,255,0.06)",
     "panel2": "rgba(255,255,255,0.09)",
-    "text": "rgba(15, 18, 25, 0.95)",     # <-- for sidebar white
-    "muted": "rgba(25, 28, 36, 0.70)",    # <-- for sidebar white
 
-    # Accents (gold-forward)
+    # Text (main app stays light; sidebar overridden separately)
+    "text_main": "rgba(245,245,247,0.92)",
+    "muted_main": "rgba(245,245,247,0.65)",
+
+    # Accents (E2)
     "gold": "#ffd27a",
     "violet": "#b482ff",
     "teal": "#78dcd2",
 
-    # Effects (subtle)
-    "glow": "0.12",
-    "sparkle": "0.06",
+    # Effects (E3 + E8: calm)
+    "glow": "0.10",        # subtle glow
+    "sparkle": "0.05",     # very calm sparkle
     "blur": "14px",
     "radius": "18px",
 
-    # Lettering (E4-B: normal case + softer spacing)
+    # Typography (E4)
     "title_weight": "900",
     "title_spacing": "0.06em",
-    "caps": "none"
 }
-
 
 CUSTOM_CSS = f"""
 <style>
 /* ============================
    E — HUB AESTHETIC (SAFE)
-   Change THEME values only
    ============================ */
 
 :root {{
   --bg-top: {THEME["bg_top"]};
   --bg-bottom: {THEME["bg_bottom"]};
 
-  
   --panel: {THEME["panel"]};
   --panel2: {THEME["panel2"]};
-  --text: {THEME["text"]};
-  --muted: {THEME["muted"]};
+
+  --text-main: {THEME["text_main"]};
+  --muted-main: {THEME["muted_main"]};
 
   --gold: {THEME["gold"]};
   --violet: {THEME["violet"]};
@@ -97,11 +95,12 @@ CUSTOM_CSS = f"""
 
   --title-weight: {THEME["title_weight"]};
   --title-spacing: {THEME["title_spacing"]};
-  --caps: {THEME["caps"]};
 }}
 
-/* --- Page background --- */
-.stApp {
+/* --------------------------------------------------
+   MAIN APP BACKGROUND (E1 + E8)
+-------------------------------------------------- */
+.stApp {{
   background:
     radial-gradient(circle at 20% 15%,
       rgba(180,130,255, calc(var(--sparkle))) 0%,
@@ -109,28 +108,37 @@ CUSTOM_CSS = f"""
     radial-gradient(circle at 85% 25%,
       rgba(120,220,210, calc(var(--sparkle))) 0%,
       transparent 42%),
-    linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 70%);
-  color: rgba(245,245,247,0.92); /* main app text stays light */
-}
+    linear-gradient(180deg,
+      var(--bg-top) 0%,
+      var(--bg-bottom) 70%);
+  color: var(--text-main);
+}}
 
-
-/* --- Sidebar --- */
-[data-testid="stSidebar"] {
+/* --------------------------------------------------
+   SIDEBAR (E5 — solid white, no glass)
+-------------------------------------------------- */
+[data-testid="stSidebar"] {{
   background: #ffffff !important;
   border-right: 1px solid rgba(0,0,0,0.18) !important;
   box-shadow: none !important;
-}
-
-[data-testid="stSidebar"] * {
-  color: rgba(15,18,25,0.95) !important;
-}
-
-/* --- Global typography nudges --- */
-html, body, [class*="css"] {{
-  color: var(--text);
 }}
 
-/* --- “Glassy card” utility class you can reuse --- */
+[data-testid="stSidebar"] * {{
+  color: rgba(15,18,25,0.95) !important;
+}}
+
+/* Sidebar inputs — clean, neutral */
+[data-testid="stSidebar"] input,
+[data-testid="stSidebar"] textarea,
+[data-testid="stSidebar"] select {{
+  background: #ffffff !important;
+  border: 1px solid rgba(0,0,0,0.18) !important;
+  border-radius: 12px !important;
+}}
+
+/* --------------------------------------------------
+   GLASS PANEL UTILITY (used by Card Stage, etc.)
+-------------------------------------------------- */
 .sld-glass {{
   border-radius: var(--radius);
   padding: 14px 16px;
@@ -142,7 +150,7 @@ html, body, [class*="css"] {{
   backdrop-filter: blur(var(--blur));
   box-shadow:
       0 10px 40px rgba(0,0,0,0.25),
-      0 0 28px rgba(255,210,122, calc(var(--glow)));
+      0 0 24px rgba(255,210,122, calc(var(--glow)));
   position: relative;
   overflow: hidden;
 }}
@@ -157,7 +165,7 @@ html, body, [class*="css"] {{
   background: radial-gradient(circle,
       rgba(255,210,122, calc(var(--sparkle))) 0%,
       transparent 58%);
-  animation: sldGlow 18s linear infinite;
+  animation: sldGlow 28s linear infinite;
   pointer-events:none;
 }}
 
@@ -166,22 +174,49 @@ html, body, [class*="css"] {{
   to   {{ transform: rotate(360deg); }}
 }}
 
-/* --- Title style utility --- */
+/* --------------------------------------------------
+   HEADINGS (E6 — gold underline only)
+-------------------------------------------------- */
 .sld-title {{
   font-weight: var(--title-weight);
   letter-spacing: var(--title-spacing);
-  text-transform: var(--caps);
-  background: linear-gradient(135deg, var(--gold), var(--violet), var(--teal));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 2px 10px rgba(255,210,122, calc(var(--glow))));
+  color: var(--text-main);
+  position: relative;
+  display: inline-block;
+  padding-bottom: 6px;
 }}
 
-/* --- Small muted text utility --- */
-.sld-muted {{
-  color: var(--muted);
+.sld-title::after {{
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), transparent);
 }}
+
+/* --------------------------------------------------
+   MUTED TEXT
+-------------------------------------------------- */
+.sld-muted {{
+  color: var(--muted-main);
+}}
+
+/* --------------------------------------------------
+   BUTTONS (E7 — mostly default, slight rounding)
+-------------------------------------------------- */
+.stButton > button {{
+  border-radius: 12px !important;
+}}
+/* ============================
+   END E — HUB AESTHETIC
+   ============================ */
+</style>
+"""
+
+
+
 
 /* ============================
    END E — HUB AESTHETIC (SAFE)
