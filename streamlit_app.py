@@ -466,7 +466,24 @@ if admin_unlocked(active_user):
     nav.insert(3, "Codes")  # shows only for admin
     nav.append("Admin")
 
-view = st.sidebar.radio("Navigate", nav, index=0)
+# Sidebar navigation (stable state)
+st.session_state.setdefault("view", "Overview")
+
+# ---- Stable navigation state (prevents view snap-back) ----
+st.session_state.setdefault("view", "Overview")
+
+view = st.sidebar.radio(
+    "Navigate",
+    nav,
+    index=nav.index(st.session_state["view"]) if st.session_state["view"] in nav else 0,
+    key="nav_radio",
+)
+
+st.session_state["view"] = view
+st.sidebar.caption(f"🧭 Current view: **{view}**")
+
+st.session_state["view"] = view
+
 
 st.title("🎴 Starlight Deck — v3 Hub")
 
@@ -629,12 +646,14 @@ elif view == "Cards":
 
     manifest_path = os.path.join(APP_DIR, "assets", "manifests", "cards_manifest.json")
 
-    try:
-        with open(manifest_path, "r", encoding="utf-8") as f:
-            manifest = json.load(f)
-    except Exception as e:
-        st.error(f"Could not load cards_manifest.json: {e}")
-        st.stop()
+  manifest = {"version": "v1", "sets": []}
+
+try:
+    with open(manifest_path, "r", encoding="utf-8") as f:
+        manifest = json.load(f)
+except Exception as e:
+    st.warning(f"Cards manifest not ready yet: {e}")
+
 
     sets = manifest.get("sets", [])
     if not sets:
