@@ -1054,14 +1054,26 @@ elif view == "Docs":
     with tab3:
         txt = load_text_safe(USERS_MD)
         st.markdown(txt) if txt else st.info("Add content to `users.md`.")
-
 # ----------------------------
 # Admin (protected; hidden unless unlocked)
 # ----------------------------
 elif view == "Admin":
-    st.subheader("Admin")
-    st.caption("Visible only to admin. Auto-unlocked for user_id `bshapp`.")
+    st.subheader("🔧 Admin Console")
+    st.caption("Admin-only utilities. Safe mode: resets require confirmation.")
 
+    # ---- Admin view toggle (optional) ----
+    # If you already have a star toggle elsewhere, you can remove this.
+    st.session_state.setdefault("admin_view_as_player", False)
+    st.session_state["admin_view_as_player"] = st.toggle(
+        "⭐ View as Player (hide admin powers)",
+        value=st.session_state["admin_view_as_player"],
+    )
+
+    if st.session_state["admin_view_as_player"]:
+        st.info("Player View is ON. Admin actions hidden.")
+        st.stop()
+
+    # ---- Raw JSON preview ----
     with st.expander("Raw JSON (read-only)", expanded=False):
         st.markdown("**careon_bank_v2.json**")
         st.json(bank)
@@ -1070,42 +1082,47 @@ elif view == "Admin":
         st.markdown("**user_profile.json**")
         st.json(users_db)
 
-    st.warning("Reset actions overwrite files.")
+    st.divider()
 
-    # C3: Danger Zone confirmation
-    with st.expander("☠️ Danger Zone (Resets)", expanded=False):
-        confirm = st.text_input('Type RESET to enable destructive actions', value="")
-        if confirm.strip().upper() == "RESET":
-            colA, colB, colC = st.columns(3)
+    # ---- Reset safety gate ----
+    st.markdown("### 🧨 Resets (protected)")
+    st.caption("Type RESET to unlock the reset buttons for this session.")
 
-            with colA:
-                if st.button("Reset bank"):
-                    bank = default_bank()
-                    save_json(BANK_PATH, bank)
-                    st.success("Bank reset.")
-                    st.rerun()
+    st.session_state.setdefault("reset_unlocked", False)
 
-            with colB:
-                if st.button("Reset codes (empty)"):
-                    ledger = default_codes()
-                    save_json(CODES_PATH, ledger)
-                    st.success("Codes reset.")
-                    st.rerun()
+    confirm = st.text_input("Type RESET", value="", key="reset_confirm_text")
+    if confirm.strip().upper() == "RESET":
+        st.session_state["reset_unlocked"] = True
 
-            with colC:
-                if st.button("Reset users (admin only)"):
-                    users_db = default_users()
-                    save_json(USERS_PATH, users_db)
-                    st.success("Users reset.")
-                    st.rerun()
-        else:
-        st.session_state.setdefault("reset_unlocked", False)
+    if not st.session_state["reset_unlocked"]:
+        st.info("Resets are locked until you type RESET.")
+        st.stop()
 
-code = st.text_input("Type RESET to unlock resets", key="reset_confirm")
+    # ---- Reset buttons (now unlocked) ----
+    colA, colB, colC = st.columns(3)
 
-if code.strip().upper() == "RESET":
-    st.session_state["reset_unlocked"] = True
+    with colA:
+        if st.button("Reset bank", use_container_width=True):
+            bank = default_bank()
+            save_json(BANK_PATH, bank)
+            st.success("Bank reset.")
+            st.rerun()
 
-if not st.session_state["reset_unlocked"]:
-    st.info("Resets are locked until you type RESET.")
-    st.stop()
+    with colB:
+        if st.button("Reset codes (empty)", use_container_width=True):
+            ledger = default_codes()
+            save_json(CODES_PATH, ledger)
+            st.success("Codes reset.")
+            st.rerun()
+
+    with colC:
+        if st.button("Reset users (admin only)", use_container_width=True):
+            users_db = default_users()
+            save_json(USERS_PATH, users_db)
+            st.success("Users reset.")
+            st.rerun()
+
+
+# ----------------------------
+# END OF APP
+# ----------------------------
