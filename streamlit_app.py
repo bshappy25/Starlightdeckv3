@@ -642,24 +642,23 @@ elif view == "Join (Redeem Code)":
 # ----------------------------
 elif view == "Cards":
     st.subheader("🃏 Cards Library")
-    st.caption("Read-only preview from the cards manifest. No economy logic here.")
+    st.caption("Read-only preview from the cards manifest.")
 
     manifest_path = os.path.join(APP_DIR, "assets", "manifests", "cards_manifest.json")
 
-  manifest = {"version": "v1", "sets": []}
+    # Always start with a safe default (prevents app lockout)
+    manifest = {"version": "v1", "sets": []}
 
-try:
-    with open(manifest_path, "r", encoding="utf-8") as f:
-        manifest = json.load(f)
-except Exception as e:
-    st.warning(f"Cards manifest not ready yet: {e}")
-
+    try:
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            manifest = json.load(f)
+    except Exception as e:
+        st.warning(f"Cards manifest not ready yet: {e}")
 
     sets = manifest.get("sets", [])
     if not sets:
         st.info("No card sets yet. Add sets/cards to assets/manifests/cards_manifest.json")
-        st.stop()
-        
+
 
     # ----------------------------
     # Flatten cards + enrich with set info
