@@ -460,10 +460,11 @@ def get_user_record(users_db: dict, user_id: str) -> dict:
     return {}
 
 # ============================================================
-# 🃏 CARD VIEWER HELPER — SAFE / NO LOGIC SIDE EFFECTS
+# 🃏 CARD VIEWER HELPER — SLD APPROVED (SIMPLE + STABLE)
 # ------------------------------------------------------------
 # Put this BEFORE the main UI block.
-# Used by Cards grid + Card Stage. Never crashes if assets missing.
+# NO CSS injection here. Uses Streamlit-native UI.
+# Never crashes if assets are missing.
 # ============================================================
 
 def _safe_join_app_path(app_dir: str, rel_path: str | None) -> str | None:
@@ -478,104 +479,59 @@ def _safe_join_app_path(app_dir: str, rel_path: str | None) -> str | None:
 def render_card_tile(
     name: str,
     image_path: str | None,
-    idx: int = 0,
     *,
     subtitle: str | None = None,
-    placeholder_color: str = "#8EC5FF",  # blue default
+    placeholder_color: str = "#8EC5FF",
     placeholder_label: str | None = None,
-    height_px: int = 360,
+    height_px: int = 320,
 ):
     """
-    Safe card renderer:
-      - If image exists: show it
-      - Else: show a styled placeholder
-    Uses the E theme utility class .sld-glass if present.
+    Safe card renderer (ASCII only):
+    - If image exists: show it
+    - Else: show a simple placeholder
     """
-
-    # One-time CSS for the card tile (kept minimal)
-    if not st.session_state.get("_card_tile_css", False):
-        st.markdown(
-            """
-            <style>
-            .sld-card-tile{
-                border-radius: 16px;
-                padding: 10px;
-                border: 1px solid rgba(255,255,255,0.16);
-                background: rgba(255,255,255,0.06);
-                box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-                overflow: hidden;
-            }
-            .sld-card-title{
-                font-weight: 900;
-                letter-spacing: 0.06em;
-                margin-top: 8px;
-                margin-bottom: 2px;
-            }
-            .sld-card-sub{
-                color: rgba(245,245,247,0.65);
-                font-size: 0.9rem;
-                margin-top: 0px;
-            }
-            .sld-card-ph{
-                width: 100%;
-                border-radius: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                text-align: center;
-                padding: 12px;
-                font-weight: 950;
-                letter-spacing: 0.10em;
-                color: rgba(0,0,0,0.78);
-                box-shadow: 0 8px 24px rgba(0,0,0,0.20);
-                user-select: none;
-                white-space: pre-line;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.session_state["_card_tile_css"] = True
-
-    # Resolve file
     full_path = _safe_join_app_path(APP_DIR, image_path)
     exists = bool(full_path and os.path.exists(full_path))
 
-    # Container (glassy if your E theme exists)
-    st.markdown('<div class="sld-card-tile sld-glass">', unsafe_allow_html=True)
+    # Use a native container so it doesn't fight your global CSS
+    with st.container():
+        if exists:
+            st.image(full_path, use_container_width=True)
+        else:
+            label = placeholder_label if placeholder_label is not None else (name or "CARD")
 
-    if exists:
-        # Use Streamlit image (safe sizing)
-        st.image(full_path, use_container_width=True)
-    else:
-        # Placeholder label
-        label = placeholder_label if placeholder_label is not None else (name or "CARD")
+            # Minimal HTML placeholder (no extra classes)
+            html = (
+                '<div style="'
+                'width:100%;'
+                f'height:{int(height_px)}px;'
+                'border-radius:14px;'
+                f'background:{placeholder_color};'
+                'display:flex;'
+                'align-items:center;'
+                'justify-content:center;'
+                'text-align:center;'
+                'padding:12px;'
+                'font-weight:900;'
+                'letter-spacing:0.10em;'
+                'color:rgba(0,0,0,0.78);'
+                'white-space:pre-line;'
+                'box-shadow:0 6px 18px rgba(0,0,0,0.18);'
+                '">'
+                f'{str(label)}'
+                '</div>'
+            )
+            st.markdown(html, unsafe_allow_html=True)
 
-        # Inline style avoids aspect-ratio quirks and keeps it simple
-        ph_style = (
-            'height:' + str(int(height_px)) + 'px;'
-            'background:' + str(placeholder_color) + ';'
-        )
-
-        html = (
-            '<div class="sld-card-ph" style="' + ph_style + '">'
-            + str(label)
-            + '</div>'
-        )
-        st.markdown(html, unsafe_allow_html=True)
-
-    # Titles
-    safe_name = name or "Unnamed Card"
-    st.markdown(f'<div class="sld-card-title">{safe_name}</div>', unsafe_allow_html=True)
-    if subtitle:
-        st.markdown(f'<div class="sld-card-sub">{subtitle}</div>', unsafe_allow_html=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
+        # Title + subtitle as Streamlit text (stable)
+        st.markdown(f"**{name or 'Unnamed Card'}**")
+        if subtitle:
+            st.caption(subtitle)
 
 
 def render_card_placeholder_set():
     """
-    Optional helper: standard placeholders for early-stage sets.
+    Optional helper: 3 intro placeholders.
     Blue for 1, Red for 2, Yellow for 3.
     """
     cols = st.columns(3)
@@ -603,6 +559,7 @@ def render_card_placeholder_set():
             placeholder_label="INTRO\nCARD 3",
             height_px=320,
         )
+
 
 # ============================================================
 # UI
