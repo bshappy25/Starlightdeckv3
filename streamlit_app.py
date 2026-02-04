@@ -604,7 +604,7 @@ def _ensure_admin_user(users_db: dict):
     for u in users_db.get("users", []):
         if u.get("user_id") == "bshapp":
             return
-    })
+    
     users_db["meta"]["updated_at"] = _now_iso()
     save_json(USERS_PATH, users_db)
 
