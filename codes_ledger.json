@@ -1,14 +1,21 @@
 {
   "meta": {
     "ledger_name": "Starlight Deck — Access Codes Ledger",
-    "version": "v1",
+    "version": "v2",
     "created_at": "2026-02-03T00:00:00Z",
-    "updated_at": "2026-02-03T00:00:00Z",
-    "add_more_codes_instructions": "ADD MORE CODES BY COPYING ANY BLOCK IN codes[] AND PASTING IT AS A NEW ITEM. RULES: 1) code must be unique, 2) status must be 'new', 3) package.sign_on_bonus must be a number.",
-    "template": {
-      "code": "FRONTIER-XXXX",
-      "status": "new",
-      "package": { "title": "Frontier", "sign_on_bonus": 500 }
+    "updated_at": "2026-02-04T00:00:00Z",
+    "add_more_codes_instructions": "ADD MORE CODES BY COPYING ANY BLOCK IN codes[] AND PASTING IT AS A NEW ITEM. RULES: 1) code must be unique, 2) status must be 'new', 3) use ONE package type: (A) Frontier onboarding: package.sign_on_bonus (number), OR (B) Admin award: package.admin_award_careon (number).",
+    "templates": {
+      "frontier_onboarding": {
+        "code": "FRONTIER-XXXX",
+        "status": "new",
+        "package": { "title": "Frontier", "sign_on_bonus": 500 }
+      },
+      "admin_award": {
+        "code": "ADMIN-XXXX",
+        "status": "new",
+        "package": { "title": "Admin Award", "admin_award_careon": 50 }
+      }
     }
   },
   "codes": [
@@ -21,6 +28,13 @@
     { "code": "FRONTIER-D4S7", "status": "new", "package": { "title": "Frontier", "sign_on_bonus": 500 } },
     { "code": "FRONTIER-Z1J9", "status": "new", "package": { "title": "Frontier", "sign_on_bonus": 500 } },
     { "code": "FRONTIER-C6W5", "status": "new", "package": { "title": "Frontier", "sign_on_bonus": 500 } },
-    { "code": "FRONTIER-B7Y2", "status": "new", "package": { "title": "Frontier", "sign_on_bonus": 500 } }
+    { "code": "FRONTIER-B7Y2", "status": "new", "package": { "title": "Frontier", "sign_on_bonus": 500 } },
+
+    { "code": "ADMIN-50", "status": "new", "package": { "title": "Admin Award", "admin_award_careon": 50 } },
+    { "code": "ADMIN-100", "status": "new", "package": { "title": "Admin Award", "admin_award_careon": 100 } },
+    { "code": "ADMIN-250", "status": "new", "package": { "title": "Admin Award", "admin_award_careon": 250 } },
+    { "code": "ADMIN-500", "status": "new", "package": { "title": "Admin Award", "admin_award_careon": 500 } },
+
+    { "code": "STARPLACE-1200", "status": "new", "package": { "title": "Starplace Gate (Deposit)", "admin_award_careon": 1200 } }
   ]
 }
