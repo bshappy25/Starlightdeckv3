@@ -375,6 +375,12 @@ elif view == "Dev Store":
 # ------------------------------------------------------------
 else:
     st.markdown('<div class="sp-module">', unsafe_allow_html=True)
+
+st.markdown("## ⭐ Starplace DEV is live")
+st.caption("If you can read this, the app UI is rendering.")
+st.success("DEV sandbox loaded ✅")
+st.write("Open the sidebar (top-left) to select a user + navigate.")
+st.divider()
     st.markdown("**Data (DEV)**")
     st.caption("This is the sandbox user database stored in starplace_dev/state/starplace_users.json")
     st.json(db)
