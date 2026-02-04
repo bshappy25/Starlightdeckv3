@@ -138,6 +138,8 @@ AVATAR_EMOJIS = ["✨", "🕊️", "🐻‍❄️", "🦀", "🌟", "🌙", "�
 # ============================================================
 # Session utilities
 # ============================================================
+def _normalize_theme_key(k: str) -> str:
+    return k if k in THEMES else "nebula_ink"
 
 def _ss_init():
     """
