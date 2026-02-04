@@ -308,9 +308,15 @@ def _theme_takeover_css(theme_key: str) -> str:
 # App start
 # ============================================================
 
-st.set_page_config(page_title=APP_TITLE, page_icon=APP_ICON, layout="wide")
+st.set_page_config(
+    page_title=APP_TITLE,
+    page_icon=APP_ICON,
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
 st.markdown(BASE_CSS, unsafe_allow_html=True)
 _ss_init()
+
 
 # ============================================================
 # Sidebar
