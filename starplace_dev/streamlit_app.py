@@ -370,20 +370,56 @@ elif view == "Dev Store":
             st.warning("Not enough FAKE Careon.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ------------------------------------------------------------
-# Data
-# ------------------------------------------------------------
-else:
-    st.markdown('<div class="sp-module">', unsafe_allow_html=True)
 
-st.markdown("## ⭐ Starplace DEV is live")
-st.caption("If you can read this, the app UI is rendering.")
-st.success("DEV sandbox loaded ✅")
-st.write("Open the sidebar (top-left) to select a user + navigate.")
-st.divider()
-    st.markdown("**Data (DEV)**")
-    st.caption("This is the sandbox user database stored in starplace_dev/state/starplace_users.json")
-    st.json(db)
-    st.markdown("</div>", unsafe_allow_html=True)
+# ============================================================
+# 🗂️ STARPLACE DATA — QUOTE ONLY (SAFE / DEV MODE)
+# ------------------------------------------------------------
+# Handles:
+# - loading users
+# - storing ONE user quote
+# No economy, no tokens, no side effects
+# ============================================================
 
-    st.warning("If you want a clean reset: delete starplace_dev/state/starplace_users.json")
+import json
+from datetime import datetime
+
+STATE_DIR = "starplace_dev/state"
+USERS_FILE = f"{STATE_DIR}/starplace_users.json"
+
+
+def _now_iso():
+    return datetime.utcnow().isoformat()
+
+
+def load_users():
+    try:
+        with open(USERS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            if "users" not in data:
+                data["users"] = []
+            return data
+    except Exception:
+        return {"meta": {"version": "dev1"}, "users": []}
+
+
+def save_users(data):
+    with open(USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+
+def get_or_create_user(users_db, user_id, display_name):
+    for u in users_db["users"]:
+        if u["user_id"] == user_id:
+            return u
+
+    user = {
+        "user_id": user_id,
+        "display_name": display_name,
+        "starplace": {
+            "quote": "",
+            "updated_at": _now_iso(),
+        },
+        "created_at": _now_iso(),
+    }
+    users_db["users"].append(user)
+    return user
