@@ -93,3 +93,14 @@
   ],
   "meta": { "version": "v3", "updated_at": "2026-02-03T00:00:00Z" }
 }
+
+{
+  "codes": [
+    {
+      "code": "FRONTIER-TEST-1",
+      "status": "new",
+      "package": { "title": "Frontier", "sign_on_bonus": 500 }
+    }
+  ],
+  "meta": { "version": "v3", "updated_at": "..." }
+}
