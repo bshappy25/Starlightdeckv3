@@ -710,12 +710,7 @@ default_index = 0
 if st.session_state.get("active_user_override") in user_ids:
     default_index = user_ids.index(st.session_state["active_user_override"])
 
-active_user = st.sidebar.selectbox(
-    "Active user",
-    options=user_ids,
-    index=default_index,
-    format_func=lambda uid: f"{display_map.get(uid, uid)} ({uid})",
-)
+active_user = st.session_state.get("active_user_id") or "bshapp"
 
 # ⭐ Admin can simulate non-admin view
 st.session_state.setdefault("admin_view_as_player", False)
@@ -786,6 +781,28 @@ st.session_state["view"] = view
 
 
 st.title("🎴 Starlight Deck — v3 Hub")
+
+if st.session_state.get("entry_success", False):
+    st.markdown(
+        """
+        <div style="
+            border-radius: 16px;
+            padding: 10px 14px;
+            margin: 10px 0 14px 0;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+            text-align: center;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+        ">
+            ⭐ The network grows with you — and your input grows the network ⭐
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.caption("Stay tuned ⭐")
 
 # Top metrics (B2 + C5 + B9)
 c1, c2, c3, c4, c5, c6 = st.columns(6)
