@@ -2,21 +2,7 @@ import json
 import streamlit as st
 
 # ============================================================
-# ⭐ STARPLACE (DEV) — Branch 3 UI Tighten Pass
-# ------------------------------------------------------------
-# Your choices applied:
-# - More compact layout + tighter modules
-# - Sidebar mini profile card (cute, utility-first)
-# - My Starplace uses in-page tabs: Profile / Journal / Settings
-# - Avatar area: square glass overlay (less dead space than black box)
-# - Keep nav to 3 items (no gallery yet)
-# - Introduce a JSON export (download + view)
-#
-# Still:
-# - Global soft gate (C2)
-# - Theme takeover CSS only after confirmation
-# - Sidebar stays white
-# - Light themes: Moon Milk + Peach Glow use faded black text + readable panels
+# ⭐ STARPLACE (DEV) — Branch 3 UI Tighten Pass (FULL FILE)
 # ============================================================
 
 APP_TITLE = "Starplace (DEV)"
@@ -118,6 +104,228 @@ THEMES = {
 
 AVATAR_EMOJIS = ["✨", "🕊️", "🐻‍❄️", "🦀", "🌟", "🌙", "🌈", "🪐", "🧿", "🦋", "🍀", "🧊"]
 
+# ============================================================
+# CSS (compact + mobile-safe + no white buttons)
+# ============================================================
+
+BASE_CSS = """
+<style>
+:root{
+  --sp-accent: #8B5CF6;
+  --sp-accent-weak: rgba(139, 92, 246, 0.18);
+  --sp-text: rgba(245,245,247,0.92);
+  --sp-muted: rgba(245,245,247,0.70);
+  --sp-border: rgba(255,255,255,0.16);
+  --sp-panel: rgba(255,255,255,0.06);
+  --sp-shadow: rgba(0,0,0,0.28);
+}
+
+/* Buttons (NO white default) */
+.stButton > button{
+  background: rgba(255,255,255,0.06) !important;
+  color: var(--sp-text) !important;
+  border: 1px solid color-mix(in srgb, var(--sp-accent) 26%, var(--sp-border)) !important;
+  border-radius: 14px !important;
+  font-weight: 850 !important;
+}
+.stButton > button:hover{
+  background: color-mix(in srgb, var(--sp-accent) 10%, rgba(255,255,255,0.06)) !important;
+  border-color: var(--sp-accent) !important;
+  transform: translateY(-1px);
+}
+.stButton > button:focus,
+.stButton > button:active{
+  outline: none !important;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sp-accent) 20%, transparent) !important;
+}
+.stButton > button:disabled{
+  opacity: 0.55 !important;
+  background: rgba(255,255,255,0.04) !important;
+  transform: none !important;
+}
+
+/* Sidebar: solid white + gray border */
+section[data-testid="stSidebar"]{
+  background: #ffffff !important;
+  border-right: 1px solid rgba(0,0,0,0.12);
+}
+section[data-testid="stSidebar"] *{
+  color: rgba(10,10,12,0.92) !important;
+}
+
+/* Compact container */
+.block-container{
+  padding-top: 0.75rem;
+  padding-bottom: 2.0rem;
+}
+
+/* Header */
+.sp-title{
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 1.18rem;
+  margin-bottom: 2px;
+}
+.sp-sub{
+  color: var(--sp-muted);
+  margin-bottom: 6px;
+}
+
+/* Modules */
+.sp-module{
+  border-radius: 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--sp-border);
+  background: var(--sp-panel);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 28px var(--sp-shadow);
+  margin: 8px 0;
+}
+
+/* Ticker */
+.sp-ticker{
+  border-radius: 14px;
+  padding: 6px 10px;
+  border: 1px solid var(--sp-border);
+  background: rgba(255,255,255,0.05);
+}
+
+/* Badges */
+.sp-badge{
+  display:inline-block;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.22);
+  background: rgba(255,255,255,0.06);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  font-size: 0.82rem;
+}
+.sp-badge-accent{
+  display:inline-block;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--sp-accent-weak);
+  background: rgba(255,255,255,0.05);
+  font-weight: 950;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+/* Sidebar mini profile card */
+.sp-sidecard{
+  border-radius: 14px;
+  padding: 10px 10px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: rgba(255,255,255,0.96);
+}
+.sp-sidecard-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.sp-side-ava{
+  width:40px;
+  height:40px;
+  border-radius: 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: rgba(0,0,0,0.06);
+  font-size: 1.35rem;
+}
+.sp-side-name{
+  font-weight: 900;
+  font-size: 0.95rem;
+  line-height: 1.05;
+}
+.sp-side-sub{
+  color: rgba(0,0,0,0.55);
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+
+/* Square avatar tile (smaller + centered) */
+.sp-avatar-tile{
+  width: 100%;
+  max-width: 260px;
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.05);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.30);
+}
+.sp-avatar-overlay{
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  backdrop-filter: blur(10px);
+}
+.sp-avatar-emoji{
+  position: absolute;
+  inset: 0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size: 3.4rem;
+}
+.sp-avatar-chip{
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(0,0,0,0.30);
+  color: rgba(245,245,247,0.86);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+}
+
+/* Inputs */
+div[data-baseweb="input"] input,
+div[data-baseweb="textarea"] textarea,
+div[data-baseweb="select"] > div{
+  border-radius: 14px !important;
+}
+
+/* Tabs tighter */
+button[role="tab"]{
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 780px){
+  .block-container{
+    padding-left: 0.8rem !important;
+    padding-right: 0.8rem !important;
+    padding-top: 0.6rem !important;
+  }
+  div[data-testid="stHorizontalBlock"]{
+    flex-direction: column !important;
+  }
+  div[data-testid="column"]{
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+  .sp-title{ font-size: 1.05rem !important; }
+  .sp-avatar-tile{ max-width: 210px !important; }
+  .sp-avatar-emoji{ font-size: 3.0rem !important; }
+  button[role="tab"]{
+    font-size: 0.9rem !important;
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+  }
+}
+</style>
+"""
 
 # ============================================================
 # Utilities
@@ -202,7 +410,6 @@ def _reset_all_dev_data():
     for k in keys_to_clear:
         if k in st.session_state:
             del st.session_state[k]
-
 
 # ============================================================
 # Global confirmation (C2)
@@ -303,7 +510,6 @@ def _theme_takeover_css(theme_key: str) -> str:
 </style>
 """
 
-
 # ============================================================
 # App start
 # ============================================================
@@ -316,7 +522,6 @@ st.set_page_config(
 )
 st.markdown(BASE_CSS, unsafe_allow_html=True)
 _ss_init()
-
 
 # ============================================================
 # Sidebar
@@ -343,13 +548,11 @@ active_dev_user = _get_dev_user(user_choice)
 st.session_state["active_user_id"] = active_dev_user["user_id"]
 st.session_state["active_user_name"] = active_dev_user["display_name"]
 
-# Pull current profile for sidebar card
 uid = st.session_state["active_user_id"]
 profile = _get_profile(uid)
 theme_key = _normalize_theme_key(profile.get("bg", "nebula_ink"))
 t = THEMES[theme_key]
 
-# Mini profile card (cute)
 st.sidebar.markdown(
     f"""
     <div class="sp-sidecard">
@@ -372,7 +575,6 @@ st.sidebar.caption("Fake currency. Clears if session resets.")
 view = st.sidebar.radio("Navigate", ["My Starplace", "Dev Store", "Data"], index=0)
 st.session_state["last_view"] = view
 
-# Hub link
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🔗 Hub")
 st.sidebar.link_button("⬅️ Go back to hub", "https://starlightdeckv3.streamlit.app", use_container_width=True)
@@ -404,11 +606,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Refresh profile (in case user changed in sidebar)
 uid = st.session_state["active_user_id"]
 profile = _get_profile(uid)
 
-# Theme takeover ONLY after confirmation
 if _is_confirmed():
     selected_theme = _normalize_theme_key(profile.get("bg", "nebula_ink"))
     st.markdown(_theme_takeover_css(selected_theme), unsafe_allow_html=True)
@@ -430,7 +630,6 @@ if _is_confirmed():
 
 st.write("")
 
-
 # ============================================================
 # TAB 1: My Starplace
 # ============================================================
@@ -440,9 +639,7 @@ if view == "My Starplace":
     profile = _get_profile(uid)
 
     confirmed = _is_confirmed()
-    edit_mode = bool(st.session_state.get("edit_mode", False))
 
-    # ---------- Global soft gate intake ----------
     if not confirmed:
         st.markdown('<div class="sp-module">', unsafe_allow_html=True)
         st.markdown("### ✨ Starplace Intake (Global)")
@@ -501,7 +698,6 @@ if view == "My Starplace":
         st.markdown("</div>", unsafe_allow_html=True)
         st.stop()
 
-    # ---------- Confirmed top bar ----------
     st.markdown('<div class="sp-module">', unsafe_allow_html=True)
     topA, topB, topC = st.columns([5, 1, 1])
     with topA:
@@ -522,12 +718,22 @@ if view == "My Starplace":
             st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ---------- In-page tabs (Profile / Journal / Settings) ----------
     tab_profile, tab_journal, tab_settings = st.tabs(["Profile", "Journal", "Settings"])
 
     with tab_profile:
-        # two-column compact
         left, right = st.columns([3, 2], gap="small")
+
+        with right:
+            st.markdown(
+                f"""
+                <div class="sp-avatar-tile">
+                  <div class="sp-avatar-overlay"></div>
+                  <div class="sp-avatar-emoji">{profile.get("avatar","✨")}</div>
+                  <div class="sp-avatar-chip">avatar tile</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
         with left:
             st.markdown('<div class="sp-module">', unsafe_allow_html=True)
@@ -541,20 +747,6 @@ if view == "My Starplace":
             st.caption("Stay tuned ⭐")
             st.markdown("</div>", unsafe_allow_html=True)
 
-        with right:
-            # square avatar tile
-            st.markdown(
-                f"""
-                <div class="sp-avatar-tile">
-                  <div class="sp-avatar-overlay"></div>
-                  <div class="sp-avatar-emoji">{profile.get("avatar","✨")}</div>
-                  <div class="sp-avatar-chip">avatar tile</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            # active theme card
             current_theme = _normalize_theme_key(profile.get("bg", "nebula_ink"))
             t = THEMES[current_theme]
             st.markdown('<div class="sp-module">', unsafe_allow_html=True)
@@ -601,7 +793,6 @@ if view == "My Starplace":
         st.markdown("</div>", unsafe_allow_html=True)
 
     with tab_settings:
-        # edit panel lives here (instead of popping above everything)
         st.markdown('<div class="sp-module">', unsafe_allow_html=True)
         st.markdown("#### ⚙️ Profile Settings")
         st.caption("Compact edits. Theme updates apply on rerun (confirmed).")
@@ -647,7 +838,6 @@ if view == "My Starplace":
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # JSON export (introduce a json)
         st.markdown('<div class="sp-module">', unsafe_allow_html=True)
         st.markdown("#### 🧾 Export Profile JSON")
         st.caption("Session-only snapshot. Useful spec for future hub integration.")
@@ -670,9 +860,8 @@ if view == "My Starplace":
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-
 # ============================================================
-# TAB 2: Dev Store (preview only)
+# TAB 2: Dev Store
 # ============================================================
 
 elif view == "Dev Store":
@@ -706,9 +895,8 @@ elif view == "Dev Store":
     st.info("Arcade system not connected in Starplace-dev.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-
 # ============================================================
-# TAB 3: Data (session snapshot + resets)
+# TAB 3: Data
 # ============================================================
 
 else:
@@ -760,3 +948,4 @@ else:
             st.success("Dev session wiped ✅")
             st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
+
