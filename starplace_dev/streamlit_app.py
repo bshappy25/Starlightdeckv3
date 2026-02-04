@@ -571,6 +571,14 @@ div[data-testid="stAlert"]{{
   padding-bottom: 3rem;
 }}
 
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🔗 Hub")
+st.sidebar.markdown(
+    "[⬅️ Go back to Starlight Deck Hub](https://starlightdeckv3.streamlit.app)",
+    unsafe_allow_html=True,
+)
+
+
 </style>
 """
 
@@ -614,7 +622,7 @@ st.sidebar.markdown("### Balance")
 st.sidebar.metric("FAKE Careon (dev)", int(st.session_state.get("FAKE_CAREON", 5000)))
 st.sidebar.caption("Fake currency. Clears if session resets.")
 
-view = st.sidebar.radio("Navigate", ["My Starplace", "Dev Store", "Data"], index=0)
+view = st.sidebar.("Navigate", ["My Starplace", "Dev Store", "Data"], index=0)
 st.session_state["last_view"] = view
 
 st.sidebar.markdown("---")
