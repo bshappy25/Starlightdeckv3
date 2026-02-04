@@ -600,6 +600,22 @@ def _ensure_admin_user(users_db: dict):
     users_db["meta"]["updated_at"] = _now_iso()
     save_json(USERS_PATH, users_db)
 
+def _ensure_admin_user(users_db: dict):
+    for u in users_db.get("users", []):
+        if u.get("user_id") == "bshapp":
+            return
+    users_db.setdefault("users", []).insert(0, {
+        "user_id": "bshapp",
+        "display_name": "bshapp",
+        "vibe": "Admin",
+        "title": "Founder",
+        "role": "admin",
+        "created_at": _now_iso(),
+        "claims": {"admin_auto": True},
+    })
+    users_db["meta"]["updated_at"] = _now_iso()
+    save_json(USERS_PATH, users_db)
+
 _ensure_admin_user(users_db)
 
 if not st.session_state["entry_ok"]:
