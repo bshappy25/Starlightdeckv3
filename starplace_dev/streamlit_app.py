@@ -94,14 +94,19 @@ THEMES = {
         "bg_a": "#F5F6F8",
         "bg_b": "#EDEFF3",
         "panel_tint": "rgba(17, 24, 39, 0.06)",
+        "is_light": True,
     },
     "peach_glow": {
         "label": "Peach Glow",
-        "swatch": "#FB7185",  # rose accent
-        "bg_a": "#1A0D12",
-        "bg_b": "#2A1118",
-        "panel_tint": "rgba(251, 113, 133, 0.10)",
+        "swatch": "#FB7185",  # soft blush accent
+        "bg_a": "#FFF1F5",    # lighter pink background
+        "bg_b": "#FFE4EE",    # soft blush gradient
+        "panel_tint": "rgba(251, 113, 133, 0.08)",
+        "is_light": True,
     },
+
+
+    
     "ocean_glass": {
         "label": "Ocean Glass",
         "swatch": "#22C55E",  # green accent (intentionally vivid)
@@ -124,6 +129,8 @@ THEMES = {
         "panel_tint": "rgba(255, 122, 122, 0.10)",
     },
 }
+is_light = bool(t.get("is_light", False))
+
 
 # Emoji avatars displayed inside a black window (S9)
 AVATAR_EMOJIS = ["✨", "🕊️", "🐻‍❄️", "🦀", "🌟", "🌙", "🌈", "🪐", "🧿", "🦋", "🍀", "🧊"]
@@ -407,6 +414,63 @@ def _theme_takeover_css(theme_key: str) -> str:
     # Derivative: "accent weak" (transparent)
     # Keep it simple; CSS handles alpha overlays.
     return f"""
+<style>
+:root{{
+  --sp-accent: {accent};
+  --sp-accent-weak: color-mix(in srgb, {accent} 18%, transparent);
+  --sp-text: {text_color};
+  --sp-muted: {muted_color};
+  --sp-border: {border};
+  --sp-panel: {panel_bg};
+  --sp-panel-2: {panel_bg2};
+  --sp-shadow: {shadow};
+
+  --sp-bg-a: {bg_a};
+  --sp-bg-b: {bg_b};
+  --sp-panel-tint: {panel_tint};
+}}
+
+text_color = "rgba(10,10,12,0.86)" if is_light else "rgba(245,245,247,0.92)"
+muted_color = "rgba(10,10,12,0.62)" if is_light else "rgba(245,245,247,0.70)"
+panel_bg = "rgba(255,255,255,0.78)" if is_light else "rgba(255,255,255,0.06)"
+panel_bg2 = "rgba(255,255,255,0.62)" if is_light else "rgba(255,255,255,0.04)"
+border = "rgba(0,0,0,0.10)" if is_light else "rgba(255,255,255,0.16)"
+shadow = "rgba(0,0,0,0.12)" if is_light else "rgba(0,0,0,0.28)"
+
+.stApp{{
+  background: linear-gradient(180deg, var(--sp-bg-a) 0%, var(--sp-bg-b) 55%, var(--sp-bg-a) 100%) !important;
+  color: var(--sp-text) !important;
+}}
+
+/* Make main body text readable (sidebar stays white as you requested) */
+.block-container, .block-container * {{
+  color: var(--sp-text);
+}}
+.block-container p, .block-container li, .block-container span {{
+  color: var(--sp-text);
+}}
+.block-container .stCaption, .block-container small {{
+  color: var(--sp-muted) !important;
+}}
+
+/* Modules become readable in light themes */
+.sp-module{{
+  background: linear-gradient(135deg, var(--sp-panel), var(--sp-panel-tint)) !important;
+  border-color: color-mix(in srgb, var(--sp-accent) 18%, var(--sp-border)) !important;
+  box-shadow: 0 10px 34px var(--sp-shadow);
+}}
+.sp-ticker{{
+  border-color: color-mix(in srgb, var(--sp-accent) 20%, var(--sp-border)) !important;
+  color: var(--sp-text) !important;
+}}
+.sp-badge{{
+  color: var(--sp-text) !important;
+}}
+
+...
+</style>
+"""
+
 <style>
 /* =========================
    THEME TAKEOVER (CONFIRMED ONLY)
