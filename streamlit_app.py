@@ -603,7 +603,6 @@ def _ensure_admin_user(users_db: dict):
     users_db["meta"]["updated_at"] = _now_iso()
     save_json(USERS_PATH, users_db)
 
-_ensure_admin_user(users_db)
 
 if not st.session_state["entry_ok"]:
     st.title("✨ Welcome to Starlight Deck")
@@ -694,6 +693,11 @@ if json_warnings:
 bank = load_json_safe(BANK_PATH, default_bank())
 ledger = load_json_safe(CODES_PATH, default_codes())
 users_db = load_json_safe(USERS_PATH, default_users())
+
+try:
+    _ensure_admin_user(users_db)
+except Exception as e:
+    st.warning(f"Admin bootstrap skipped: {e}")
 
 # Branch B: ensure per-user balances exist and rebuild from txs if missing/empty
 ensure_user_balances(bank)
