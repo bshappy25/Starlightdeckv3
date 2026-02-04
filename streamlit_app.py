@@ -572,6 +572,11 @@ def render_card_placeholder_set():
             height_px=320,
         )
 
+bank = load_json_safe(BANK_PATH, default_bank())
+ledger = load_json_safe(CODES_PATH, default_codes())
+users_db = load_json_safe(USERS_PATH, default_users())
+
+
 # ============================================================
 # 🚪 ENTRY GATE — HARD STOP UNTIL USER IS IN (MOBILE SAFE)
 # ------------------------------------------------------------
@@ -674,6 +679,7 @@ if not st.session_state["entry_ok"]:
     # HARD STOP: nothing else renders until entry passes
     st.stop()
 
+
 # ============================================================
 # UI
 # ============================================================
@@ -689,10 +695,6 @@ if json_warnings:
         "One or more JSON files could not be parsed. Running with safe defaults.\n\n- "
         + "\n- ".join(sorted(json_warnings))
     )
-
-bank = load_json_safe(BANK_PATH, default_bank())
-ledger = load_json_safe(CODES_PATH, default_codes())
-users_db = load_json_safe(USERS_PATH, default_users())
 
 try:
     _ensure_admin_user(users_db)
