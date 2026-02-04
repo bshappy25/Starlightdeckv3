@@ -81,7 +81,11 @@ AVATAR_EMOJIS = ["✨", "🕊️", "🐻‍❄️", "🦀", "🌟", "🌙", "�
 # Session utilities
 # ------------------------------------------------------------
 def _ss_init():
-    st.session_state.setdefault("FAKE_CAREON", 5000)
+    
+st.session_state.setdefault("profile_confirmed", {})   # per-user flag
+st.session_state.setdefault("edit_mode", False)        # soft override
+
+st.session_state.setdefault("FAKE_CAREON", 5000)
     st.session_state.setdefault("active_user_id", DEV_USERS[0]["user_id"])
     st.session_state.setdefault("active_user_name", DEV_USERS[0]["display_name"])
     st.session_state.setdefault("starplace_profiles", {})  # keyed by user_id
@@ -137,6 +141,14 @@ def _reset_all_dev_data():
         if k in st.session_state:
             del st.session_state[k]
 
+
+def _is_confirmed(user_id: str) -> bool:
+    return bool(st.session_state.get("profile_confirmed", {}).get(user_id, False))
+
+def _set_confirmed(user_id: str, value: bool):
+    pc = st.session_state.get("profile_confirmed", {})
+    pc[user_id] = bool(value)
+    st.session_state["profile_confirmed"] = pc
 
 # ------------------------------------------------------------
 # DESIGN / CSS (S10)
@@ -279,66 +291,44 @@ st.write("")
 uid = st.session_state["active_user_id"]
 profile = _get_profile(uid)
 
-# ============================================================
-# TAB 1: My Starplace
-# ============================================================
-if view == "My Starplace":
-    left, right = st.columns([3, 2])
 
-    with left:
+if view == "My Starplace":
+    uid = st.session_state["active_user_id"]
+    profile = _get_profile(uid)
+
+    confirmed = _is_confirmed(uid)
+    edit_mode = bool(st.session_state.get("edit_mode", False))
+
+    # ------------------------------------------------------------
+    # A-soft gate:
+    # - If not confirmed: intake screen ONLY
+    # - If confirmed: profile screen
+    # - Edit Profile toggles edit_mode (soft)
+    # ------------------------------------------------------------
+
+    if not confirmed or edit_mode:
         st.markdown('<div class="sp-module">', unsafe_allow_html=True)
-        st.markdown(
-            f'<span class="sp-badge">PROFILE: {st.session_state["active_user_name"]}</span>',
-            unsafe_allow_html=True,
-        )
-        st.caption(f"Persona: {profile.get('persona','')}")
+        st.markdown("### ✨ Profile Intake")
+        st.caption("Confirm once to enter Starplace. You can edit later.")
 
         quote = st.text_input(
-            "Quote (user-written)",
+            "Quote",
             value=profile.get("quote", ""),
             placeholder="Write something iconic...",
         )
-        journal = st.text_area(
-            "Journal (simple)",
-            value=profile.get("journal", ""),
-            height=160,
-            placeholder="Notes, vibes, reflections...",
-        )
 
-        # Session-only save
-        if st.button("Save (session)", use_container_width=True):
-            profile["quote"] = " ".join((quote or "").split())
-            profile["journal"] = journal or ""
-            st.success("Saved to session ✅")
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        # Calm success ticker (your requested message)
-        # Always visible so users feel guided (mobile-safe)
-        st.markdown('<div class="sp-module">', unsafe_allow_html=True)
-        st.markdown("**✨ ⭐ The network grows with you, your input grows the network ⭐ ✨**")
-        st.caption("Stay tuned ⭐")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with right:
-        st.markdown('<div class="sp-module">', unsafe_allow_html=True)
-        st.markdown("**Preview**")
-
-        # Theme selection (session-only)
         theme_keys = list(THEMES.keys())
         current_bg = profile.get("bg", "nebula_ink")
         if current_bg not in THEMES:
             current_bg = "nebula_ink"
 
         bg_choice = st.selectbox(
-            "Background theme (dev)",
+            "Background theme",
             options=theme_keys,
             index=theme_keys.index(current_bg),
             format_func=lambda k: f"{THEMES[k]['label']} ({THEMES[k]['swatch']})",
         )
-        profile["bg"] = bg_choice
 
-        # Avatar selection (emoji window)
         avatar_choice = st.selectbox(
             "Avatar (emoji)",
             options=AVATAR_EMOJIS,
@@ -346,38 +336,112 @@ if view == "My Starplace":
             if profile.get("avatar", "✨") in AVATAR_EMOJIS
             else 0,
         )
-        profile["avatar"] = avatar_choice
 
-        # Black avatar window
+        vibe_yes = st.toggle("Vibe Mode (default YES)", value=True)
+
+        # Apply to session profile (safe)
+        profile["quote"] = " ".join((quote or "").split())
+        profile["bg"] = bg_choice
+        profile["avatar"] = avatar_choice
+        profile["vibe_mode"] = bool(vibe_yes)
+
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("✅ Confirm Profile", use_container_width=True):
+                _set_confirmed(uid, True)
+                st.session_state["edit_mode"] = False
+                st.success("Confirmed. Stay tuned ⭐")
+                st.rerun()
+
+        with c2:
+            if confirmed:
+                if st.button("Cancel Edit", use_container_width=True):
+                    st.session_state["edit_mode"] = False
+                    st.rerun()
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        # HARD STOP only if not confirmed yet (true “A” behavior)
+        if not confirmed:
+            st.stop()
+
+    # ------------------------------------------------------------
+    # Confirmed profile view (full theme takeover vibe)
+    # ------------------------------------------------------------
+    # (Soft controls: Edit Profile button + quick tweak expander)
+    st.markdown('<div class="sp-module">', unsafe_allow_html=True)
+
+    topA, topB = st.columns([4, 1])
+    with topA:
+        st.markdown(
+            f'<span class="sp-badge">PROFILE: {st.session_state["active_user_name"]}</span>',
+            unsafe_allow_html=True,
+        )
+        st.caption(f"Persona: {profile.get('persona','')}")
+
+    with topB:
+        if st.button("✏️ Edit Profile", use_container_width=True):
+            st.session_state["edit_mode"] = True
+            st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    left, right = st.columns([3, 2])
+    with left:
+        st.markdown('<div class="sp-module">', unsafe_allow_html=True)
+        st.markdown("### 💬 Quote")
+        st.markdown(f"> **{profile.get('quote','')}**" if profile.get("quote") else "_No quote yet._")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown('<div class="sp-module">', unsafe_allow_html=True)
+        st.markdown("### ✍️ Journal")
+        journal = st.text_area(
+            "Journal (simple)",
+            value=profile.get("journal", ""),
+            height=180,
+            placeholder="Notes, vibes, reflections...",
+            label_visibility="collapsed",
+        )
+        if st.button("Save Journal (session)", use_container_width=True):
+            profile["journal"] = journal or ""
+            st.success("Journal saved ✅")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown('<div class="sp-module">', unsafe_allow_html=True)
+        st.markdown("**✨ ⭐ The network grows with you, your input grows the network ⭐ ✨**")
+        st.caption("Stay tuned ⭐")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    with right:
+        st.markdown('<div class="sp-module">', unsafe_allow_html=True)
+        st.markdown("### Avatar Window")
         st.markdown(
             f"""
             <div class="sp-avatar-window">
               <div class="sp-avatar-emoji">{profile.get("avatar","✨")}</div>
-              <div class="sp-avatar-caption">avatar window (dev)</div>
+              <div class="sp-avatar-caption">confirmed profile</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-
-        # Theme swatch preview
-        swatch = THEMES.get(profile["bg"], THEMES["nebula_ink"])["swatch"]
-        st.markdown(
-            f"""
-            <div class="sp-swatch">
-              <div style="font-weight:800; letter-spacing:0.06em;">Theme swatch</div>
-              <div style="margin-top:8px; height:48px; border-radius:10px; background:{swatch}; border:1px solid rgba(0,0,0,0.10);"></div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        st.write("")
-        if profile.get("quote"):
-            st.markdown(f"> **{profile.get('quote')}**")
-        else:
-            st.caption("No quote yet.")
-
         st.markdown("</div>", unsafe_allow_html=True)
+
+        with st.expander("Quick tweak (optional)", expanded=False):
+            theme_keys = list(THEMES.keys())
+            bg_choice = st.selectbox(
+                "Theme",
+                options=theme_keys,
+                index=theme_keys.index(profile.get("bg", "nebula_ink"))
+                if profile.get("bg", "nebula_ink") in theme_keys
+                else 0,
+                format_func=lambda k: THEMES[k]["label"],
+            )
+            avatar_choice = st.selectbox("Avatar", options=AVATAR_EMOJIS)
+            if st.button("Apply tweaks", use_container_width=True):
+                profile["bg"] = bg_choice
+                profile["avatar"] = avatar_choice
+                st.success("Tweaks applied ✅")
+                st.rerun()
 
 # ============================================================
 # TAB 2: Dev Store (preview only, no spending)
