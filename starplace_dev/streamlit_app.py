@@ -80,19 +80,26 @@ AVATAR_EMOJIS = ["✨", "🕊️", "🐻‍❄️", "🦀", "🌟", "🌙", "�
 # ------------------------------------------------------------
 # Session utilities
 # ------------------------------------------------------------
-def _ss_init():
-    
-st.session_state.setdefault("profile_confirmed", {})   # per-user flag
-st.session_state.setdefault("edit_mode", False)        # soft override
 
-st.session_state.setdefault("FAKE_CAREON", 5000)
+def _ss_init():
+    """
+    Initialize all session-state keys used by Starplace (DEV).
+    Safe to call multiple times.
+    """
+    st.session_state.setdefault("profile_confirmed", {})   # per-user confirmation flag
+    st.session_state.setdefault("edit_mode", False)        # soft override for profile editing
+
+    st.session_state.setdefault("FAKE_CAREON", 5000)
+
     st.session_state.setdefault("active_user_id", DEV_USERS[0]["user_id"])
     st.session_state.setdefault("active_user_name", DEV_USERS[0]["display_name"])
-    st.session_state.setdefault("starplace_profiles", {})  # keyed by user_id
+
+    st.session_state.setdefault("starplace_profiles", {})  # session-only profiles
     st.session_state.setdefault("dev_reset_unlocked", False)
 
 
 def _get_dev_user(user_id: str):
+    """Return the dev user dict for a given user_id."""
     for u in DEV_USERS:
         if u["user_id"] == user_id:
             return u
@@ -101,10 +108,11 @@ def _get_dev_user(user_id: str):
 
 def _get_profile(user_id: str):
     """
-    Returns session-only profile dict for the given user_id.
-    Creates it on demand from the user's defaults.
+    Return the session-only profile for a user.
+    Creates a default profile on first access.
     """
     profiles = st.session_state.get("starplace_profiles", {})
+
     if user_id in profiles:
         return profiles[user_id]
 
@@ -116,12 +124,14 @@ def _get_profile(user_id: str):
         "avatar": base.get("default_avatar", "✨"),
         "persona": base.get("persona", ""),
     }
+
     profiles[user_id] = profile
     st.session_state["starplace_profiles"] = profiles
     return profile
 
 
 def _reset_user_profile(user_id: str):
+    """Reset a single user's profile back to defaults (session-only)."""
     profiles = st.session_state.get("starplace_profiles", {})
     if user_id in profiles:
         del profiles[user_id]
@@ -129,12 +139,14 @@ def _reset_user_profile(user_id: str):
 
 
 def _reset_all_dev_data():
-    # Full wipe: resets everything to defaults
+    """Full DEV wipe (session only)."""
     keys_to_clear = [
         "FAKE_CAREON",
         "active_user_id",
         "active_user_name",
         "starplace_profiles",
+        "profile_confirmed",
+        "edit_mode",
         "dev_reset_unlocked",
     ]
     for k in keys_to_clear:
@@ -143,9 +155,12 @@ def _reset_all_dev_data():
 
 
 def _is_confirmed(user_id: str) -> bool:
+    """Check if a user's profile has been confirmed."""
     return bool(st.session_state.get("profile_confirmed", {}).get(user_id, False))
 
+
 def _set_confirmed(user_id: str, value: bool):
+    """Set or clear a user's confirmed status."""
     pc = st.session_state.get("profile_confirmed", {})
     pc[user_id] = bool(value)
     st.session_state["profile_confirmed"] = pc
