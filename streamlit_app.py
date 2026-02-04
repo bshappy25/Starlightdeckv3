@@ -184,10 +184,34 @@ CUSTOM_CSS = f"""
 """
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
+# ============================================================
+# STARPLACE ACCESS (Hub-controlled)
+# ============================================================
+
+STARPLACE_COST = 1200
+
+def has_starplace_access(users_db: dict, user_id: str) -> bool:
+    u = get_user_record(users_db, user_id) or {}
+    claims = u.get("claims", {}) or {}
+    return bool(claims.get("starplace_access", False))
+
+def grant_starplace_access(users_db: dict, user_id: str):
+    # Mutates users_db in-place
+    for u in users_db.get("users", []):
+        if u.get("user_id") == user_id:
+            u.setdefault("claims", {})
+            u["claims"]["starplace_access"] = True
+            users_db.setdefault("meta", {})
+            users_db["meta"]["updated_at"] = _now_iso()
+            return
+
+
+
 
 # ============================================================
 # CORE UTILITIES (your original logic)
 # ============================================================
+
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
@@ -675,10 +699,20 @@ with st.sidebar.expander("⚡ Quick Redeem", expanded=False):
 # ============================================================
 # NAV (adds Starplace, hides admin pages for players)
 # ============================================================
-nav = ["Overview", "Join (Redeem Code)", "Economy", "Cards", "Docs", "Starplace"]
+
+nav = ["Overview", "Join (Redeem Code)", "Economy", "Cards", "Docs"]
+
+# Admin-only pages
 if admin_unlocked(active_user):
-    nav.insert(4, "Codes")  # between Cards and Docs
+    nav.insert(4, "Codes")  # after Cards
     nav.append("Admin")
+
+# Starplace: only visible if user has access
+if has_starplace_access(users_db, active_user):
+    # put Starplace right after Cards
+    insert_at = nav.index("Cards") + 1
+    nav.insert(insert_at, "Starplace ⭐")
+
 
 st.session_state.setdefault("view", "Overview")
 view = st.sidebar.radio(
@@ -879,6 +913,53 @@ if view == "Overview":
         st.dataframe(txs, use_container_width=True, hide_index=True)
     else:
         st.info("No transactions yet. Use **Join** or **Economy**.")
+
+    # ------------------------------------------------------------
+    # Starplace Gate Panel (only shows if NOT unlocked)
+    # ------------------------------------------------------------
+    if not has_starplace_access(users_db, active_user):
+        st.markdown("### ⭐ Starplace Access")
+        bal = int(get_user_balance(bank, active_user))
+        need = max(0, STARPLACE_COST - bal)
+
+        with st.container():
+            st.info(
+                f"Starplace requires a **{STARPLACE_COST} Careon deposit**.\n\n"
+                f"**Your balance:** {bal}\n\n"
+                f"**Still needed:** {need}"
+            )
+
+            can_enter = bal >= STARPLACE_COST
+
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                if st.button(
+                    f"Enter Starplace ({STARPLACE_COST})",
+                    use_container_width=True,
+                    disabled=not can_enter,
+                ):
+                    try:
+                        spend(bank, active_user, STARPLACE_COST, "Starplace Access Gate")
+                        grant_starplace_access(users_db, active_user)
+                        save_json(BANK_PATH, bank)
+                        save_json(USERS_PATH, users_db)
+                        st.success("Starplace unlocked ⭐")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(str(e))
+
+            with col2:
+                st.caption("Once unlocked, **Starplace ⭐** appears in the sidebar.")
+
+elif view == "Starplace ⭐":
+    st.subheader("⭐ Starplace")
+    st.caption("Unlocked profile space. (Hook Starplace-dev UI here next.)")
+    st.success("Access confirmed ✅")
+
+    # TODO (next step): import and render your Starplace module here
+    # from starplace_dev.starplace_page import render_starplace
+    # render_starplace(bank=bank, users_db=users_db, active_user=active_user, save_bank=..., save_users=...)
+
 
 elif view == "Join (Redeem Code)":
     st.subheader("Redeem Access Code")
