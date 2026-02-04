@@ -1,134 +1,164 @@
-import json
-import os
-from datetime import datetime, timezone
-
 import streamlit as st
 
 # ============================================================
-# STARPLACE DEV (SANDBOX) — NO TOKENS / NO REAL ECONOMY
+# ⭐ STARPLACE DEV — SANDBOX (NO TOKENS / NO REAL ECONOMY)
 # ------------------------------------------------------------
-# - Free entry
-# - Fake Careon only (clearly labeled)
-# - Saves profile cosmetics + journal to starplace_dev/state/
+# S1: Separate from Starlight economy (YES)  ✅
+# S2: 5 preassigned whimsical users (YES)   ✅
+# S3: 5000 FAKE Careon per session (YES)    ✅
+# S4: No persistence (session only) (YES)   ✅
+# S5: Store = preview only (YES)            ✅
+# S6: 3 tabs (YES)                          ✅
+# S7: Reset user button (YES)               ✅
+# S8: Reset dev data w/ "RESET" guard (YES) ✅
+# S9: Emoji avatars in black window (YES)   ✅
+# S10: Styling scheme (YES)                 ✅
 # ============================================================
-
-APP_DIR = os.path.dirname(__file__)
-STATE_DIR = os.path.join(APP_DIR, "state")
-USERS_PATH = os.path.join(STATE_DIR, "starplace_users.json")
 
 APP_TITLE = "Starplace (DEV)"
 APP_ICON = "⭐"
 
+# ------------------------------------------------------------
+# Preassigned whimsical users (stored in app)
+# ------------------------------------------------------------
+DEV_USERS = [
+    {
+        "user_id": "sp-01",
+        "display_name": "Estrella Echo",
+        "persona": "cosmic dealer energy",
+        "default_quote": "The network grows with you.",
+        "default_bg": "nebula_ink",
+        "default_avatar": "✨",
+    },
+    {
+        "user_id": "sp-02",
+        "display_name": "Captain Pigeon",
+        "persona": "whimsical explorer",
+        "default_quote": "I travel light. I collect meaning.",
+        "default_bg": "ocean_glass",
+        "default_avatar": "🕊️",
+    },
+    {
+        "user_id": "sp-03",
+        "display_name": "Polly Polar",
+        "persona": "cozy guardian",
+        "default_quote": "Soft pace. Strong boundaries.",
+        "default_bg": "moon_milk",
+        "default_avatar": "🐻‍❄️",
+    },
+    {
+        "user_id": "sp-04",
+        "display_name": "Billy Blue Crab",
+        "persona": "comic relief + truth",
+        "default_quote": "Side-step the chaos. Snap to the plan.",
+        "default_bg": "forest_hush",
+        "default_avatar": "🦀",
+    },
+    {
+        "user_id": "sp-05",
+        "display_name": "Mr. Benji Idol",
+        "persona": "shiny mascot",
+        "default_quote": "Show up bright. Keep it simple.",
+        "default_bg": "sunset_pulse",
+        "default_avatar": "🌟",
+    },
+]
 
-def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+# Background theme options (purely visual; session-only)
+THEMES = {
+    "nebula_ink": {"label": "Nebula Ink", "swatch": "#0b1020"},
+    "moon_milk": {"label": "Moon Milk", "swatch": "#f6f6f7"},
+    "peach_glow": {"label": "Peach Glow", "swatch": "#ffcfb3"},
+    "ocean_glass": {"label": "Ocean Glass", "swatch": "#78dcd2"},
+    "forest_hush": {"label": "Forest Hush", "swatch": "#6fcf97"},
+    "sunset_pulse": {"label": "Sunset Pulse", "swatch": "#ff7a7a"},
+}
+
+# Emoji avatars displayed inside a black window (S9)
+AVATAR_EMOJIS = ["✨", "🕊️", "🐻‍❄️", "🦀", "🌟", "🌙", "🌈", "🪐", "🧿", "🦋", "🍀", "🧊"]
+
+# ------------------------------------------------------------
+# Session utilities
+# ------------------------------------------------------------
+def _ss_init():
+    st.session_state.setdefault("FAKE_CAREON", 5000)
+    st.session_state.setdefault("active_user_id", DEV_USERS[0]["user_id"])
+    st.session_state.setdefault("active_user_name", DEV_USERS[0]["display_name"])
+    st.session_state.setdefault("starplace_profiles", {})  # keyed by user_id
+    st.session_state.setdefault("dev_reset_unlocked", False)
 
 
-def _ensure_dir(path: str):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-
-
-def save_json(path: str, data):
-    _ensure_dir(path)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-
-
-def load_json_safe(path: str, default):
-    try:
-        if not os.path.exists(path):
-            save_json(path, default)
-            return default
-
-        raw = open(path, "r", encoding="utf-8").read().strip()
-        if not raw:
-            save_json(path, default)
-            return default
-
-        return json.loads(raw)
-    except Exception:
-        return default
-
-
-def default_db():
-    return {
-        "meta": {"version": "dev1", "updated_at": _now_iso()},
-        "users": [
-            {
-                "user_id": "user-1",
-                "display_name": "Guest",
-                "created_at": _now_iso(),
-                "starplace": {
-                    "quote": "",
-                    "journal": "",
-                    "theme": {"bg": "nebula_ink"},
-                    "avatar": {"icon_id": "icon_01"},
-                    "cosmetics": {"unlocked": [], "active_stickers": []},
-                    "arcade": {"played": []},
-                },
-            }
-        ],
-    }
-
-
-def get_user(db: dict, user_id: str):
-    for u in db.get("users", []):
-        if u.get("user_id") == user_id:
+def _get_dev_user(user_id: str):
+    for u in DEV_USERS:
+        if u["user_id"] == user_id:
             return u
-    return None
+    return DEV_USERS[0]
 
 
-def upsert_user(db: dict, user: dict):
-    users = db.setdefault("users", [])
-    for i, u in enumerate(users):
-        if u.get("user_id") == user.get("user_id"):
-            users[i] = user
-            db["meta"]["updated_at"] = _now_iso()
-            return
-    users.append(user)
-    db["meta"]["updated_at"] = _now_iso()
+def _get_profile(user_id: str):
+    """
+    Returns session-only profile dict for the given user_id.
+    Creates it on demand from the user's defaults.
+    """
+    profiles = st.session_state.get("starplace_profiles", {})
+    if user_id in profiles:
+        return profiles[user_id]
+
+    base = _get_dev_user(user_id)
+    profile = {
+        "quote": base.get("default_quote", ""),
+        "journal": "",
+        "bg": base.get("default_bg", "nebula_ink"),
+        "avatar": base.get("default_avatar", "✨"),
+        "persona": base.get("persona", ""),
+    }
+    profiles[user_id] = profile
+    st.session_state["starplace_profiles"] = profiles
+    return profile
 
 
-# ============================================================
-# DESIGN ZONE (safe)
-# ============================================================
+def _reset_user_profile(user_id: str):
+    profiles = st.session_state.get("starplace_profiles", {})
+    if user_id in profiles:
+        del profiles[user_id]
+    st.session_state["starplace_profiles"] = profiles
+
+
+def _reset_all_dev_data():
+    # Full wipe: resets everything to defaults
+    keys_to_clear = [
+        "FAKE_CAREON",
+        "active_user_id",
+        "active_user_name",
+        "starplace_profiles",
+        "dev_reset_unlocked",
+    ]
+    for k in keys_to_clear:
+        if k in st.session_state:
+            del st.session_state[k]
+
+
+# ------------------------------------------------------------
+# DESIGN / CSS (S10)
+# ------------------------------------------------------------
 CUSTOM_CSS = """
 <style>
-/* Page background */
+/* ===== Main background (dark gradient) ===== */
 .stApp{
   background: linear-gradient(180deg, #0b1020 0%, #121a33 55%, #0b1020 100%);
   color: rgba(245,245,247,0.92);
 }
 
-/* Sidebar: solid white, subtle gray border */
+/* ===== Sidebar: solid white + gray border (NO GLASS) ===== */
 section[data-testid="stSidebar"]{
-  background: #ffffff;
+  background: #ffffff !important;
   border-right: 1px solid rgba(0,0,0,0.12);
 }
 section[data-testid="stSidebar"] *{
   color: rgba(10,10,12,0.92) !important;
 }
 
-/* Retro module shell */
-.sp-module{
-  border-radius: 18px;
-  padding: 14px 16px;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 10px 34px rgba(0,0,0,0.28);
-  margin: 10px 0;
-}
-
-/* Sticker strip vibe */
-.sp-strip{
-  border-radius: 14px;
-  padding: 10px 12px;
-  border: 1px dashed rgba(255,255,255,0.20);
-  background: rgba(255,255,255,0.04);
-}
-
-/* Title */
+/* ===== Titles / headings ===== */
 .sp-title{
   font-weight: 950;
   letter-spacing: 0.12em;
@@ -141,7 +171,26 @@ section[data-testid="stSidebar"] *{
   margin-bottom: 10px;
 }
 
-/* Simple badge */
+/* ===== Glassy modules (calm) ===== */
+.sp-module{
+  border-radius: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 34px rgba(0,0,0,0.28);
+  margin: 10px 0;
+}
+
+/* ===== Ticker (calm) ===== */
+.sp-ticker{
+  border-radius: 14px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.05);
+}
+
+/* ===== Badge ===== */
 .sp-badge{
   display:inline-block;
   padding: 6px 10px;
@@ -152,81 +201,66 @@ section[data-testid="stSidebar"] *{
   letter-spacing: 0.06em;
 }
 
-/* Fake Careon ticker */
-.sp-ticker{
+/* ===== Avatar window (S9): black window with emoji ===== */
+.sp-avatar-window{
+  width: 100%;
   border-radius: 14px;
-  padding: 8px 12px;
-  border: 1px solid rgba(255,255,255,0.16);
-  background: rgba(255,255,255,0.05);
+  padding: 18px 14px;
+  background: rgba(0,0,0,0.82);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+  text-align: center;
 }
+.sp-avatar-emoji{
+  font-size: 3.2rem;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.sp-avatar-caption{
+  color: rgba(245,245,247,0.70);
+  font-size: 0.9rem;
+}
+
+/* ===== Theme swatch ===== */
+.sp-swatch{
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.04);
+}
+
 </style>
 """
 
-
-THEMES = {
-    "nebula_ink": {"label": "Nebula Ink", "swatch": "#0b1020"},
-    "moon_milk": {"label": "Moon Milk", "swatch": "#f6f6f7"},
-    "peach_glow": {"label": "Peach Glow", "swatch": "#ffcfb3"},
-    "ocean_glass": {"label": "Ocean Glass", "swatch": "#78dcd2"},
-    "forest_hush": {"label": "Forest Hush", "swatch": "#6fcf97"},
-    "sunset_pulse": {"label": "Sunset Pulse", "swatch": "#ff7a7a"},
-}
-
-ICON_OPTIONS = [f"icon_{i:02d}" for i in range(1, 11)]
-COST_THEME = 200
-COST_ICON = 100
-COST_STICKER = 150
-
-
-def _get_fake_balance() -> int:
-    st.session_state.setdefault("FAKE_CAREON", 5000)
-    return int(st.session_state["FAKE_CAREON"])
-
-
-def _spend_fake(amount: int) -> bool:
-    bal = _get_fake_balance()
-    if amount <= 0:
-        return True
-    if bal < amount:
-        return False
-    st.session_state["FAKE_CAREON"] = bal - amount
-    return True
-
-
-# ============================================================
-# UI
-# ============================================================
+# ------------------------------------------------------------
+# App
+# ------------------------------------------------------------
 st.set_page_config(page_title=APP_TITLE, page_icon=APP_ICON, layout="wide")
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+_ss_init()
 
-db = load_json_safe(USERS_PATH, default_db())
-
+# Sidebar
 st.sidebar.markdown(f"## {APP_ICON} {APP_TITLE}")
-st.sidebar.caption("DEV SANDBOX. No tokens. No real economy.")
+st.sidebar.caption("DEV SANDBOX — no tokens, no real economy. Session-only.")
 
-# User select (free entry)
-users = db.get("users", [])
-user_ids = [u.get("user_id", "user-1") for u in users] or ["user-1"]
-display_map = {u.get("user_id"): u.get("display_name", u.get("user_id")) for u in users}
-
-active_user_id = st.sidebar.selectbox(
-    "Select user (dev)",
-    options=user_ids,
-    index=0,
-    format_func=lambda uid: f"{display_map.get(uid, uid)} ({uid})",
+user_labels = {u["user_id"]: u["display_name"] for u in DEV_USERS}
+user_choice = st.sidebar.selectbox(
+    "Select a dev user",
+    options=[u["user_id"] for u in DEV_USERS],
+    index=[u["user_id"] for u in DEV_USERS].index(st.session_state["active_user_id"])
+    if st.session_state.get("active_user_id") in user_labels
+    else 0,
+    format_func=lambda uid: f"{user_labels.get(uid, uid)} ({uid})",
 )
 
-active = get_user(db, active_user_id)
-if not active:
-    active = default_db()["users"][0]
-    active["user_id"] = active_user_id
-    upsert_user(db, active)
-    save_json(USERS_PATH, db)
+active_dev_user = _get_dev_user(user_choice)
+st.session_state["active_user_id"] = active_dev_user["user_id"]
+st.session_state["active_user_name"] = active_dev_user["display_name"]
 
-# Fake Careon display
+# Fake currency (S3)
 st.sidebar.markdown("### Balance")
-st.sidebar.metric("FAKE Careon (dev)", _get_fake_balance())
-st.sidebar.caption("This currency is fake and resets if you clear session.")
+st.sidebar.metric("FAKE Careon (dev)", int(st.session_state.get("FAKE_CAREON", 5000)))
+st.sidebar.caption("Fake currency. Clears if session resets.")
 
 view = st.sidebar.radio("Navigate", ["My Starplace", "Dev Store", "Data"], index=0)
 
@@ -234,192 +268,202 @@ view = st.sidebar.radio("Navigate", ["My Starplace", "Dev Store", "Data"], index
 st.markdown('<div class="sp-title">⭐ STARPLACE</div>', unsafe_allow_html=True)
 st.markdown('<div class="sp-sub">MySpace vibes, sandbox rules. Customize safely.</div>', unsafe_allow_html=True)
 
-# Ticker
+# Global ticker
 st.markdown(
-    f'<div class="sp-ticker">✦ FAKE CAREON DEV MODE ✦ Balance: <b>{_get_fake_balance()}</b> ✦</div>',
+    f'<div class="sp-ticker">✦ FAKE CAREON DEV MODE ✦ Balance: <b>{int(st.session_state.get("FAKE_CAREON", 5000))}</b> ✦</div>',
     unsafe_allow_html=True,
 )
-
 st.write("")
 
-# Ensure starplace exists
-active.setdefault("starplace", {})
-sp = active["starplace"]
-sp.setdefault("quote", "")
-sp.setdefault("journal", "")
-sp.setdefault("theme", {"bg": "nebula_ink"})
-sp.setdefault("avatar", {"icon_id": "icon_01"})
-sp.setdefault("cosmetics", {"unlocked": [], "active_stickers": []})
-sp.setdefault("arcade", {"played": []})
+# Pull profile (session-only)
+uid = st.session_state["active_user_id"]
+profile = _get_profile(uid)
 
-# ------------------------------------------------------------
-# My Starplace
-# ------------------------------------------------------------
+# ============================================================
+# TAB 1: My Starplace
+# ============================================================
 if view == "My Starplace":
     left, right = st.columns([3, 2])
 
     with left:
         st.markdown('<div class="sp-module">', unsafe_allow_html=True)
-        st.markdown(f'<span class="sp-badge">PROFILE: {active.get("display_name","User")}</span>', unsafe_allow_html=True)
-        st.write("")
+        st.markdown(
+            f'<span class="sp-badge">PROFILE: {st.session_state["active_user_name"]}</span>',
+            unsafe_allow_html=True,
+        )
+        st.caption(f"Persona: {profile.get('persona','')}")
 
-        quote = st.text_input("Quote (user-written)", value=sp.get("quote", ""), placeholder="Write something iconic...")
-        journal = st.text_area("Journal (simple)", value=sp.get("journal", ""), height=160, placeholder="Notes, vibes, reflections...")
+        quote = st.text_input(
+            "Quote (user-written)",
+            value=profile.get("quote", ""),
+            placeholder="Write something iconic...",
+        )
+        journal = st.text_area(
+            "Journal (simple)",
+            value=profile.get("journal", ""),
+            height=160,
+            placeholder="Notes, vibes, reflections...",
+        )
 
-        if st.button("Save Profile", use_container_width=True):
-            sp["quote"] = " ".join((quote or "").split())
-            sp["journal"] = journal or ""
-            active["starplace"] = sp
-            upsert_user(db, active)
-            save_json(USERS_PATH, db)
-            st.success("Saved (DEV).")
+        # Session-only save
+        if st.button("Save (session)", use_container_width=True):
+            profile["quote"] = " ".join((quote or "").split())
+            profile["journal"] = journal or ""
+            st.success("Saved to session ✅")
 
         st.markdown("</div>", unsafe_allow_html=True)
 
+        # Calm success ticker (your requested message)
+        # Always visible so users feel guided (mobile-safe)
         st.markdown('<div class="sp-module">', unsafe_allow_html=True)
-        st.markdown("**Arcade History (coming soon)**")
-        st.caption("This will list games played + tickets earned later.")
-        played = sp.get("arcade", {}).get("played", [])
-        st.write(played if played else "No arcade records yet.")
+        st.markdown("**✨ ⭐ The network grows with you, your input grows the network ⭐ ✨**")
+        st.caption("Stay tuned ⭐")
         st.markdown("</div>", unsafe_allow_html=True)
 
     with right:
         st.markdown('<div class="sp-module">', unsafe_allow_html=True)
         st.markdown("**Preview**")
-        bg_id = sp.get("theme", {}).get("bg", "nebula_ink")
-        bg = THEMES.get(bg_id, THEMES["nebula_ink"])
-        icon_id = sp.get("avatar", {}).get("icon_id", "icon_01")
 
-        st.write(f"Theme: `{bg.get('label')}`  |  Avatar: `{icon_id}`")
-        st.markdown(f"Background swatch: **{bg.get('swatch')}**")
+        # Theme selection (session-only)
+        theme_keys = list(THEMES.keys())
+        current_bg = profile.get("bg", "nebula_ink")
+        if current_bg not in THEMES:
+            current_bg = "nebula_ink"
 
-        st.markdown('<div class="sp-strip">', unsafe_allow_html=True)
-        st.markdown("**Stickers strip (coming soon)**")
-        st.caption("Retro modules + sticker packs will appear here.")
-        st.markdown("</div>", unsafe_allow_html=True)
+        bg_choice = st.selectbox(
+            "Background theme (dev)",
+            options=theme_keys,
+            index=theme_keys.index(current_bg),
+            format_func=lambda k: f"{THEMES[k]['label']} ({THEMES[k]['swatch']})",
+        )
+        profile["bg"] = bg_choice
+
+        # Avatar selection (emoji window)
+        avatar_choice = st.selectbox(
+            "Avatar (emoji)",
+            options=AVATAR_EMOJIS,
+            index=AVATAR_EMOJIS.index(profile.get("avatar", "✨"))
+            if profile.get("avatar", "✨") in AVATAR_EMOJIS
+            else 0,
+        )
+        profile["avatar"] = avatar_choice
+
+        # Black avatar window
+        st.markdown(
+            f"""
+            <div class="sp-avatar-window">
+              <div class="sp-avatar-emoji">{profile.get("avatar","✨")}</div>
+              <div class="sp-avatar-caption">avatar window (dev)</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # Theme swatch preview
+        swatch = THEMES.get(profile["bg"], THEMES["nebula_ink"])["swatch"]
+        st.markdown(
+            f"""
+            <div class="sp-swatch">
+              <div style="font-weight:800; letter-spacing:0.06em;">Theme swatch</div>
+              <div style="margin-top:8px; height:48px; border-radius:10px; background:{swatch}; border:1px solid rgba(0,0,0,0.10);"></div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
         st.write("")
-        if sp.get("quote"):
-            st.markdown(f"> **{sp.get('quote')}**")
+        if profile.get("quote"):
+            st.markdown(f"> **{profile.get('quote')}**")
         else:
             st.caption("No quote yet.")
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-# ------------------------------------------------------------
-# Dev Store (fake purchases)
-# ------------------------------------------------------------
+# ============================================================
+# TAB 2: Dev Store (preview only, no spending)
+# ============================================================
 elif view == "Dev Store":
     st.markdown('<div class="sp-module">', unsafe_allow_html=True)
-    st.markdown("**Dev Store (FAKE Careon only)**")
-    st.caption("Buy cosmetics in sandbox. This does not affect the real Starlight economy.")
+    st.markdown("**Dev Store (Preview Only)**")
+    st.caption("Buttons are placeholders. No spending, no unlocks, no persistence (by design).")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    c1, c2 = st.columns(2)
+    c1, c2, c3 = st.columns(3)
 
     with c1:
         st.markdown('<div class="sp-module">', unsafe_allow_html=True)
-        st.markdown("**Background Themes**")
-        theme_keys = list(THEMES.keys())
-        chosen_theme = st.selectbox(
-            "Choose theme",
-            options=theme_keys,
-            index=theme_keys.index(sp.get("theme", {}).get("bg", "nebula_ink")) if sp.get("theme") else 0,
-            format_func=lambda k: f"{THEMES[k]['label']} ({THEMES[k]['swatch']})",
-        )
-        if st.button(f"Buy + Apply Theme ({COST_THEME} FAKE)", use_container_width=True):
-            if _spend_fake(COST_THEME):
-                sp["theme"]["bg"] = chosen_theme
-                active["starplace"] = sp
-                upsert_user(db, active)
-                save_json(USERS_PATH, db)
-                st.success("Theme applied (DEV).")
-                st.rerun()
-            else:
-                st.warning("Not enough FAKE Careon.")
+        st.markdown("**Themes Pack**")
+        st.caption("Coming soon: unlock theme changes with FAKE Careon.")
+        st.button("Buy (placeholder)", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
     with c2:
         st.markdown('<div class="sp-module">', unsafe_allow_html=True)
-        st.markdown("**Avatar Icons**")
-        chosen_icon = st.selectbox("Choose icon", options=ICON_OPTIONS, index=0)
-        if st.button(f"Buy + Apply Icon ({COST_ICON} FAKE)", use_container_width=True):
-            if _spend_fake(COST_ICON):
-                sp["avatar"]["icon_id"] = chosen_icon
-                active["starplace"] = sp
-                upsert_user(db, active)
-                save_json(USERS_PATH, db)
-                st.success("Icon applied (DEV).")
-                st.rerun()
-            else:
-                st.warning("Not enough FAKE Careon.")
+        st.markdown("**Icon Pack**")
+        st.caption("Coming soon: unlock icon changes with FAKE Careon.")
+        st.button("Buy (placeholder)", use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    with c3:
+        st.markdown('<div class="sp-module">', unsafe_allow_html=True)
+        st.markdown("**Sticker Pack**")
+        st.caption("Coming soon: sticker strip visuals + placements.")
+        st.button("Buy (placeholder)", use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown('<div class="sp-module">', unsafe_allow_html=True)
-    st.markdown("**Sticker Pack (placeholder)**")
-    st.caption("Unlock a sticker pack (no visuals yet).")
-    if st.button(f"Buy Sticker Pack ({COST_STICKER} FAKE)", use_container_width=True):
-        if _spend_fake(COST_STICKER):
-            sp["cosmetics"].setdefault("unlocked", []).append(f"sticker_pack_{len(sp['cosmetics'].get('unlocked', [])) + 1}")
-            active["starplace"] = sp
-            upsert_user(db, active)
-            save_json(USERS_PATH, db)
-            st.success("Sticker pack unlocked (DEV).")
-            st.rerun()
-        else:
-            st.warning("Not enough FAKE Careon.")
+    st.markdown("**Arcade Panel (placeholder)**")
+    st.caption("Later: show which terminal games were played and tickets earned.")
+    st.info("Arcade system not connected in Starplace-dev.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-
 # ============================================================
-# 🗂️ STARPLACE DATA — QUOTE ONLY (SAFE / DEV MODE)
-# ------------------------------------------------------------
-# Handles:
-# - loading users
-# - storing ONE user quote
-# No economy, no tokens, no side effects
+# TAB 3: Data (session snapshot + resets)
 # ============================================================
+else:
+    st.markdown('<div class="sp-module">', unsafe_allow_html=True)
+    st.markdown("**Data (DEV)**")
+    st.caption("Session snapshot only. No JSON persistence in this build (S4-C).")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-import json
-from datetime import datetime
+    # Snapshot for current user
+    st.markdown('<div class="sp-module">', unsafe_allow_html=True)
+    st.markdown("**Current user snapshot**")
+    st.json(
+        {
+            "active_user_id": uid,
+            "active_user_name": st.session_state.get("active_user_name"),
+            "profile_session": _get_profile(uid),
+            "fake_careon": int(st.session_state.get("FAKE_CAREON", 5000)),
+        }
+    )
+    st.markdown("</div>", unsafe_allow_html=True)
 
-STATE_DIR = "starplace_dev/state"
-USERS_FILE = f"{STATE_DIR}/starplace_users.json"
+    # Reset user button (S7)
+    st.markdown('<div class="sp-module">', unsafe_allow_html=True)
+    st.markdown("**Reset User (session)**")
+    st.caption("Resets this user's quote/journal/theme/avatar back to defaults.")
+    if st.button("Reset THIS user", use_container_width=True):
+        _reset_user_profile(uid)
+        st.success("User reset ✅")
+        st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
 
+    # Reset all dev data (S8) with RESET guard
+    st.markdown('<div class="sp-module">', unsafe_allow_html=True)
+    st.markdown("**Reset DEV DATA (all users)**")
+    st.caption('Type RESET to unlock full wipe for this session.')
+    reset_word = st.text_input("Type RESET to unlock", value="", placeholder="RESET")
+    if reset_word.strip().upper() == "RESET":
+        st.session_state["dev_reset_unlocked"] = True
 
-def _now_iso():
-    return datetime.utcnow().isoformat()
+    if not st.session_state.get("dev_reset_unlocked", False):
+        st.info("Resets are locked until you type RESET.")
+    else:
+        st.warning("Unlocked. This will wipe the whole dev session state.")
+        if st.button("WIPE ALL DEV DATA NOW", use_container_width=True):
+            _reset_all_dev_data()
+            st.success("Dev session wiped ✅")
+            st.rerun()
 
-
-def load_users():
-    try:
-        with open(USERS_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            if "users" not in data:
-                data["users"] = []
-            return data
-    except Exception:
-        return {"meta": {"version": "dev1"}, "users": []}
-
-
-def save_users(data):
-    with open(USERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-
-
-def get_or_create_user(users_db, user_id, display_name):
-    for u in users_db["users"]:
-        if u["user_id"] == user_id:
-            return u
-
-    user = {
-        "user_id": user_id,
-        "display_name": display_name,
-        "starplace": {
-            "quote": "",
-            "updated_at": _now_iso(),
-        },
-        "created_at": _now_iso(),
-    }
-    users_db["users"].append(user)
-    return user
+    st.markdown("</div>", unsafe_allow_html=True)
