@@ -220,207 +220,6 @@ def _is_confirmed() -> bool:
     return bool(st.session_state.get("global_confirmed", False))
 
 
-# ============================================================
-# CSS (compact)
-# ============================================================
-
-BASE_CSS = """
-<style>
-:root{
-  --sp-accent: #8B5CF6;
-  --sp-accent-weak: rgba(139, 92, 246, 0.18);
-  --sp-text: rgba(245,245,247,0.92);
-  --sp-muted: rgba(245,245,247,0.70);
-  --sp-border: rgba(255,255,255,0.16);
-  --sp-panel: rgba(255,255,255,0.06);
-  --sp-shadow: rgba(0,0,0,0.28);
-}
-
-/* Buttons: stop the "white pill" default */
-.stButton > button{
-  background: rgba(255,255,255,0.06) !important;
-  color: var(--sp-text) !important;
-  border: 1px solid color-mix(in srgb, var(--sp-accent) 26%, var(--sp-border)) !important;
-}
-
-.stButton > button:hover{
-  background: color-mix(in srgb, var(--sp-accent) 10%, rgba(255,255,255,0.06)) !important;
-  border-color: var(--sp-accent) !important;
-  transform: translateY(-1px);
-}
-
-.stButton > button:disabled{
-  opacity: 0.55 !important;
-  background: rgba(255,255,255,0.04) !important;
-}
-
-
-/* Sidebar: solid white + gray border */
-section[data-testid="stSidebar"]{
-  background: #ffffff !important;
-  border-right: 1px solid rgba(0,0,0,0.12);
-}
-section[data-testid="stSidebar"] *{
-  color: rgba(10,10,12,0.92) !important;
-}
-
-/* Compact container */
-.block-container{
-  padding-top: 0.75rem;
-  padding-bottom: 2.0rem;
-}
-
-/* Header text */
-.sp-title{
-  font-weight: 950;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-size: 1.18rem;
-  margin-bottom: 2px;
-}
-.sp-sub{
-  color: var(--sp-muted);
-  margin-bottom: 6px;
-}
-
-/* Compact module */
-.sp-module{
-  border-radius: 16px;
-  padding: 10px 12px;
-  border: 1px solid var(--sp-border);
-  background: var(--sp-panel);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 10px 28px var(--sp-shadow);
-  margin: 8px 0;
-}
-
-/* Compact ticker */
-.sp-ticker{
-  border-radius: 14px;
-  padding: 6px 10px;
-  border: 1px solid var(--sp-border);
-  background: rgba(255,255,255,0.05);
-}
-
-/* Badges */
-.sp-badge{
-  display:inline-block;
-  padding: 5px 9px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.22);
-  background: rgba(255,255,255,0.06);
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  font-size: 0.82rem;
-}
-.sp-badge-accent{
-  display:inline-block;
-  padding: 5px 9px;
-  border-radius: 999px;
-  border: 1px solid var(--sp-accent-weak);
-  background: rgba(255,255,255,0.05);
-  font-weight: 950;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
-  font-size: 0.78rem;
-}
-
-/* Sidebar mini profile card */
-.sp-sidecard{
-  border-radius: 14px;
-  padding: 10px 10px;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: rgba(255,255,255,0.96);
-}
-.sp-sidecard-row{
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
-.sp-side-ava{
-  width:40px;
-  height:40px;
-  border-radius: 12px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background: rgba(0,0,0,0.06);
-  font-size: 1.35rem;
-}
-.sp-side-name{
-  font-weight: 900;
-  font-size: 0.95rem;
-  line-height: 1.05;
-}
-.sp-side-sub{
-  color: rgba(0,0,0,0.55);
-  font-size: 0.78rem;
-  margin-top: 2px;
-}
-
-/* Square avatar tile (main) */
-.sp-avatar-tile{
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 18px;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.14);
-  background: rgba(255,255,255,0.05);
-  box-shadow: 0 10px 28px rgba(0,0,0,0.30);
-}
-.sp-avatar-overlay{
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
-  backdrop-filter: blur(10px);
-}
-.sp-avatar-emoji{
-  position: absolute;
-  inset: 0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size: 4.2rem;
-}
-.sp-avatar-chip{
-  position: absolute;
-  left: 10px;
-  bottom: 10px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(0,0,0,0.30);
-  color: rgba(245,245,247,0.86);
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  font-size: 0.75rem;
-}
-
-/* Buttons */
-.stButton > button{
-  border-radius: 14px !important;
-}
-.stButton > button:hover{
-  transform: translateY(-1px);
-}
-
-/* Inputs */
-div[data-baseweb="input"] input,
-div[data-baseweb="textarea"] textarea,
-div[data-baseweb="select"] > div{
-  border-radius: 14px !important;
-}
-
-/* Tabs: slightly tighter */
-button[role="tab"]{
-  padding-top: 6px !important;
-  padding-bottom: 6px !important;
-}
-</style>
-"""
-
-
 def _theme_takeover_css(theme_key: str) -> str:
     theme_key = _normalize_theme_key(theme_key)
     t = THEMES[theme_key]
@@ -431,7 +230,6 @@ def _theme_takeover_css(theme_key: str) -> str:
     panel_tint = t["panel_tint"]
     is_light = bool(t.get("is_light", False))
 
-    # Light theme readability overrides
     text_color = "rgba(10,10,12,0.86)" if is_light else "rgba(245,245,247,0.92)"
     muted_color = "rgba(10,10,12,0.62)" if is_light else "rgba(245,245,247,0.70)"
     panel_bg = "rgba(255,255,255,0.82)" if is_light else "rgba(255,255,255,0.06)"
@@ -459,7 +257,6 @@ def _theme_takeover_css(theme_key: str) -> str:
   color: var(--sp-text) !important;
 }}
 
-/* MAIN CONTENT readable (sidebar remains white) */
 .block-container, .block-container * {{
   color: var(--sp-text);
 }}
@@ -467,48 +264,41 @@ def _theme_takeover_css(theme_key: str) -> str:
   color: var(--sp-muted) !important;
 }}
 
-/* Modules adopt theme tint + readable border */
 .sp-module{{
   background: linear-gradient(135deg, var(--sp-panel), var(--sp-panel-tint)) !important;
   border-color: color-mix(in srgb, var(--sp-accent) 18%, var(--sp-border)) !important;
   box-shadow: 0 10px 28px var(--sp-shadow);
 }}
+
 .sp-ticker{{
   border-color: color-mix(in srgb, var(--sp-accent) 20%, var(--sp-border)) !important;
-  color: var(--sp-text) !important;
 }}
+
 .sp-badge, .sp-badge-accent {{
   color: var(--sp-text) !important;
 }}
 
-/* Buttons: accent */
+/* Buttons (theme-safe, still not white) */
 .stButton > button{{
+  background: color-mix(in srgb, var(--sp-accent) 6%, rgba(255,255,255,0.06)) !important;
+  color: var(--sp-text) !important;
   border: 1px solid color-mix(in srgb, var(--sp-accent) 26%, var(--sp-border)) !important;
+  border-radius: 14px !important;
+  font-weight: 850 !important;
 }}
 .stButton > button:hover{{
+  background: color-mix(in srgb, var(--sp-accent) 14%, rgba(255,255,255,0.06)) !important;
   border-color: var(--sp-accent) !important;
+  transform: translateY(-1px);
 }}
 .stButton > button:focus,
 .stButton > button:active{{
   outline: none !important;
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--sp-accent) 20%, transparent) !important;
 }}
-
-/* Inputs: accent ring */
-div[data-baseweb="input"] input:focus,
-div[data-baseweb="textarea"] textarea:focus{{
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sp-accent) 18%, transparent) !important;
-  border-color: var(--sp-accent) !important;
-}}
-div[data-baseweb="select"] > div:focus-within{{
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sp-accent) 18%, transparent) !important;
-  border-color: var(--sp-accent) !important;
-}}
-
-/* Metric values in main content */
-div[data-testid="stMetricValue"]{{
-  color: var(--sp-accent) !important;
-  font-weight: 900 !important;
+.stButton > button:disabled{{
+  opacity: 0.55 !important;
+  background: rgba(255,255,255,0.04) !important;
 }}
 </style>
 """
