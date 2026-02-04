@@ -572,6 +572,105 @@ def render_card_placeholder_set():
             height_px=320,
         )
 
+# ============================================================
+# 🚪 ENTRY GATE — HARD STOP UNTIL USER IS IN (MOBILE SAFE)
+# ------------------------------------------------------------
+# New users must: A) enter token, B) pick username, C) vibe toggle
+# Admin override: username "bshapp" bypasses token and unlocks admin
+# ============================================================
+
+st.session_state.setdefault("entry_ok", False)
+st.session_state.setdefault("active_user_id", None)
+st.session_state.setdefault("entry_success", False)
+
+def _ensure_admin_user(users_db: dict):
+    # Make sure admin exists (safe no-op if already there)
+    for u in users_db.get("users", []):
+        if u.get("user_id") == "bshapp":
+            return
+    users_db.setdefault("users", []).insert(0, {
+        "user_id": "bshapp",
+        "display_name": "bshapp",
+        "vibe": "Admin",
+        "title": "Founder",
+        "role": "admin",
+        "created_at": _now_iso(),
+        "claims": {"admin_auto": True},
+    })
+    users_db["meta"]["updated_at"] = _now_iso()
+    save_json(USERS_PATH, users_db)
+
+_ensure_admin_user(users_db)
+
+if not st.session_state["entry_ok"]:
+    st.title("✨ Welcome to Starlight Deck")
+    st.caption("Enter your access token to join the network.")
+
+    with st.form("entry_gate"):
+        token = st.text_input("A) Access Token", placeholder="FRONTIER-XXXX (or your token)")
+        display_name = st.text_input("B) Username", placeholder="Pick a name (3+ chars)")
+        vibe_yes = st.toggle("C) Vibe Mode (default YES)", value=True)
+        submit = st.form_submit_button("Enter")
+
+    if submit:
+        token = (token or "").strip()
+        display_name = " ".join((display_name or "").split()).strip()
+
+        # --- Simple validation (no red wall) ---
+        if len(display_name) < 3:
+            st.info("Username must be at least 3 characters.")
+            st.stop()
+
+        # Admin override
+        if display_name.lower() == "bshapp":
+            st.session_state["entry_ok"] = True
+            st.session_state["active_user_id"] = "bshapp"
+            st.session_state["entry_success"] = True
+            st.success("Admin override accepted. Stay tuned ⭐")
+            st.rerun()
+
+        if not token:
+            st.info("Please enter an access token.")
+            st.stop()
+
+        row = find_code(ledger, token)
+        if not row or row.get("status") != "new":
+            st.info("Token not recognized (or already used).")
+            st.stop()
+
+        # (Light duplicate protection — calm)
+        existing = {u.get("display_name", "").strip().lower() for u in users_db.get("users", [])}
+        if display_name.lower() in existing:
+            st.info("That username is taken. Try adding a number.")
+            st.stop()
+
+        # Create user + redeem
+        package = row.get("package", {}) or {}
+        title = package.get("title", "Frontier")
+        bonus = int(package.get("sign_on_bonus", 500))
+        vibe = "Vibe: ON" if vibe_yes else "Vibe: OFF"
+
+        new_user = create_user(users_db, display_name=display_name, vibe=vibe, title=title, role="player")
+
+        row["status"] = "used"
+        row["used_by"] = new_user["user_id"]
+        row["used_at"] = _now_iso()
+        ledger["meta"]["updated_at"] = _now_iso()
+
+        deposit(bank, new_user["user_id"], bonus, description=f"Sign-on bonus ({title})")
+
+        save_json(USERS_PATH, users_db)
+        save_json(CODES_PATH, ledger)
+        save_json(BANK_PATH, bank)
+
+        st.session_state["entry_ok"] = True
+        st.session_state["active_user_id"] = new_user["user_id"]
+        st.session_state["entry_success"] = True
+        st.success("Success. Stay tuned ⭐")
+        st.rerun()
+
+    # HARD STOP: nothing else renders until entry passes
+    st.stop()
 
 # ============================================================
 # UI
