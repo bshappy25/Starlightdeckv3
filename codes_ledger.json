@@ -4,111 +4,23 @@
     "version": "v1",
     "created_at": "2026-02-03T00:00:00Z",
     "updated_at": "2026-02-03T00:00:00Z",
-    "notes": "EDIT THIS FILE TO ADD OR REMOVE ACCESS TOKENS"
-  },
-
-  "codes": [
-    {
-      "code": "FRONTIER-A9K2",
+    "add_more_codes_instructions": "ADD MORE CODES BY COPYING ANY BLOCK IN codes[] AND PASTING IT AS A NEW ITEM. RULES: 1) code must be unique, 2) status must be 'new', 3) package.sign_on_bonus must be a number.",
+    "template": {
+      "code": "FRONTIER-XXXX",
       "status": "new",
-      "package": {
-        "title": "Frontier",
-        "sign_on_bonus": 500
-      }
-    },
-    {
-      "code": "FRONTIER-H7Q4",
-      "status": "new",
-      "package": {
-        "title": "Frontier",
-        "sign_on_bonus": 500
-      }
-    },
-    {
-      "code": "FRONTIER-M3T8",
-      "status": "new",
-      "package": {
-        "title": "Frontier",
-        "sign_on_bonus": 500
-      }
-    },
-    {
-      "code": "FRONTIER-R5V1",
-      "status": "new",
-      "package": {
-        "title": "Frontier",
-        "sign_on_bonus": 500
-      }
-    },
-    {
-      "code": "FRONTIER-L2P6",
-      "status": "new",
-      "package": {
-        "title": "Frontier",
-        "sign_on_bonus": 500
-      }
-    },
-    {
-      "code": "FRONTIER-X8N3",
-      "status": "new",
-      "package": {
-        "title": "Frontier",
-        "sign_on_bonus": 500
-      }
-    },
-    {
-      "code": "FRONTIER-D4S7",
-      "status": "new",
-      "package": {
-        "title": "Frontier",
-        "sign_on_bonus": 500
-      }
-    },
-    {
-      "code": "FRONTIER-Z1J9",
-      "status": "new",
-      "package": {
-        "title": "Frontier",
-        "sign_on_bonus": 500
-      }
-    },
-    {
-      "code": "FRONTIER-C6W5",
-      "status": "new",
-      "package": {
-        "title": "Frontier",
-        "sign_on_bonus": 500
-      }
-    },
-    {
-      "code": "FRONTIER-B7Y2",
-      "status": "new",
-      "package": {
-        "title": "Frontier",
-        "sign_on_bonus": 500
-      }
+      "package": { "title": "Frontier", "sign_on_bonus": 500 }
     }
-
-    /* ========================================================
-       🚨 ADD MORE CODES BELOW THIS LINE 🚨
-
-       Copy one of the blocks above and paste it here.
-       Make sure:
-       - code is UNIQUE
-       - status is "new"
-       - package.sign_on_bonus is a NUMBER
-
-       Example:
-
-       {
-         "code": "FRONTIER-XXXX",
-         "status": "new",
-         "package": {
-           "title": "Frontier",
-           "sign_on_bonus": 500
-         }
-       }
-
-       ======================================================== */
+  },
+  "codes": [
+    { "code": "FRONTIER-A9K2", "status": "new", "package": { "title": "Frontier", "sign_on_bonus": 500 } },
+    { "code": "FRONTIER-H7Q4", "status": "new", "package": { "title": "Frontier", "sign_on_bonus": 500 } },
+    { "code": "FRONTIER-M3T8", "status": "new", "package": { "title": "Frontier", "sign_on_bonus": 500 } },
+    { "code": "FRONTIER-R5V1", "status": "new", "package": { "title": "Frontier", "sign_on_bonus": 500 } },
+    { "code": "FRONTIER-L2P6", "status": "new", "package": { "title": "Frontier", "sign_on_bonus": 500 } },
+    { "code": "FRONTIER-X8N3", "status": "new", "package": { "title": "Frontier", "sign_on_bonus": 500 } },
+    { "code": "FRONTIER-D4S7", "status": "new", "package": { "title": "Frontier", "sign_on_bonus": 500 } },
+    { "code": "FRONTIER-Z1J9", "status": "new", "package": { "title": "Frontier", "sign_on_bonus": 500 } },
+    { "code": "FRONTIER-C6W5", "status": "new", "package": { "title": "Frontier", "sign_on_bonus": 500 } },
+    { "code": "FRONTIER-B7Y2", "status": "new", "package": { "title": "Frontier", "sign_on_bonus": 500 } }
   ]
 }
