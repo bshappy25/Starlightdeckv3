@@ -578,17 +578,20 @@ def render_card_placeholder_set():
 # New users must: A) enter token, B) pick username, C) vibe toggle
 # Admin override: username "bshapp" bypasses token and unlocks admin
 # ============================================================
-
 st.session_state.setdefault("entry_ok", False)
 st.session_state.setdefault("active_user_id", None)
 st.session_state.setdefault("entry_success", False)
 
 def _ensure_admin_user(users_db: dict):
-    # Make sure admin exists (safe no-op if already there)
-    for u in users_db.get("users", []):
+    # Ensure admin exists; insert if missing
+    users_db.setdefault("users", [])
+    users_db.setdefault("meta", {})
+
+    for u in users_db["users"]:
         if u.get("user_id") == "bshapp":
             return
-    users_db.setdefault("users", []).insert(0, {
+
+    users_db["users"].insert(0, {
         "user_id": "bshapp",
         "display_name": "bshapp",
         "vibe": "Admin",
@@ -597,14 +600,6 @@ def _ensure_admin_user(users_db: dict):
         "created_at": _now_iso(),
         "claims": {"admin_auto": True},
     })
-    users_db["meta"]["updated_at"] = _now_iso()
-    save_json(USERS_PATH, users_db)
-
-def _ensure_admin_user(users_db: dict):
-    for u in users_db.get("users", []):
-        if u.get("user_id") == "bshapp":
-            return
-    
     users_db["meta"]["updated_at"] = _now_iso()
     save_json(USERS_PATH, users_db)
 
