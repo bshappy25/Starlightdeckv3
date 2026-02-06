@@ -15,18 +15,19 @@
       --text: rgba(255,255,255,0.92);
       --muted: rgba(255,255,255,0.70);
     }
-.color-swatch{
-  width:28px;
-  height:28px;
-  border-radius:50%;
-  border:1px solid rgba(255,255,255,0.35);
-  cursor:pointer;
-  box-shadow: 0 0 6px rgba(255,255,255,0.25);
-}
 
-.color-swatch:hover{
-  transform: scale(1.05);
-}
+    .color-swatch{
+      width:28px;
+      height:28px;
+      border-radius:50%;
+      border:1px solid rgba(255,255,255,0.35);
+      cursor:pointer;
+      box-shadow: 0 0 6px rgba(255,255,255,0.25);
+    }
+
+    .color-swatch:hover{
+      transform: scale(1.05);
+    }
 
     body{
       margin:0;
@@ -35,9 +36,10 @@
       flex-direction:column;
       align-items:center;
       justify-content:flex-start;
-      background: radial-gradient(1200px 700px at 20% 10%, rgba(120,180,255,0.12), transparent 60%),
-                  radial-gradient(900px 600px at 80% 0%, rgba(180,120,255,0.10), transparent 55%),
-                  linear-gradient(180deg, var(--ink1), var(--ink2));
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(120,180,255,0.12), transparent 60%),
+        radial-gradient(900px 600px at 80% 0%, rgba(180,120,255,0.10), transparent 55%),
+        linear-gradient(180deg, var(--ink1), var(--ink2));
       color:var(--text);
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
@@ -112,7 +114,10 @@
       font-weight:650;
       letter-spacing:0.02em;
     }
-    button:active{ transform: translateY(1px); }
+
+    button:active{
+      transform: translateY(1px);
+    }
 
     /* CANVAS */
     .stage{
@@ -128,7 +133,7 @@
       height: min(70vh, 560px);
       background:#ffffff;
       border-radius:14px;
-      touch-action:none; /* important for touch drawing */
+      touch-action:none;
     }
 
     .footer{
@@ -149,16 +154,15 @@
 
     <div class="panel">
       <div class="pill">
-  <span>Light</span>
+        <span>Light</span>
 
-  <div class="color-swatch" data-color="var(--ether-ink)" style="background:var(--ether-ink)"></div>
-  <div class="color-swatch" data-color="var(--ether-starlight)" style="background:var(--ether-starlight)"></div>
-  <div class="color-swatch" data-color="var(--ether-lavender)" style="background:var(--ether-lavender)"></div>
-  <div class="color-swatch" data-color="var(--ether-cyan)" style="background:var(--ether-cyan)"></div>
-  <div class="color-swatch" data-color="var(--ether-rose)" style="background:var(--ether-rose)"></div>
-  <div class="color-swatch" data-color="var(--ether-gold)" style="background:var(--ether-gold)"></div>
-</div>
-
+        <div class="color-swatch" data-color="var(--ether-ink)" style="background:var(--ether-ink)"></div>
+        <div class="color-swatch" data-color="var(--ether-starlight)" style="background:var(--ether-starlight)"></div>
+        <div class="color-swatch" data-color="var(--ether-lavender)" style="background:var(--ether-lavender)"></div>
+        <div class="color-swatch" data-color="var(--ether-cyan)" style="background:var(--ether-cyan)"></div>
+        <div class="color-swatch" data-color="var(--ether-rose)" style="background:var(--ether-rose)"></div>
+        <div class="color-swatch" data-color="var(--ether-gold)" style="background:var(--ether-gold)"></div>
+      </div>
 
       <div class="pill">
         <span>Size</span>
@@ -191,18 +195,20 @@
     const saveBtn    = document.getElementById("saveBtn");
 
     let brushColor = getComputedStyle(document.documentElement)
-  .getPropertyValue('--ether-ink')
-  .trim();
-
-document.querySelectorAll('.color-swatch').forEach(swatch => {
-  swatch.addEventListener('click', () => {
-    brushColor = getComputedStyle(document.documentElement)
-      .getPropertyValue(swatch.dataset.color.replace('var(','').replace(')',''))
+      .getPropertyValue('--ether-ink')
       .trim();
-  });
-});
 
-    let brushSize  = Number(sizeInput.value);
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        brushColor = getComputedStyle(document.documentElement)
+          .getPropertyValue(
+            swatch.dataset.color.replace('var(','').replace(')','')
+          )
+          .trim();
+      });
+    });
+
+    let brushSize = Number(sizeInput.value);
 
     sizeLabel.textContent = brushSize;
 
@@ -216,14 +222,12 @@ document.querySelectorAll('.color-swatch').forEach(swatch => {
       if (canvas.width !== w || canvas.height !== h){
         canvas.width = w;
         canvas.height = h;
-        // repaint white background
         ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
     }
 
     window.addEventListener("resize", resizeCanvasToDisplaySize);
-    // initial sizing after layout
     setTimeout(resizeCanvasToDisplaySize, 0);
 
     colorInput.addEventListener("input", () => {
@@ -236,9 +240,9 @@ document.querySelectorAll('.color-swatch').forEach(swatch => {
     });
 
     clearBtn.addEventListener("click", () => {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     });
 
     saveBtn.addEventListener("click", () => {
@@ -255,8 +259,8 @@ document.querySelectorAll('.color-swatch').forEach(swatch => {
       const rect = canvas.getBoundingClientRect();
       const dpr = Math.max(1, window.devicePixelRatio || 1);
 
-      const clientX = (e.touches ? e.touches[0].clientX : e.clientX);
-      const clientY = (e.touches ? e.touches[0].clientY : e.clientY);
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
       return {
         x: (clientX - rect.left) * dpr,
@@ -273,6 +277,7 @@ document.querySelectorAll('.color-swatch').forEach(swatch => {
 
     function move(e){
       if (!drawing) return;
+
       const p = getPoint(e);
 
       ctx.lineCap = "round";
@@ -293,12 +298,10 @@ document.querySelectorAll('.color-swatch').forEach(swatch => {
       drawing = false;
     }
 
-    // Mouse
     canvas.addEventListener("mousedown", start);
     window.addEventListener("mousemove", move);
     window.addEventListener("mouseup", end);
 
-    // Touch
     canvas.addEventListener("touchstart", start, { passive:false });
     canvas.addEventListener("touchmove", move, { passive:false });
     canvas.addEventListener("touchend", end);
