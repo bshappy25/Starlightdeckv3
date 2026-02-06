@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>♥ LOVER BOY ♥</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Space+Mono:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --neon-pink: #FF1493;
+            --soft-pink: #FF69B4;
+            --rose-red: #FF69B4;
+            --deep-pink: #C71585;
+            --cream: #FFF0F5;
+            --dark: #1a0a0f;
+        }
+        
+        body {
+            font-family: 'Space Mono', monospace;
+            background: linear-gradient(135deg, var(--deep-pink) 0%, var(--neon-pink) 50%, var(--soft-pink) 100%);
+            min-height: 100vh;
+            color: var(--cream);
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Floating hearts background */
+        .heart-bg {
+            position: fixed;
+            font-size: 2rem;
+            opacity: 0.15;
+            animation: floatHeart 15s infinite ease-in-out;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes floatHeart {
+            0%, 100% { 
+                transform: translateY(0) rotate(0deg) scale(1); 
+                opacity: 0.15;
+            }
+            25% { 
+                transform: translateY(-40px) rotate(10deg) scale(1.1); 
+                opacity: 0.25;
+            }
+            50% { 
+                transform: translateY(-80px) rotate(-10deg) scale(0.9); 
+                opacity: 0.3;
+            }
+            75% { 
+                transform: translateY(-40px) rotate(5deg) scale(1.05); 
+                opacity: 0.2;
+            }
+        }
+        
+        /* Pulsing glow effect */
+        @keyframes softPulse {
+            0%, 100% { 
+                text-shadow: 0 0 10px rgba(255,20,147,0.5),
+                             0 0 20px rgba(255,20,147,0.3);
+            }
+            50% { 
+                text-shadow: 0 0 20px rgba(255,20,147,0.8),
+                             0 0 30px rgba(255,20,147,0.5),
+                             0 0 40px rgba(255,20,147,0.3);
+            }
+        }
+        
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 60px 20px;
+            animation: fadeIn 1.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .title {
+            font-family: 'Pacifico', cursive;
+            font-size: 5rem;
+            animation: softPulse 3s infinite;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+        }
+        
+        .subtitle {
+            font-size: 1.5rem;
+            opacity: 0.9;
+            font-weight: 400;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            animation: fadeIn 2s ease-out;
+        }
+        
+        /* Teaser Card */
+        .teaser-card {
+            background: rgba(0,0,0,0.4);
+            border-radius: 30px;
+            padding: 40px;
+            margin: 40px 0;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.1);
+            animation: slideUp 1s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .teaser-title {
+            font-family: 'Pacifico', cursive;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--neon-pink);
+            text-shadow: 0 0 15px rgba(255,20,147,0.6);
+        }
+        
+        .feature-list {
+            display: grid;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .feature-item {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 4px solid var(--neon-pink);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-item:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(10px);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        .feature-text {
+            flex: 1;
+        }
+        
+        .feature-text h3 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+            color: var(--soft-pink);
+        }
+        
+        .feature-text p {
+            opacity: 0.8;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        /* Buttons */
+        .btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.3rem;
+            padding: 20px 40px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+            font-weight: 700;
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .btn:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:hover:before {
+            width: 400px;
+            height: 400px;
+        }
+        
+        .btn span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--neon-pink), var(--deep-pink));
+            color: white;
+        }
+        
+        .btn-hub {
+            background: linear-gradient(135deg, #6B46C1, #9333EA);
+            color: white;
+        }
+        
+        .btn-coming-soon {
+            background: rgba(255,255,255,0.1);
+            color: var(--cream);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            background: rgba(255,20,147,0.3);
+            border: 2px solid var(--neon-pink);
+            padding: 10px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin: 20px 0;
+            animation: softPulse 3s infinite;
+        }
+        
+        /* Polaroid Preview */
+        .polaroid-preview {
+            background: white;
+            padding: 15px 15px 45px 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            max-width: 300px;
+            margin: 30px auto;
+            transform: rotate(-3deg);
+            transition: transform 0.3s ease;
+        }
+        
+        .polaroid-preview:hover {
+            transform: rotate(0deg) scale(1.05);
+        }
+        
+        .polaroid-content {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #FFB6C1, #FF1493);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .polaroid-text {
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+        
+        /* Countdown (placeholder) */
+        .countdown {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 30px 0;
+            opacity: 0.7;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            .title {
+                font-size: 3rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+                letter-spacing: 4px;
+            }
+            
+            .teaser-title {
+                font-size: 1.8rem;
+            }
+            
+            .feature-item {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating background hearts -->
+    <div class="heart-bg" style="top: 10%; left: 15%; animation-delay: 0s;">♥</div>
+    <div class="heart-bg" style="top: 70%; right: 20%; animation-delay: 2s;">♡</div>
+    <div class="heart-bg" style="top: 40%; left: 25%; animation-delay: 4s;">&lt;3</div>
+    <div class="heart-bg" style="top: 85%; left: 45%; animation-delay: 6s;">♥</div>
+    <div class="heart-bg" style="top: 20%; right: 35%; animation-delay: 8s;">♡</div>
+    <div class="heart-bg" style="top: 55%; right: 10%; animation-delay: 10s;">&lt;3</div>
+    <div class="heart-bg" style="top: 30%; left: 50%; animation-delay: 3s;">♥</div>
+    <div class="heart-bg" style="top: 65%; left: 70%; animation-delay: 7s;">♡</div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="title">♥ LOVER BOY ♥</h1>
+            <p class="subtitle">coming soon</p>
+        </div>
+
+        <!-- Teaser Card -->
+        <div class="teaser-card">
+            <div style="text-align: center;">
+                <span class="status-badge">⏳ IN DEVELOPMENT</span>
+            </div>
+
+            <h2 class="teaser-title">A Dating Sim Experience</h2>
+
+            <!-- Polaroid Preview -->
+            <div class="polaroid-preview">
+                <div class="polaroid-content">
+                    💕
+                </div>
+                <div class="polaroid-text">Your story awaits...</div>
+            </div>
+
+            <!-- Features -->
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-icon">💌</div>
+                    <div class="feature-text">
+                        <h3>Choice-Driven Romance</h3>
+                        <p>Navigate meaningful conversations and build genuine connections</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">📸</div>
+                    <div class="feature-text">
+                        <h3>Polaroid Memories</h3>
+                        <p>Capture special moments and create lasting keepsakes</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">✨</div>
+                    <div class="feature-text">
+                        <h3>Multiple Paths</h3>
+                        <p>Every choice matters - discover different storylines and endings</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">🌹</div>
+                    <div class="feature-text">
+                        <h3>Calm Neon Aesthetic</h3>
+                        <p>Immerse yourself in a soothing, romantic atmosphere</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Countdown Placeholder -->
+            <div class="countdown">
+                <p>✨ Stay tuned for updates ✨</p>
+            </div>
+
+            <!-- Buttons -->
+            <button class="btn btn-coming-soon" disabled>
+                <span>💕 PLAY NOW (COMING SOON)</span>
+            </button>
+
+            <a href="https://starlightdeckv3.streamlit.app" target="_blank" style="text-decoration: none;">
+                <button class="btn btn-hub">
+                    <span>← BACK TO HUB</span>
+                </button>
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>♥ LOVER BOY - A Romantic Journey ♥</p>
+            <p style="margin-top: 10px; font-size: 0.8rem;">Part of the Starlight Deck Universe</p>
+        </div>
+    </div>
+
+    <script>
+        // Optional: Add subtle animation effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate feature items on scroll (mobile friendly)
+            const features = document.querySelectorAll('.feature-item');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.style.opacity = '1';
+                            entry.target.style.transform = 'translateX(0)';
+                        }, index * 100);
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            features.forEach(feature => {
+                feature.style.opacity = '0';
+                feature.style.transform = 'translateX(-30px)';
+                feature.style.transition = 'all 0.6s ease';
+                observer.observe(feature);
+            });
+
+            // Subtle heart animation randomization
+            const hearts = document.querySelectorAll('.heart-bg');
+            hearts.forEach(heart => {
+                const randomDuration = 12 + Math.random() * 8;
+                heart.style.animationDuration = `${randomDuration}s`;
+            });
+        });
+
+        // Easter egg: Click polaroid for subtle effect
+        const polaroid = document.querySelector('.polaroid-preview');
+        if (polaroid) {
+            polaroid.addEventListener('click', function() {
+                this.style.transform = 'rotate(0deg) scale(1.1)';
+                setTimeout(() => {
+                    this.style.transform = 'rotate(-3deg) scale(1)';
+                }, 200);
+            });
+        }
+    </script>
+</body>
+</html>
