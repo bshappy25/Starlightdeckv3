@@ -1,2 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mr. Benji's Coloring Studio</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Comic Sans MS','Chalkboard SE','Comic Neue',cursive;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+.container{width:100%;max-width:1200px}
+.hidden{display:none}
+
+.user-hub,.coloring-app{
+  background:#fff;
+  border-radius:20px;
+  padding:30px;
+  box-shadow:0 20px 50px rgba(0,0,0,.3);
+  animation:fade .4s ease;
+}
+
+.hub-title{
+  font-size:2.6em;
+  color:#667eea;
+  text-align:center;
+  cursor:pointer;
+  user-select:none;
+}
+.hub-subtitle{text-align:center;margin:10px 0 25px;color:#555}
+
+.image-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:18px;
+  margin:20px auto;
+}
+.image-option{
+  border:4px solid #ddd;
+  border-radius:15px;
+  padding:10px;
+  cursor:pointer;
+  transition:.25s;
+}
+.image-option:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.image-option.selected{border-color:#667eea;background:#f0f4ff}
+.image-option img{
+  width:100%;
+  height:150px;
+  object-fit:contain;
+  background:#fafafa;
+}
+.image-title{text-align:center;margin-top:8px;font-weight:bold}
+
+.start-button{
+  display:block;
+  margin:20px auto 0;
+  padding:14px 40px;
+  font-size:1.3em;
+  border:none;
+  border-radius:40px;
+  cursor:pointer;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  color:#fff;
+}
+
+.tools{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:15px;
+}
+.tools button{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:bold;
+}
+.fill{background:#4ECDC4;color:#fff}
+.jalapeno{background:#ff6b6b;color:#fff}
+.clear{background:#ffd43b}
+.back{background:#868e96;color:#fff}
+
+canvas{
+  border:3px solid #ddd;
+  border-radius:12px;
+  touch-action:none;
+}
+
+.admin-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.8);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+}
+.admin-modal.active{display:flex}
+.admin-box{
+  background:#fff;
+  border-radius:16px;
+  padding:30px;
+  width:90%;
+  max-width:500px;
+}
+.admin-box h2{text-align:center;color:#667eea;margin-bottom:10px}
+
+@keyframes fade{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:none}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- HUB -->
+<div class="user-hub" id="hub">
+  <h1 class="hub-title">
+    🎨 Mr. Benji's Coloring Studio
+    <span id="adminPalm" title="🌴">🌴</span>
+  </h1>
+  <p class="hub-subtitle">Draw, fill, and make life spicy 🌶️</p>
+
+  <div class="image-grid" id="imageGrid"></div>
+
+  <button class="start-button" id="startBtn" disabled>
+    Start Coloring 🖍️
+  </button>
+</div>
+
+<!-- APP -->
+<div class="coloring-app hidden" id="app">
+  <div class="tools">
+    <button class="fill" id="fillBtn">🪣 Fill</button>
+    <button class="jalapeno" id="jalBtn">🌶️ Jalapeño</button>
+    <button class="clear" id="clearBtn">Clear</button>
+    <button class="back" id="backBtn">← Hub</button>
+  </div>
+
+  <canvas id="canvas" width="900" height="600"></canvas>
+</div>
+
+<!-- ADMIN -->
+<div class="admin-modal" id="adminModal">
+  <div class="admin-box">
+    <h2>🔐 Admin Panel</h2>
+    <p>This build is locked + stable.<br>
+    To add images later: edit the <b>coloringImages</b> array.</p>
+    <button onclick="closeAdmin()">Close</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ================== SVG HELPER ================== */
+function svgData(svg){
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+/* ================== IMAGE LIBRARY ================== */
+const coloringImages = [
+{
+title:"Life Without Worries (Palm)",
+data:svgData(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700">
+<rect width="100%" height="100%" fill="white"/>
+<g stroke="#111" stroke-width="10" fill="none" stroke-linecap="round">
+<path d="M200 520 C260 380 320 260 380 180"/>
+<path d="M380 180 C330 160 280 130 240 100"/>
+<path d="M380 180 C440 140 520 140 600 170"/>
+<path d="M380 180 C360 240 350 300 340 360"/>
+<path d="M150 600 C350 560 650 560 850 600"/>
+<circle cx="700" cy="200" r="60"/>
+</g>
+</svg>
+`)
+},
+{
+title:"Ocean Adventure",
+data:svgData(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700">
+<rect width="100%" height="100%" fill="white"/>
+<g stroke="#111" stroke-width="10" fill="none">
+<path d="M0 500 C150 450 300 450 450 500 600 550 750 550 1000 500"/>
+<path d="M0 560 C150 510 300 510 450 560 600 610 750 610 1000 560"/>
+<path d="M500 300 C420 260 380 200 400 150 420 90 580 90 600 150 620 200 580 260 500 300 Z"/>
+</g>
+</svg>
+`)
+},
+{
+title:"Friendly Man",
+data:svgData(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700">
+<rect width="100%" height="100%" fill="white"/>
+<g stroke="#111" stroke-width="10" fill="none">
+<ellipse cx="500" cy="320" rx="200" ry="240"/>
+<circle cx="440" cy="300" r="15"/>
+<circle cx="560" cy="300" r="15"/>
+<path d="M450 400 C500 440 550 440 600 400"/>
+</g>
+</svg>
+`)
+},
+{
+title:"Friendly Woman",
+data:svgData(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700">
+<rect width="100%" height="100%" fill="white"/>
+<g stroke="#111" stroke-width="10" fill="none">
+<ellipse cx="500" cy="330" rx="190" ry="250"/>
+<path d="M350 200 C500 100 650 200 650 360"/>
+<circle cx="450" cy="310" r="14"/>
+<circle cx="550" cy="310" r="14"/>
+<path d="M450 420 C500 460 550 460 600 420"/>
+</g>
+</svg>
+`)
+}
+];
+
+/* ================== STATE ================== */
+let selectedIndex = 0;
+let fillMode = false;
+let jalapeno = false;
+
+const grid = document.getElementById("imageGrid");
+const startBtn = document.getElementById("startBtn");
+const hub = document.getElementById("hub");
+const app = document.getElementById("app");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const img = new Image();
+
+/* ================== LOAD GRID ================== */
+coloringImages.forEach((imgData,i)=>{
+  const d=document.createElement("div");
+  d.className="image-option";
+  if(i===0)d.classList.add("selected");
+  d.innerHTML=`<img src="${imgData.data}"><div class="image-title">${imgData.title}</div>`;
+  d.onclick=()=>{
+    document.querySelectorAll(".image-option").forEach(x=>x.classList.remove("selected"));
+    d.classList.add("selected");
+    selectedIndex=i;
+    startBtn.disabled=false;
+  };
+  grid.appendChild(d);
+});
+startBtn.disabled=false;
+
+/* ================== START ================== */
+startBtn.onclick=()=>{
+  hub.classList.add("hidden");
+  app.classList.remove("hidden");
+  img.onload=()=>{
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  };
+  img.src=coloringImages[selectedIndex].data;
+};
+
+/* ================== DRAW ================== */
+let drawing=false,lastX=0,lastY=0;
+canvas.addEventListener("pointerdown",e=>{
+  drawing=true;
+  const r=canvas.getBoundingClientRect();
+  lastX=(e.clientX-r.left)*(canvas.width/r.width);
+  lastY=(e.clientY-r.top)*(canvas.height/r.height);
+});
+canvas.addEventListener("pointermove",e=>{
+  if(!drawing || fillMode)return;
+  const r=canvas.getBoundingClientRect();
+  const x=(e.clientX-r.left)*(canvas.width/r.width);
+  const y=(e.clientY-r.top)*(canvas.height/r.height);
+  ctx.strokeStyle= jalapeno ? `hsl(${Math.random()*360},90%,55%)` : "#FF6B6B";
+  ctx.lineWidth=5;
+  ctx.lineCap="round";
+  ctx.beginPath();
+  ctx.moveTo(lastX,lastY);
+  ctx.lineTo(x,y);
+  ctx.stroke();
+  lastX=x;lastY=y;
+});
+canvas.addEventListener("pointerup",()=>drawing=false);
+
+/* ================== TOOLS ================== */
+document.getElementById("fillBtn").onclick=()=>fillMode=!fillMode;
+document.getElementById("jalBtn").onclick=()=>jalapeno=!jalapeno;
+document.getElementById("clearBtn").onclick=()=>{
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+};
+document.getElementById("backBtn").onclick=()=>{
+  app.classList.add("hidden");
+  hub.classList.remove("hidden");
+};
+
+/* ================== ADMIN ================== */
+let palmClicks=0,timer=null;
+document.getElementById("adminPalm").onclick=()=>{
+  palmClicks++;
+  clearTimeout(timer);
+  timer=setTimeout(()=>palmClicks=0,2000);
+  if(palmClicks===3){
+    const pw=prompt("Admin password:");
+    if(pw==="bshapp")document.getElementById("adminModal").classList.add("active");
+    palmClicks=0;
+  }
+};
+function closeAdmin(){
+  document.getElementById("adminModal").classList.remove("active");
+}
+</script>
+</body>
+</html>
 
 
