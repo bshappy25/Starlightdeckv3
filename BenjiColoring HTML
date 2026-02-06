@@ -299,7 +299,9 @@
   <div class="container">
     <!-- User Hub -->
     <div class="user-hub" id="userHub">
-      <h1 class="hub-title" id="hubTitle" onclick="handleTitleClick()">🎨 Welcome to Mr. Benji's Coloring Studio! 🌴</h1>
+      <h1 class="hub-title">
+  🎨 Welcome to Mr. Benji's Coloring Studio! <span id="adminPalm" style="cursor:pointer;" title="🌴">🌴</span></h1>
+
       <p class="hub-subtitle">Draw, fill, and spice it up — now with true multi-touch fill!</p>
 
       <div class="user-input-section">
