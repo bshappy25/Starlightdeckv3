@@ -190,7 +190,18 @@
     const clearBtn   = document.getElementById("clearBtn");
     const saveBtn    = document.getElementById("saveBtn");
 
-    let brushColor = colorInput.value;
+    let brushColor = getComputedStyle(document.documentElement)
+  .getPropertyValue('--ether-ink')
+  .trim();
+
+document.querySelectorAll('.color-swatch').forEach(swatch => {
+  swatch.addEventListener('click', () => {
+    brushColor = getComputedStyle(document.documentElement)
+      .getPropertyValue(swatch.dataset.color.replace('var(','').replace(')',''))
+      .trim();
+  });
+});
+
     let brushSize  = Number(sizeInput.value);
 
     sizeLabel.textContent = brushSize;
