@@ -149,9 +149,16 @@
 
     <div class="panel">
       <div class="pill">
-        <span>Color</span>
-        <input id="color" type="color" value="#111111" />
-      </div>
+  <span>Light</span>
+
+  <div class="color-swatch" data-color="var(--ether-ink)" style="background:var(--ether-ink)"></div>
+  <div class="color-swatch" data-color="var(--ether-starlight)" style="background:var(--ether-starlight)"></div>
+  <div class="color-swatch" data-color="var(--ether-lavender)" style="background:var(--ether-lavender)"></div>
+  <div class="color-swatch" data-color="var(--ether-cyan)" style="background:var(--ether-cyan)"></div>
+  <div class="color-swatch" data-color="var(--ether-rose)" style="background:var(--ether-rose)"></div>
+  <div class="color-swatch" data-color="var(--ether-gold)" style="background:var(--ether-gold)"></div>
+</div>
+
 
       <div class="pill">
         <span>Size</span>
