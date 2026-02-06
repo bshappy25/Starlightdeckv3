@@ -1021,9 +1021,7 @@
       // Fill should not imply eraser
       if (appState.isEraserMode) toggleEraser(false);
 
-      updateBadges();
-    }
-
+   
     function toggleSpiceMode() {
       appState.isSpiceMode = !appState.isSpiceMode;
 
@@ -1453,19 +1451,13 @@ window.addEventListener("load", () => {
   initializeApp();
   updateBadges();
 
+window.addEventListener("load", () => {
+  initializeApp();
+  updateBadges();
+
   const palm = document.getElementById("adminPalm");
   if (palm) {
     palm.addEventListener("click", handlePalmClick);
   }
 });
-
-document
-  .getElementById("adminPalm")
-  .addEventListener("click", handlePalmClick);
-
-      updateBadges();
-    });
-  </script>
-</body>
-</html>
 
