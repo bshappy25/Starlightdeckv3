@@ -781,7 +781,8 @@
     /* =========================================================================
        ADMIN (title 3 clicks + password)
     ========================================================================= */
-    function handleTitleClick() {
+   function handlePalmClick() {
+
       appState.adminClickCount++;
 
       if (appState.adminClickTimeout) clearTimeout(appState.adminClickTimeout);
@@ -1450,6 +1451,10 @@
     // Initialize app
     window.addEventListener("load", () => {
       initializeApp();
+document
+  .getElementById("adminPalm")
+  .addEventListener("click", handlePalmClick);
+
       updateBadges();
     });
   </script>
