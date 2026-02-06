@@ -16,41 +16,40 @@
       --muted: rgba(255,255,255,0.70);
     }
 
-      /* Save Light button */
-.save-light{
-  position: relative;
-  background: rgba(210, 230, 255, 0.10);
-  border: 1px solid rgba(255,255,255,0.18);
-  box-shadow:
-    0 0 10px rgba(180,220,255,0.18),
-    0 0 22px rgba(180,220,255,0.10);
-  animation: savePulse 2.2s ease-in-out infinite;
-}
+    /* Save Light button */
+    .save-light{
+      position: relative;
+      background: rgba(210, 230, 255, 0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow:
+        0 0 10px rgba(180,220,255,0.18),
+        0 0 22px rgba(180,220,255,0.10);
+      animation: savePulse 2.2s ease-in-out infinite;
+    }
 
-@keyframes savePulse{
-  0%, 100%{
-    box-shadow:
-      0 0 10px rgba(180,220,255,0.16),
-      0 0 22px rgba(180,220,255,0.08);
-  }
-  50%{
-    box-shadow:
-      0 0 14px rgba(200,240,255,0.28),
-      0 0 34px rgba(200,240,255,0.16);
-  }
-}
+    @keyframes savePulse{
+      0%, 100%{
+        box-shadow:
+          0 0 10px rgba(180,220,255,0.16),
+          0 0 22px rgba(180,220,255,0.08);
+      }
+      50%{
+        box-shadow:
+          0 0 14px rgba(200,240,255,0.28),
+          0 0 34px rgba(200,240,255,0.16);
+      }
+    }
 
-/* Mobile: keep stage centered + comfortable */
-.stage{
-  margin: 0 auto;
-}
+    /* Mobile: keep stage centered + comfortable */
+    .stage{
+      margin: 0 auto;
+    }
 
-@media (max-width: 520px){
-  canvas{
-    height: 62vh;
-  }
-}
-
+    @media (max-width: 520px){
+      canvas{
+        height: 62vh;
+      }
+    }
 
     .clear-x{
       margin-left:auto;
@@ -235,7 +234,7 @@
       </button>
 
       <button id="saveBtn" class="save-light" type="button">Save Light</button>
-
+    </div>
 
     <div class="stage">
       <canvas id="c"></canvas>
@@ -309,36 +308,35 @@
     });
 
     saveBtn.addEventListener("click", () => {
-  // Build filename like: lightpaint_a_2026_02_06.png
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  const filename = `lightpaint_a_${yyyy}_${mm}_${dd}.png`;
+      // Build filename like: lightpaint_a_2026_02_06.png
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      const filename = `lightpaint_a_${yyyy}_${mm}_${dd}.png`;
 
-  // Create a temp canvas so the exported PNG has an ink/grey gradient behind the art
-  const out = document.createElement("canvas");
-  out.width = canvas.width;
-  out.height = canvas.height;
+      // Create a temp canvas so the exported PNG has an ink/grey gradient behind the art
+      const out = document.createElement("canvas");
+      out.width = canvas.width;
+      out.height = canvas.height;
 
-  const octx = out.getContext("2d");
+      const octx = out.getContext("2d");
 
-  // Grey/ink vertical gradient (calm backdrop for pastel lines)
-  const g = octx.createLinearGradient(0, 0, 0, out.height);
-  g.addColorStop(0, "#0a0f24");  // ink top
-  g.addColorStop(1, "#2b2f3a");  // smoky grey bottom
-  octx.fillStyle = g;
-  octx.fillRect(0, 0, out.width, out.height);
+      // Grey/ink vertical gradient (calm backdrop for pastel lines)
+      const g = octx.createLinearGradient(0, 0, 0, out.height);
+      g.addColorStop(0, "#0a0f24");  // ink top
+      g.addColorStop(1, "#2b2f3a");  // smoky grey bottom
+      octx.fillStyle = g;
+      octx.fillRect(0, 0, out.width, out.height);
 
-  // Draw the user's current canvas on top
-  octx.drawImage(canvas, 0, 0);
+      // Draw the user's current canvas on top
+      octx.drawImage(canvas, 0, 0);
 
-  const link = document.createElement("a");
-  link.download = filename;
-  link.href = out.toDataURL("image/png");
-  link.click();
-});
-
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = out.toDataURL("image/png");
+      link.click();
+    });
 
     let drawing = false;
     let last = { x: 0, y: 0 };
@@ -396,3 +394,4 @@
   </script>
 </body>
 </html>
+
