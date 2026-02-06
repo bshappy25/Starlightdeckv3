@@ -543,10 +543,9 @@
             <text x="500" y="660" text-anchor="middle" font-size="34" font-family="Comic Sans MS, cursive" fill="#111">Ocean Adventure</text>
           </svg>
         `)
-      }
-    ];
+      },
 
-      ,
+      /* ===================== ADDED TWO NEW IMAGES (MAN + WOMAN) ===================== */
       {
         title: "Portrait - Friendly Man (Face)",
         data: svgData(`
@@ -588,9 +587,7 @@
               <path d="M240,690 C290,625 370,610 420,610"/>
               <path d="M760,690 C710,625 630,610 580,610"/>
             </g>
-            <text x="500" y="670" text-anchor="middle" font-size="34" font-family="Comic Sans MS, cursive" fill="#111">
-              Friendly Man
-            </text>
+            <text x="500" y="660" text-anchor="middle" font-size="34" font-family="Comic Sans MS, cursive" fill="#111">Friendly Man</text>
           </svg>
         `)
       },
@@ -650,14 +647,12 @@
               <path d="M220,690 C280,620 350,610 420,610"/>
               <path d="M780,690 C720,620 650,610 580,610"/>
             </g>
-            <text x="500" y="670" text-anchor="middle" font-size="34" font-family="Comic Sans MS, cursive" fill="#111">
-              Friendly Woman
-            </text>
+            <text x="500" y="660" text-anchor="middle" font-size="34" font-family="Comic Sans MS, cursive" fill="#111">Friendly Woman</text>
           </svg>
         `)
       }
-
-
+      /* ===================== END ADDED IMAGES ===================== */
+    ];
 
     // Load images from localStorage if available
     const savedImages = localStorage.getItem("coloringImages");
@@ -1441,3 +1436,4 @@
   </script>
 </body>
 </html>
+
