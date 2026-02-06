@@ -250,7 +250,9 @@
     const canvas = document.getElementById("c");
     const ctx = canvas.getContext("2d");
 
-    const colorInput = document.getElementById("color");
+   const colorInput = document.getElementById("color");
+colorInput.addEventListener(...)
+
     const sizeInput  = document.getElementById("size");
     const sizeLabel  = document.getElementById("sizeLabel");
     const clearBtn   = document.getElementById("clearBtn");
