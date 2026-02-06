@@ -695,7 +695,7 @@ with st.sidebar.expander("⚡ Quick Redeem", expanded=False):
 
     with qtab3:
         st.caption("Placeholder only. Later: card rewards + claims tracking.")
-
+st.sidebar.link_button("Enter Starplace", "<STARPLACE_URL>")
 # ============================================================
 # NAV (adds Starplace, hides admin pages for players)
 # ============================================================
