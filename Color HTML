@@ -16,7 +16,7 @@
       --muted: rgba(255,255,255,0.70);
     }
 
-   .clear-x{
+    .clear-x{
       margin-left:auto;
       width:36px;
       height:36px;
@@ -30,15 +30,15 @@
       background: rgba(255,255,255,0.06);
       border:1px solid rgba(255,255,255,0.18);
       color: rgba(255,255,255,0.8);
-}
+    }
 
     .clear-x:hover{
       background: rgba(255,255,255,0.12);
-}
+    }
 
     .clear-x:active{
       transform: scale(0.96);
-}
+    }
 
     .color-swatch{
       width:28px;
@@ -195,8 +195,8 @@
       </div>
 
       <button id="clearBtn" class="clear-x" type="button" aria-label="Clear canvas">
-  ×
-</button>
+        ×
+      </button>
 
       <button id="saveBtn" type="button">Save PNG</button>
     </div>
