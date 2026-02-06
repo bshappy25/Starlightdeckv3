@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PAINT WITH LIGHT</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root{
+      --ink0:#050914;
+      --ink1:#071026;
+      --ink2:#0b1a3d;
+      --glass: rgba(255,255,255,0.08);
+      --glass2: rgba(255,255,255,0.12);
+      --line: rgba(255,255,255,0.14);
+      --glow: rgba(130, 210, 255, 0.55);
+      --aether1:#8be9ff;
+      --aether2:#b8a5ff;
+      --aether3:#7cffd9;
+      --aether4:#ffe9a6;
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.70);
+    }
+
+    body{
+      font-family: ui-rounded, "Comic Sans MS","Chalkboard SE","Comic Neue",system-ui,sans-serif;
+      color: var(--text);
+      min-height:100vh;
+      display:flex; justify-content:center; align-items:center;
+      padding:20px;
+      background:
+        radial-gradient(1200px 800px at 20% 15%, rgba(139,233,255,0.10), transparent 60%),
+        radial-gradient(900px 700px at 75% 25%, rgba(184,165,255,0.12), transparent 58%),
+        radial-gradient(1200px 900px at 60% 85%, rgba(124,255,217,0.10), transparent 60%),
+        linear-gradient(135deg, var(--ink0) 0%, var(--ink1) 35%, var(--ink2) 100%);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* subtle starfield */
+    body::before{
+      content:"";
+      position: fixed;
+      inset:0;
+      pointer-events:none;
+      background-image:
+        radial-gradient(2px 2px at 15% 25%, rgba(255,255,255,.75), transparent 60%),
+        radial-gradient(1.5px 1.5px at 35% 65%, rgba(255,255,255,.55), transparent 60%),
+        radial-gradient(1px 1px at 62% 30%, rgba(255,255,255,.55), transparent 60%),
+        radial-gradient(2px 2px at 78% 72%, rgba(255,255,255,.65), transparent 60%),
+        radial-gradient(1px 1px at 88% 18%, rgba(255,255,255,.45), transparent 60%),
+        radial-gradient(1.5px 1.5px at 10% 80%, rgba(255,255,255,.45), transparent 60%),
+        radial-gradient(1px 1px at 48% 12%, rgba(255,255,255,.40), transparent 60%),
+        radial-gradient(2px 2px at 52% 88%, rgba(255,255,255,.50), transparent 60%);
+      opacity: .55;
+      filter: drop-shadow(0 0 8px rgba(139,233,255,.2));
+      animation: twinkle 6s ease-in-out infinite alternate;
+    }
+    @keyframes twinkle{
+      from{ opacity:.35; transform: translateY(0px); }
+      to{ opacity:.7; transform: translateY(-6px); }
+    }
+
+    .container{ max-width:1400px; width:100%; }
+
+    /* Loading */
+    .loading-progress{ position:fixed; top:0; left:0; width:100%; height:4px; background:rgba(255,255,255,.12); z-index:10000; display:none; }
+    .loading-progress.active{ display:block; }
+    .loading-progress-bar{
+      height:100%;
+      background: linear-gradient(90deg, rgba(139,233,255,0.95), rgba(184,165,255,0.95), rgba(124,255,217,0.95));
+      width:0%;
+      transition: width .25s ease;
+      box-shadow:0 0 16px rgba(139,233,255,.45);
+    }
+    .loading-text{
+      position:fixed; top:18px; left:50%; transform:translateX(-50%);
+      background:rgba(10,15,35,.72);
+      border:1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(10px);
+      padding:12px 18px; border-radius:999px;
+      font-size:1.02em; color: var(--text); font-weight:900;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+      z-index:10001; display:none;
+    }
+    .loading-text.active{ display:block; }
+
+    /* HUB */
+    .user-hub{
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:22px;
+      padding:38px;
+      backdrop-filter: blur(12px);
+      box-shadow:
+        0 22px 70px rgba(0,0,0,.55),
+        0 0 0 1px rgba(255,255,255,.06) inset;
+      text-align:center;
+      animation:fadeIn .5s ease-out;
+      position: relative;
+      overflow: hidden;
+    }
+    .user-hub::after{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(600px 240px at 20% 10%, rgba(139,233,255,.10), transparent 55%),
+        radial-gradient(700px 280px at 85% 20%, rgba(184,165,255,.12), transparent 55%),
+        radial-gradient(800px 320px at 50% 110%, rgba(124,255,217,.10), transparent 55%);
+      pointer-events:none;
+      opacity:.9;
+    }
+    .user-hub.hidden{ display:none; }
+
+    .hub-title{
+      font-size:3.1em;
+      letter-spacing:.02em;
+      margin-bottom:10px;
+      cursor:pointer; user-select:none;
+      text-shadow:
+        0 0 14px rgba(139,233,255,.25),
+        0 0 24px rgba(184,165,255,.18);
+    }
+    .hub-title .spark{
+      background: linear-gradient(90deg, var(--aether1), var(--aether2), var(--aether3));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 0 10px rgba(139,233,255,.18));
+    }
+    .hub-subtitle{
+      font-size:1.15em;
+      color: var(--muted);
+      margin-bottom:28px;
+    }
+
+    .user-input-section{ margin-bottom:26px; position: relative; z-index: 2; }
+    .user-input-section label{
+      display:block; font-size:1.05em; color: var(--muted);
+      margin-bottom:10px; font-weight:900;
+    }
+    .user-input-section input{
+      padding:14px 18px; font-size:1.05em;
+      border:1px solid rgba(255,255,255,.20);
+      border-radius:14px;
+      width:100%; max-width:420px; font-family:inherit;
+      background: rgba(10,15,35,.55);
+      color: var(--text);
+      outline:none;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
+    }
+    .user-input-section input:focus{
+      border-color: rgba(139,233,255,.38);
+      box-shadow:
+        0 0 0 3px rgba(139,233,255,.12),
+        0 0 28px rgba(139,233,255,.12);
+    }
+
+    .image-selection{ margin-bottom:22px; position: relative; z-index: 2; }
+    .image-selection h3{
+      font-size:1.25em;
+      color: rgba(255,255,255,.88);
+      margin-bottom:16px;
+      font-weight:900;
+    }
+    .image-grid{
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:16px; max-width:980px; margin:0 auto;
+    }
+    .image-option{
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:18px;
+      padding:12px;
+      cursor:pointer;
+      transition: all .22s;
+      background: rgba(10,15,35,.45);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      overflow:hidden;
+      position: relative;
+    }
+    .image-option::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(240px 180px at 20% 10%, rgba(139,233,255,.12), transparent 65%),
+        radial-gradient(260px 200px at 85% 20%, rgba(184,165,255,.12), transparent 65%),
+        radial-gradient(260px 220px at 50% 110%, rgba(124,255,217,.10), transparent 60%);
+      opacity:.9;
+      pointer-events:none;
+      transition: opacity .22s;
+    }
+    .image-option:hover{
+      transform:translateY(-4px);
+      border-color: rgba(139,233,255,.28);
+      box-shadow: 0 14px 44px rgba(0,0,0,.45);
+    }
+    .image-option.selected{
+      border-color: rgba(139,233,255,.44);
+      box-shadow:
+        0 16px 50px rgba(0,0,0,.55),
+        0 0 0 1px rgba(139,233,255,.16) inset;
+    }
+    .image-option img{
+      width:100%; height:160px; object-fit:contain;
+      border-radius:14px;
+      background: linear-gradient(135deg, rgba(139,233,255,.10), rgba(184,165,255,.10));
+      border:1px solid rgba(255,255,255,.10);
+      position: relative;
+      z-index: 2;
+    }
+    .image-option .image-title{
+      text-align:center; margin-top:10px;
+      font-size:1.0em; color: rgba(255,255,255,.90);
+      font-weight:900;
+      position: relative;
+      z-index: 2;
+    }
+
+    .start-button{
+      background: linear-gradient(135deg, rgba(139,233,255,.95) 0%, rgba(184,165,255,.95) 55%, rgba(124,255,217,.95) 100%);
+      color:#071026;
+      border:none;
+      padding:16px 54px;
+      font-size:1.25em;
+      border-radius:999px;
+      cursor:pointer;
+      transition: transform .22s, box-shadow .22s, filter .22s;
+      font-family:inherit;
+      font-weight:1000;
+      letter-spacing:.02em;
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+      position: relative;
+      z-index: 2;
+    }
+    .start-button:hover{ transform:translateY(-2px); filter: saturate(1.05); box-shadow:0 24px 55px rgba(0,0,0,.45); }
+    .start-button:disabled{ opacity:.45; cursor:not-allowed; filter: grayscale(.2); }
+
+    /* Admin Modal */
+    .admin-modal{
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,.72); z-index:9999; justify-content:center; align-items:center;
+      padding:18px;
+    }
+    .admin-modal.active{ display:flex; }
+    .admin-content{
+      background: rgba(10,15,35,.78);
+      border:1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(12px);
+      color: var(--text);
+      border-radius:20px; padding:28px; max-width:820px; width:100%;
+      max-height:86vh; overflow-y:auto; position:relative;
+      box-shadow: 0 24px 80px rgba(0,0,0,.6);
+    }
+    .admin-close{
+      position:absolute; top:14px; right:14px;
+      background: rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14);
+      color: var(--text);
+      padding:10px 14px; border-radius:12px; cursor:pointer; font-family:inherit; font-weight:900;
+    }
+    .admin-close:hover{ background: rgba(255,255,255,.14); }
+    .admin-header{ text-align:center; margin-bottom:18px; }
+    .admin-header h2{
+      font-size:1.9em;
+      background: linear-gradient(90deg, var(--aether1), var(--aether2), var(--aether3));
+      -webkit-background-clip:text; background-clip:text; color: transparent;
+      text-shadow: 0 0 18px rgba(139,233,255,.14);
+      margin-bottom:6px;
+    }
+    .admin-section{ margin-bottom:16px; padding:14px; background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:14px; }
+    .admin-section h3{ color: rgba(255,255,255,.92); margin-bottom:10px; font-size:1.15em; }
+    .admin-button{
+      padding:10px 14px; border:none; border-radius:12px; font-size:.98em; cursor:pointer; font-family:inherit; font-weight:1000;
+      transition: all .18s; margin-right:10px; margin-bottom:10px;
+    }
+    .admin-button.primary{ background: rgba(139,233,255,.92); color:#071026; }
+    .admin-button.primary:hover{ filter: brightness(1.03); transform: translateY(-1px); }
+    .admin-button.danger{ background: rgba(255,107,107,.92); color:#0b1028; }
+    .admin-button.danger:hover{ filter: brightness(1.04); transform: translateY(-1px); }
+    .admin-button.secondary{ background: rgba(255,255,255,.12); color: var(--text); border:1px solid rgba(255,255,255,.14); }
+    .admin-button.secondary:hover{ background: rgba(255,255,255,.16); transform: translateY(-1px); }
+
+    .admin-list{
+      max-height:240px; overflow-y:auto; background: rgba(0,0,0,.18);
+      padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
+    }
+    .admin-list-item{
+      padding:10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      color: rgba(255,255,255,.88);
+    }
+    .admin-list-item:last-child{ border-bottom:none; }
+
+    .mini{ font-size:.92em; color: var(--muted); line-height:1.35; }
+    .field{
+      width:100%;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(10,15,35,.55);
+      color: var(--text);
+      outline:none;
+      font-family:inherit;
+    }
+    .field:focus{ border-color: rgba(139,233,255,.35); box-shadow:0 0 0 3px rgba(139,233,255,.10); }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; }
+    .row > *{ flex:1; min-width:220px; }
+
+    /* App */
+    .coloring-app{
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:22px; padding:26px;
+      backdrop-filter: blur(12px);
+      box-shadow:0 22px 70px rgba(0,0,0,.55);
+      display:none; animation:fadeIn .5s ease-out;
+      position: relative;
+      overflow: hidden;
+    }
+    .coloring-app.active{ display:block; }
+
+    .back-button{
+      position:absolute; top:18px; left:18px;
+      background: rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14);
+      color: var(--text);
+      padding:10px 14px; border-radius:12px;
+      cursor:pointer; font-family:inherit; font-size:1em; transition:all .18s; font-weight:900;
+    }
+    .back-button:hover{ background: rgba(255,255,255,.14); transform:translateY(-1px); }
+
+    .app-header{ text-align:center; margin-bottom:18px; position: relative; z-index: 2; }
+    .welcome-message{
+      font-size:2.05em;
+      margin-bottom:6px;
+      background: linear-gradient(90deg, var(--aether1), var(--aether2), var(--aether3));
+      -webkit-background-clip:text; background-clip:text; color: transparent;
+      text-shadow: 0 0 22px rgba(139,233,255,.14);
+      font-weight:1000;
+    }
+    .app-title{ font-size:1.08em; color: var(--muted); font-weight:900; }
+    .status-badges{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px; }
+    .badge{
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.88);
+      border: 1px solid rgba(255,255,255,.14);
+      padding:8px 12px; border-radius:999px;
+      font-size:.92em; font-weight:1000;
+      box-shadow: 0 8px 18px rgba(0,0,0,.25);
+    }
+    .badge.hot{
+      background: linear-gradient(135deg, rgba(139,233,255,.12), rgba(184,165,255,.12));
+      border-color: rgba(139,233,255,.20);
+    }
+
+    .main-content{ display:flex; gap:18px; margin-bottom:18px; position:relative; z-index:2; }
+    .tools-panel{
+      flex:0 0 290px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      padding:16px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.35);
+    }
+
+    .tools-section{ margin-bottom:16px; }
+    .tools-section h3{ color: rgba(255,255,255,.92); margin-bottom:10px; font-size:1.05em; font-weight:1000; }
+
+    .color-palette{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:10px; }
+    .color-option{
+      width:54px; height:54px; border-radius:14px; cursor:pointer;
+      border:2px solid rgba(255,255,255,.10);
+      transition: transform .14s, border-color .14s, box-shadow .14s;
+      box-shadow: 0 10px 18px rgba(0,0,0,.25);
+    }
+    .color-option:hover{ transform:scale(1.06); border-color: rgba(139,233,255,.18); }
+    .color-option.active{
+      border-color: rgba(139,233,255,.55);
+      transform:scale(1.10);
+      box-shadow: 0 0 0 3px rgba(139,233,255,.12), 0 16px 26px rgba(0,0,0,.25);
+    }
+    .custom-color-picker{
+      width:100%; height:50px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.18);
+      cursor:pointer;
+      background: rgba(10,15,35,.55);
+    }
+
+    .brush-sizes{ display:flex; gap:10px; justify-content:space-around; }
+    .brush-size-option{
+      width:50px; height:50px; border-radius:50%;
+      background: rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14);
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; transition:all .14s;
+      box-shadow: 0 12px 22px rgba(0,0,0,.25);
+    }
+    .brush-size-option:hover{ background: rgba(255,255,255,.14); transform: translateY(-1px); }
+    .brush-size-option.active{ border-color: rgba(139,233,255,.42); background: rgba(139,233,255,.12); }
+    .size-indicator{ width:10px; height:10px; background: rgba(255,255,255,.88); border-radius:50%; }
+    .brush-size-option.medium .size-indicator{ width:20px; height:20px; }
+    .brush-size-option.large .size-indicator{ width:30px; height:30px; }
+
+    .action-buttons{ display:flex; flex-direction:column; gap:10px; }
+    .tool-button{
+      padding:12px 14px;
+      border:none;
+      border-radius:14px;
+      font-size:1em;
+      cursor:pointer;
+      font-family:inherit;
+      transition: transform .18s, box-shadow .18s, filter .18s;
+      font-weight:1000;
+      letter-spacing:.01em;
+    }
+
+    .fill-button{
+      background: linear-gradient(135deg, rgba(139,233,255,.95) 0%, rgba(69,183,209,.92) 100%);
+      color:#061022;
+    }
+    .fill-button:hover{ transform:translateY(-1px); box-shadow:0 12px 24px rgba(0,0,0,.30); }
+    .fill-button.active{ box-shadow: inset 0 2px 10px rgba(0,0,0,.22); filter:saturate(1.08); }
+
+    .spicy-button{
+      background: linear-gradient(135deg, rgba(184,165,255,.95) 0%, rgba(124,255,217,.92) 100%);
+      color:#061022;
+      font-size:1.03em;
+    }
+    .spicy-button:hover{ transform:translateY(-1px); box-shadow:0 12px 24px rgba(0,0,0,.30); }
+    .spicy-button:disabled{ opacity:.65; cursor:not-allowed; }
+
+    .eraser-button{
+      background: rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.14);
+      color: var(--text);
+    }
+    .eraser-button:hover{ background: rgba(255,255,255,.16); transform:translateY(-1px); }
+    .eraser-button.active{ background: rgba(255,233,166,.18); border-color: rgba(255,233,166,.28); box-shadow: inset 0 2px 6px rgba(0,0,0,.25); }
+
+    .undo-button{ background: rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.14); color: var(--text); }
+    .undo-button:hover{ background: rgba(255,255,255,.14); transform:translateY(-1px); }
+
+    .clear-button{ background: rgba(255,107,107,.18); border:1px solid rgba(255,107,107,.22); color: rgba(255,255,255,.92); }
+    .clear-button:hover{ transform:translateY(-1px); filter: brightness(1.03); }
+
+    .save-button{ background: rgba(124,255,217,.20); border:1px solid rgba(124,255,217,.24); color: rgba(255,255,255,.92); }
+    .save-button:hover{ transform:translateY(-1px); filter: brightness(1.03); }
+
+    .canvas-container{
+      flex:1;
+      border-radius:18px;
+      padding:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.16);
+      box-shadow: 0 16px 44px rgba(0,0,0,.45);
+      position:relative;
+      overflow:hidden;
+    }
+    /* soft “nebula glow” behind canvas */
+    .canvas-container::before{
+      content:"";
+      position:absolute; inset:-20%;
+      background:
+        radial-gradient(420px 280px at 22% 18%, rgba(139,233,255,.12), transparent 60%),
+        radial-gradient(520px 340px at 78% 28%, rgba(184,165,255,.12), transparent 62%),
+        radial-gradient(620px 420px at 56% 85%, rgba(124,255,217,.10), transparent 62%);
+      pointer-events:none;
+      filter: blur(1px);
+      opacity: .9;
+      animation: nebula 10s ease-in-out infinite alternate;
+    }
+    @keyframes nebula{
+      from{ transform: translateY(0px) scale(1); opacity:.75; }
+      to{ transform: translateY(-10px) scale(1.02); opacity:.95; }
+    }
+
+    #coloringCanvas{
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:14px;
+      cursor:crosshair;
+      display:block;
+      margin:0 auto;
+      max-width:100%;
+      height:auto;
+      background: rgba(255,255,255,.98);
+      touch-action:none;
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .loading-indicator{
+      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+      font-size:1.2em; color: rgba(255,255,255,.88); display:none; font-weight:1000;
+      z-index: 3;
+      background: rgba(10,15,35,.65);
+      border:1px solid rgba(255,255,255,.14);
+      padding:10px 14px;
+      border-radius:999px;
+      backdrop-filter: blur(10px);
+    }
+    .loading-indicator.active{ display:block; }
+
+    /* Quote */
+    .quote-section{
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px; padding:16px; text-align:center;
+      box-shadow: 0 16px 40px rgba(0,0,0,.35);
+      position: relative;
+      overflow: hidden;
+    }
+    .quote-section::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: linear-gradient(90deg, rgba(139,233,255,.10), rgba(184,165,255,.10), rgba(124,255,217,.10));
+      opacity:.9;
+      pointer-events:none;
+    }
+    .quote-text{
+      font-size:1.35em;
+      font-weight:1000;
+      position: relative;
+      z-index: 2;
+      color: rgba(255,255,255,.92);
+      text-shadow: 0 0 18px rgba(139,233,255,.12);
+    }
+
+    /* Education */
+    .education{
+      margin-top:14px;
+      background: rgba(255,255,255,.06);
+      border:1px dashed rgba(139,233,255,.26);
+      border-radius:18px;
+      padding:14px;
+      box-shadow: 0 16px 44px rgba(0,0,0,.35);
+      color: rgba(255,255,255,.88);
+    }
+    .education summary{
+      cursor:pointer;
+      font-weight:1000;
+      color: rgba(255,255,255,.92);
+      list-style:none;
+    }
+    .education summary::-webkit-details-marker{ display:none; }
+    .edu-grid{
+      margin-top:12px;
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:12px;
+      text-align:left;
+    }
+    .edu-card{
+      background: rgba(0,0,0,.16);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      padding:12px;
+    }
+    .edu-card h4{ margin-bottom:6px; color: rgba(255,255,255,.92); }
+    .edu-card ul{ padding-left:18px; color: rgba(255,255,255,.78); line-height:1.35; }
+
+    /* Signature Modal */
+    .signature-modal{
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,.72); z-index:9998; justify-content:center; align-items:center; padding:18px;
+    }
+    .signature-modal.active{ display:flex; }
+    .signature-content{
+      background: rgba(10,15,35,.78);
+      border:1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(12px);
+      border-radius:20px;
+      padding:28px;
+      max-width:540px;
+      width:100%;
+      text-align:center;
+      box-shadow: 0 24px 80px rgba(0,0,0,.6);
+    }
+    .signature-content h2{
+      font-size:1.8em;
+      margin-bottom:10px;
+      background: linear-gradient(90deg, var(--aether1), var(--aether2), var(--aether3));
+      -webkit-background-clip:text; background-clip:text; color: transparent;
+      font-weight:1000;
+    }
+    .signature-content p{ color: var(--muted); font-weight:900; margin-bottom:14px; }
+    .signature-input{
+      width:100%;
+      padding:14px;
+      font-size:1.2em;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:14px;
+      background: rgba(10,15,35,.55);
+      color: var(--text);
+      font-family:'Brush Script MT',cursive,'Comic Sans MS',cursive;
+      text-align:center;
+      margin-bottom:14px;
+      outline:none;
+    }
+    .signature-input:focus{ border-color: rgba(139,233,255,.35); box-shadow:0 0 0 3px rgba(139,233,255,.10); }
+    .signature-buttons{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    .signature-button{
+      padding:12px 18px;
+      border:none; border-radius:14px;
+      font-size:1.05em;
+      cursor:pointer;
+      font-family:inherit;
+      font-weight:1000;
+      transition: transform .18s, filter .18s;
+    }
+    .signature-button.confirm{
+      background: linear-gradient(135deg, rgba(124,255,217,.95), rgba(139,233,255,.95));
+      color:#061022;
+    }
+    .signature-button.confirm:hover{ transform: translateY(-1px); filter: brightness(1.03); }
+    .signature-button.skip{
+      background: rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.14);
+      color: var(--text);
+    }
+    .signature-button.skip:hover{ transform: translateY(-1px); background: rgba(255,255,255,.16); }
+
+    @media (max-width: 980px){
+      .main-content{ flex-direction:column; }
+      .tools-panel{ flex:1; }
+      .color-palette{ grid-template-columns:repeat(6,1fr); }
+      .hub-title{ font-size:2.2em; }
+      .welcome-message{ font-size:1.6em; }
+      .image-grid{ grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); }
+    }
+
+    @keyframes fadeIn{
+      from{ opacity:0; transform:translateY(18px); }
+      to{ opacity:1; transform:translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Progress Bar -->
+  <div class="loading-progress" id="loadingProgress">
+    <div class="loading-progress-bar" id="loadingProgressBar"></div>
+  </div>
+  <div class="loading-text" id="loadingText">Loading your canvas…</div>
+
+  <div class="container">
+    <!-- User Hub -->
+    <div class="user-hub" id="userHub">
+      <h1 class="hub-title" id="hubTitle" onclick="handleTitleClick()">
+        ✨ <span class="spark">PAINT WITH LIGHT</span> ✨
+      </h1>
+      <p class="hub-subtitle">Ink-blue + sparkles • Fill + Spicy • DOE Chrome-ready</p>
+
+      <div class="user-input-section">
+        <label for="userName">What’s your name, light-artist?</label>
+        <input type="text" id="userName" placeholder="Enter your name here…" maxlength="30" />
+      </div>
+
+      <div class="image-selection">
+        <h3>Choose a glowing page:</h3>
+        <div class="image-grid" id="imageGrid"></div>
+      </div>
+
+      <button class="start-button" id="startButton" onclick="startColoring()" disabled>
+        Start Painting ✦
+      </button>
+      <p class="mini" style="margin-top:12px; opacity:.85;">
+        (Admin: click the title 3× → password)
+      </p>
+    </div>
+
+    <!-- Admin Modal -->
+    <div class="admin-modal" id="adminModal">
+      <div class="admin-content">
+        <button class="admin-close" onclick="closeAdminPanel()">✕ Close</button>
+        <div class="admin-header">
+          <h2>🔐 Admin Panel</h2>
+          <p class="mini">Images + names are stored locally on this device/browser.</p>
+        </div>
+
+        <div class="admin-section">
+          <h3>🖼️ Current Images</h3>
+          <div class="admin-list" id="adminImageList"></div>
+          <button class="admin-button secondary" onclick="exportImageLibrary()">Export Image Library (JSON)</button>
+          <button class="admin-button secondary" onclick="document.getElementById('importImagesFile').click()">Import Image Library (JSON)</button>
+          <input id="importImagesFile" type="file" accept="application/json" style="display:none" onchange="importImageLibrary(event)" />
+        </div>
+
+        <div class="admin-section">
+          <h3>➕ Add / Replace an Image (Dedicated Update Space)</h3>
+          <p class="mini" style="margin-bottom:10px;">
+            Paste a <b>data URI</b> (SVG/PNG/JPG). Tip: SVG works best for crisp black lines + gradients.
+          </p>
+          <div class="row">
+            <input class="field" id="newImgTitle" placeholder="Image title (e.g., Star Garden)" maxlength="60" />
+            <button class="admin-button primary" onclick="addImageFromFields()">Add Image</button>
+          </div>
+          <textarea class="field" id="newImgData" rows="5" placeholder="Paste image data URI here: data:image/svg+xml... or data:image/png;base64,..."></textarea>
+          <p class="mini" style="margin-top:8px;">
+            Want to update later? This section + the <b>IMAGE LIBRARY</b> block in the code are your two clean edit points.
+          </p>
+        </div>
+
+        <div class="admin-section">
+          <h3>👥 Student Names</h3>
+          <div class="admin-list" id="studentNameList"></div>
+          <button class="admin-button secondary" onclick="exportStudentNames()">Export Names</button>
+          <button class="admin-button danger" onclick="clearStudentNames()">Clear All Names</button>
+        </div>
+
+        <div class="admin-section">
+          <h3>⚙️ Settings</h3>
+          <button class="admin-button danger" onclick="resetAllData()">Reset All App Data</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Signature Modal -->
+    <div class="signature-modal" id="signatureModal">
+      <div class="signature-content">
+        <h2>✍️ Sign Your Lightwork</h2>
+        <p>Add your signature to the bottom-right corner</p>
+        <input type="text" class="signature-input" id="signatureInput" placeholder="Your signature…" maxlength="30" />
+        <div class="signature-buttons">
+          <button class="signature-button confirm" onclick="confirmSignature()">Add Signature & Save</button>
+          <button class="signature-button skip" onclick="skipSignature()">Skip & Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coloring App -->
+    <div class="coloring-app" id="coloringApp">
+      <button class="back-button" onclick="goBackToHub()">← Back</button>
+
+      <div class="app-header">
+        <h2 class="welcome-message" id="welcomeMessage">Welcome, Light-Artist!</h2>
+        <h3 class="app-title" id="currentImageTitle">Coloring Page</h3>
+        <div class="status-badges">
+          <span class="badge" id="fillBadge">Fill: OFF</span>
+          <span class="badge hot" id="spiceBadge">Spice: READY</span>
+          <span class="badge" id="paletteBadge">Palette: Aether</span>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <!-- Tools -->
+        <div class="tools-panel">
+          <div class="tools-section">
+            <h3>🎨 Aether Colors</h3>
+            <div class="color-palette" id="colorPalette"></div>
+            <input type="color" class="custom-color-picker" id="customColorPicker" value="#8BE9FF" />
+            <p class="mini" style="margin-top:8px;">
+              Pro tip: pick <b>lighter colors</b> for a “paint with light” look.
+            </p>
+          </div>
+
+          <div class="tools-section">
+            <h3>🖌️ Brush Size</h3>
+            <div class="brush-sizes">
+              <div class="brush-size-option small active" onclick="setBrushSize(5, this)">
+                <div class="size-indicator"></div>
+              </div>
+              <div class="brush-size-option medium" onclick="setBrushSize(10, this)">
+                <div class="size-indicator"></div>
+              </div>
+              <div class="brush-size-option large" onclick="setBrushSize(20, this)">
+                <div class="size-indicator"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tools-section">
+            <h3>🛠️ Tools</h3>
+            <div class="action-buttons">
+              <button class="tool-button fill-button" id="fillButton" onclick="toggleFillMode()">
+                🪣 Fill (Multi-Tap)
+              </button>
+
+              <button class="tool-button spicy-button" id="spicyButton" onclick="makeItSpicyFull()">
+                ✨ Spicy Sparkle (Auto-Glow)
+              </button>
+
+              <button class="tool-button eraser-button" id="eraserButton" onclick="toggleEraser()">Eraser Mode</button>
+              <button class="tool-button undo-button" id="undoButton" onclick="undo()">Undo</button>
+              <button class="tool-button clear-button" onclick="clearCanvas()">Clear All</button>
+              <button class="tool-button save-button" onclick="initiateSignature()">Save</button>
+            </div>
+
+            <p class="mini" style="margin-top:10px;">
+              Fill stays ON until you turn it off. Spicy Sparkle auto-colors the whole page in one click.
+            </p>
+          </div>
+        </div>
+
+        <!-- Canvas -->
+        <div class="canvas-container">
+          <div class="loading-indicator" id="loadingIndicator">Loading canvas…</div>
+          <canvas id="coloringCanvas"></canvas>
+        </div>
+      </div>
+
+      <div class="quote-section">
+        <p class="quote-text">Keep life Spicy 🌶️ — but make it cosmic ✨</p>
+      </div>
+
+      <details class="education">
+        <summary>📚 Quick Teacher Notes (tap)</summary>
+        <div class="edu-grid">
+          <div class="edu-card">
+            <h4>Light + Mood</h4>
+            <ul>
+              <li><b>Cyan / Mint</b> = calm + clarity</li>
+              <li><b>Lavender</b> = dreamy + reflective</li>
+              <li><b>Warm gold</b> = focus + energy</li>
+            </ul>
+          </div>
+          <div class="edu-card">
+            <h4>Prompts</h4>
+            <ul>
+              <li>“Show calm with cool light.”</li>
+              <li>“Pick 3 glow colors + 1 accent.”</li>
+              <li>“Make one area the ‘star’.”</li>
+            </ul>
+          </div>
+          <div class="edu-card">
+            <h4>Updated Style</h4>
+            <ul>
+              <li>✅ Ink-blue Starlight UI</li>
+              <li>✅ More complex pages</li>
+              <li>✅ Gradients under black lines</li>
+              <li>✅ Dedicated image update tools (Admin)</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+      PAINT WITH LIGHT — IMAGE LIBRARY (DEDICATED UPDATE SPACE)
+      -------------------------------------------------------------------------
+      ✅ Easiest update:
+        1) Add/replace items inside `coloringImages` below, OR
+        2) Use Admin → Add/Replace Image (paste data URI), OR
+        3) Admin → Export/Import Image Library (JSON)
+      -------------------------------------------------------------------------
+      Notes:
+      - These are SVG data URIs so the app works instantly.
+      - Each SVG includes a gradient background UNDER the black outlines.
+      - Keep outlines dark (#111) so Fill mode protects lines.
+    ========================================================================= */
+
+    function svgData(svg) {
+      return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    }
+
+    let coloringImages = [
+      {
+        title: "Starlight Garden — Lanterns + Vines",
+        data: svgData(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700">
+            <defs>
+              <linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#8BE9FF" stop-opacity="0.35"/>
+                <stop offset="55%" stop-color="#B8A5FF" stop-opacity="0.28"/>
+                <stop offset="100%" stop-color="#7CFFD9" stop-opacity="0.28"/>
+              </linearGradient>
+              <radialGradient id="glow1" cx="50%" cy="30%" r="70%">
+                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.35"/>
+                <stop offset="55%" stop-color="#FFFFFF" stop-opacity="0.10"/>
+                <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+
+            <!-- gradient background UNDER lines -->
+            <rect width="100%" height="100%" fill="url(#bg1)"/>
+            <rect width="100%" height="100%" fill="url(#glow1)"/>
+
+            <g stroke="#111" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <!-- vines -->
+              <path d="M70,640 C120,560 165,520 230,480 C300,436 350,395 420,310 C500,210 590,180 690,210 C780,235 850,285 920,360"/>
+              <path d="M110,620 C150,585 175,575 220,570"/>
+              <path d="M260,470 C290,450 320,440 360,430"/>
+              <path d="M460,300 C500,285 535,285 575,300"/>
+              <path d="M720,220 C740,255 760,280 800,310"/>
+              <path d="M860,330 C890,350 910,378 930,410"/>
+
+              <!-- leaves -->
+              <path d="M170,560 C145,540 125,535 105,550 C125,575 150,585 170,560 Z"/>
+              <path d="M330,420 C305,400 285,395 265,410 C285,435 310,445 330,420 Z"/>
+              <path d="M540,280 C515,260 495,255 475,270 C495,295 520,305 540,280 Z"/>
+              <path d="M805,310 C780,290 760,285 740,300 C760,325 785,335 805,310 Z"/>
+
+              <!-- hanging lanterns -->
+              <path d="M260,250 C260,210 255,185 240,160"/>
+              <path d="M240,160 C235,140 245,128 260,128 C275,128 285,140 280,160"/>
+              <path d="M240,160 L280,160"/>
+              <path d="M245,160 C240,195 245,220 260,250 C275,220 280,195 275,160"/>
+
+              <path d="M520,190 C520,155 510,120 485,95"/>
+              <path d="M485,95 C475,75 490,60 510,60 C530,60 545,75 535,95"/>
+              <path d="M485,95 L535,95"/>
+              <path d="M492,95 C485,135 490,160 510,190 C530,160 535,135 528,95"/>
+
+              <path d="M780,260 C780,220 770,195 750,170"/>
+              <path d="M750,170 C740,150 755,135 775,135 C795,135 810,150 800,170"/>
+              <path d="M750,170 L800,170"/>
+              <path d="M757,170 C750,210 755,235 775,260 C795,235 800,210 793,170"/>
+
+              <!-- stars -->
+              <path d="M130,120 L140,145 L165,150 L145,165 L150,190 L130,178 L110,190 L115,165 L95,150 L120,145 Z"/>
+              <path d="M860,120 L870,145 L895,150 L875,165 L880,190 L860,178 L840,190 L845,165 L825,150 L850,145 Z"/>
+              <path d="M870,520 L880,545 L905,550 L885,565 L890,590 L870,578 L850,590 L855,565 L835,550 L860,545 Z"/>
+
+              <!-- ground -->
+              <path d="M60,640 C220,600 360,610 500,640 C640,670 780,670 940,640"/>
+              <path d="M220,620 C235,595 255,595 270,620"/>
+              <path d="M280,620 C295,595 315,595 330,620"/>
+              <path d="M340,620 C355,595 375,595 390,620"/>
+            </g>
+
+            <text x="500" y="675" text-anchor="middle" font-size="30" font-family="Comic Sans MS, cursive" fill="#111">Starlight Garden</text>
+          </svg>
+        `)
+      },
+      {
+        title: "Moon Harbor — Waves + Sailboat",
+        data: svgData(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700">
+            <defs>
+              <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#B8A5FF" stop-opacity="0.30"/>
+                <stop offset="50%" stop-color="#8BE9FF" stop-opacity="0.28"/>
+                <stop offset="100%" stop-color="#FFE9A6" stop-opacity="0.22"/>
+              </linearGradient>
+              <radialGradient id="moonGlow" cx="78%" cy="22%" r="40%">
+                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.40"/>
+                <stop offset="60%" stop-color="#FFFFFF" stop-opacity="0.12"/>
+                <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+
+            <rect width="100%" height="100%" fill="url(#bg2)"/>
+            <rect width="100%" height="100%" fill="url(#moonGlow)"/>
+
+            <g stroke="#111" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <!-- moon -->
+              <circle cx="820" cy="160" r="70"/>
+              <path d="M790,160 C815,140 845,140 870,160"/>
+              <path d="M800,190 C825,175 845,175 870,190"/>
+
+              <!-- stars -->
+              <path d="M130,120 L140,145 L165,150 L145,165 L150,190 L130,178 L110,190 L115,165 L95,150 L120,145 Z"/>
+              <path d="M220,210 L228,228 L248,232 L232,244 L236,264 L220,255 L204,264 L208,244 L192,232 L212,228 Z"/>
+              <path d="M620,110 L628,128 L648,132 L632,144 L636,164 L620,155 L604,164 L608,144 L592,132 L612,128 Z"/>
+
+              <!-- horizon -->
+              <path d="M60,330 C220,300 360,305 500,330 C640,355 780,355 940,330"/>
+
+              <!-- sailboat -->
+              <path d="M500,360 L500,520"/>
+              <path d="M500,360 C430,410 420,470 500,520"/>
+              <path d="M500,380 C580,420 590,470 500,520"/>
+              <path d="M420,520 C460,550 540,550 580,520"/>
+              <path d="M410,520 C445,585 555,585 590,520"/>
+
+              <!-- waves -->
+              <path d="M70,570 C140,520 220,520 290,570 C360,620 440,620 510,570 C580,520 660,520 730,570 C800,620 880,620 950,570"/>
+              <path d="M70,630 C140,580 220,580 290,630 C360,680 440,680 510,630 C580,580 660,580 730,630 C800,680 880,680 950,630"/>
+            </g>
+
+            <text x="500" y="675" text-anchor="middle" font-size="30" font-family="Comic Sans MS, cursive" fill="#111">Moon Harbor</text>
+          </svg>
+        `)
+      },
+      {
+        title: "Cosmic Coral — Shell + Reef",
+        data: svgData(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700">
+            <defs>
+              <linearGradient id="bg3" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#8BE9FF" stop-opacity="0.30"/>
+                <stop offset="55%" stop-color="#7CFFD9" stop-opacity="0.26"/>
+                <stop offset="100%" stop-color="#B8A5FF" stop-opacity="0.28"/>
+              </linearGradient>
+              <radialGradient id="reefGlow" cx="40%" cy="45%" r="60%">
+                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.28"/>
+                <stop offset="70%" stop-color="#FFFFFF" stop-opacity="0.08"/>
+                <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+
+            <rect width="100%" height="100%" fill="url(#bg3)"/>
+            <rect width="100%" height="100%" fill="url(#reefGlow)"/>
+
+            <g stroke="#111" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <!-- big shell (more detailed) -->
+              <path d="M520,470 C445,435 370,360 385,270 C400,185 485,140 520,128 C555,140 640,185 655,270 C670,360 595,435 520,470 Z"/>
+              <path d="M520,128 L520,470"/>
+              <path d="M480,150 L520,470"/>
+              <path d="M560,150 L520,470"/>
+              <path d="M440,190 L520,470"/>
+              <path d="M600,190 L520,470"/>
+              <path d="M410,235 L520,470"/>
+              <path d="M630,235 L520,470"/>
+
+              <!-- coral cluster -->
+              <path d="M140,600 C160,545 160,520 140,485 C120,450 130,420 160,395 C190,370 210,335 200,300"/>
+              <path d="M210,600 C225,560 235,540 260,520 C285,500 300,470 285,440"/>
+              <path d="M260,520 C240,505 230,485 235,465"/>
+              <path d="M310,610 C330,570 355,555 380,545 C410,535 430,510 425,475"/>
+
+              <!-- reef rocks -->
+              <path d="M60,640 C220,600 350,612 480,640 C610,668 740,668 940,640"/>
+              <path d="M120,640 C135,610 165,610 180,640"/>
+              <path d="M190,640 C205,610 235,610 250,640"/>
+              <path d="M260,640 C275,610 305,610 320,640"/>
+
+              <!-- bubbles -->
+              <circle cx="820" cy="190" r="18"/>
+              <circle cx="860" cy="240" r="12"/>
+              <circle cx="800" cy="260" r="10"/>
+              <circle cx="900" cy="210" r="10"/>
+            </g>
+
+            <text x="500" y="675" text-anchor="middle" font-size="30" font-family="Comic Sans MS, cursive" fill="#111">Cosmic Coral</text>
+          </svg>
+        `)
+      },
+      {
+        title: "Sky Temple — Arches + Stars",
+        data: svgData(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700">
+            <defs>
+              <linearGradient id="bg4" x1="1" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#FFE9A6" stop-opacity="0.22"/>
+                <stop offset="45%" stop-color="#B8A5FF" stop-opacity="0.30"/>
+                <stop offset="100%" stop-color="#8BE9FF" stop-opacity="0.26"/>
+              </linearGradient>
+              <radialGradient id="templeGlow" cx="50%" cy="35%" r="70%">
+                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.30"/>
+                <stop offset="55%" stop-color="#FFFFFF" stop-opacity="0.10"/>
+                <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+
+            <rect width="100%" height="100%" fill="url(#bg4)"/>
+            <rect width="100%" height="100%" fill="url(#templeGlow)"/>
+
+            <g stroke="#111" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <!-- stars -->
+              <path d="M120,120 L130,145 L155,150 L135,165 L140,190 L120,178 L100,190 L105,165 L85,150 L110,145 Z"/>
+              <path d="M860,120 L870,145 L895,150 L875,165 L880,190 L860,178 L840,190 L845,165 L825,150 L850,145 Z"/>
+              <path d="M500,90 L508,108 L528,112 L512,124 L516,144 L500,135 L484,144 L488,124 L472,112 L492,108 Z"/>
+
+              <!-- temple arches -->
+              <path d="M160,560 L160,320 C160,250 220,200 300,200 C380,200 440,250 440,320 L440,560"/>
+              <path d="M560,560 L560,320 C560,250 620,200 700,200 C780,200 840,250 840,320 L840,560"/>
+              <path d="M440,350 C470,320 500,320 530,350"/>
+              <path d="M470,560 C470,480 490,430 500,400 C510,430 530,480 530,560"/>
+
+              <!-- pillars -->
+              <path d="M200,560 L200,300"/>
+              <path d="M240,560 L240,280"/>
+              <path d="M360,560 L360,280"/>
+              <path d="M400,560 L400,300"/>
+              <path d="M600,560 L600,300"/>
+              <path d="M640,560 L640,280"/>
+              <path d="M760,560 L760,280"/>
+              <path d="M800,560 L800,300"/>
+
+              <!-- steps -->
+              <path d="M90,640 C240,600 380,610 500,640 C620,670 760,670 910,640"/>
+              <path d="M150,620 C170,595 200,595 220,620"/>
+              <path d="M230,620 C250,595 280,595 300,620"/>
+              <path d="M310,620 C330,595 360,595 380,620"/>
+            </g>
+
+            <text x="500" y="675" text-anchor="middle" font-size="30" font-family="Comic Sans MS, cursive" fill="#111">Sky Temple</text>
+          </svg>
+        `)
+      }
+    ];
+
+    // Load any saved library from localStorage
+    const savedImages = localStorage.getItem("coloringImages");
+    if (savedImages) {
+      try {
+        const parsed = JSON.parse(savedImages);
+        if (Array.isArray(parsed) && parsed.length > 0) coloringImages = parsed;
+      } catch {}
+    }
+
+    /* =========================================================================
+       STATE
+    ========================================================================= */
+    const appState = {
+      userName: "",
+      currentColor: "#8BE9FF",
+      brushSize: 5,
+      isEraserMode: false,
+      isFillMode: false,
+      selectedImageIndex: 0,
+      adminClickCount: 0,
+      adminClickTimeout: null,
+      undoStack: [],
+      maxUndo: 18,
+      paletteName: "Aether",
+      spicyBusy: false
+    };
+
+    let canvas, ctx;
+    let backgroundImage = new Image();
+    const pointerMap = new Map();
+    let bgSnapshot = null;
+
+    /* =========================================================================
+       PALETTES (more aetherial)
+    ========================================================================= */
+    const PALETTES = [
+      { name: "Aether", colors: [
+        "#8BE9FF","#B8A5FF","#7CFFD9","#FFE9A6",
+        "#C7B6FF","#AEEBFF","#BFFFEF","#FFF3C7",
+        "#9AD0FF","#B7FFC8","#FFD1F0","#E7DDFF",
+        "#A8FFF4","#D2FAFF","#FEE6B4","#C8F7FF",
+        "#0B1220","#FFFFFF","#2A2F45","#66708F"
+      ]},
+      { name: "Nebula", colors: [
+        "#9AD0FF","#BDA7FF","#FFB3E6","#7CFFD9",
+        "#8BE9FF","#FFE9A6","#C7B6FF","#BFFFEF",
+        "#AEEBFF","#FFD1F0","#E7DDFF","#D2FAFF",
+        "#FEE6B4","#B7FFC8","#C8F7FF","#FFF3C7",
+        "#0B1220","#FFFFFF","#1B2240","#6B7280"
+      ]},
+      { name: "Calm Ocean", colors: [
+        "#8BE9FF","#AEEBFF","#9AD0FF","#7CFFD9",
+        "#BFFFEF","#C8F7FF","#D2FAFF","#B8A5FF",
+        "#0EA5E9","#38BDF8","#22D3EE","#14B8A6",
+        "#99F6E4","#5EEAD4","#BAE6FD","#60A5FA",
+        "#0B1220","#FFFFFF","#0F172A","#64748B"
+      ]}
+    ];
+    let currentPalette = PALETTES[0];
+
+    /* =========================================================================
+       SOUND (tiny pop + zing) — no audio files needed
+    ========================================================================= */
+    let audioCtx = null;
+    function ensureAudio() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      }
+      if (audioCtx && audioCtx.state === "suspended") audioCtx.resume().catch(()=>{});
+    }
+    function playPop() {
+      ensureAudio();
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = "sine";
+      o.frequency.setValueAtTime(520, now);
+      o.frequency.exponentialRampToValueAtTime(240, now + 0.06);
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.11, now + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+      o.connect(g).connect(audioCtx.destination);
+      o.start(now);
+      o.stop(now + 0.09);
+    }
+    function playZing() {
+      ensureAudio();
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = "triangle";
+      o.frequency.setValueAtTime(380, now);
+      o.frequency.exponentialRampToValueAtTime(1400, now + 0.14);
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.10, now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+      o.connect(g).connect(audioCtx.destination);
+      o.start(now);
+      o.stop(now + 0.20);
+    }
+
+    /* =========================================================================
+       INIT
+    ========================================================================= */
+    function initializeApp() {
+      canvas = document.getElementById("coloringCanvas");
+      ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+      generateColorPalette();
+      loadImageSelection();
+      setupCanvasEventListeners();
+
+      document.getElementById("customColorPicker").addEventListener("input", (e) => setColor(e.target.value));
+      document.getElementById("userName").addEventListener("keypress", (e) => { if (e.key === "Enter") startColoring(); });
+      document.getElementById("signatureInput").addEventListener("keypress", (e) => { if (e.key === "Enter") confirmSignature(); });
+
+      canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+      updateBadges();
+      updateStartEnabled();
+    }
+
+    /* =========================================================================
+       ADMIN (title 3×)
+    ========================================================================= */
+    function handleTitleClick() {
+      appState.adminClickCount++;
+      if (appState.adminClickTimeout) clearTimeout(appState.adminClickTimeout);
+      appState.adminClickTimeout = setTimeout(() => (appState.adminClickCount = 0), 2000);
+
+      if (appState.adminClickCount === 3) {
+        const password = prompt("Enter admin password:");
+        if (password === "bshapp") openAdminPanel();
+        else alert("Incorrect password!");
+        appState.adminClickCount = 0;
+      }
+    }
+    function openAdminPanel() {
+      document.getElementById("adminModal").classList.add("active");
+      updateAdminImageList();
+      updateStudentNameList();
+    }
+    function closeAdminPanel() {
+      document.getElementById("adminModal").classList.remove("active");
+    }
+
+    function updateAdminImageList() {
+      const listContainer = document.getElementById("adminImageList");
+      listContainer.innerHTML = "";
+
+      if (coloringImages.length === 0) {
+        listContainer.innerHTML = '<p style="color:rgba(255,255,255,.6);text-align:center;">No images loaded</p>';
+        return;
+      }
+
+      coloringImages.forEach((img, index) => {
+        const item = document.createElement("div");
+        item.className = "admin-list-item";
+        item.innerHTML = `
+          <span>${index + 1}. ${escapeHtml(img.title)}</span>
+          <div>
+            <button class="admin-button secondary" style="padding:6px 10px;margin:0 6px 0 0;" onclick="setAsFirst(${index})">Set Default</button>
+            <button class="admin-button danger" style="padding:6px 10px;margin:0;" onclick="deleteImage(${index})">Delete</button>
+          </div>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+
+    function setAsFirst(index){
+      if (index === 0) return;
+      const moved = coloringImages.splice(index, 1)[0];
+      coloringImages.unshift(moved);
+      localStorage.setItem("coloringImages", JSON.stringify(coloringImages));
+      updateAdminImageList();
+      loadImageSelection();
+      alert("Default image updated (now first in the grid).");
+    }
+
+    function deleteImage(index) {
+      if (confirm(`Delete "${coloringImages[index].title}"?`)) {
+        coloringImages.splice(index, 1);
+        localStorage.setItem("coloringImages", JSON.stringify(coloringImages));
+        updateAdminImageList();
+        loadImageSelection();
+        updateStartEnabled();
+      }
+    }
+
+    function addImageFromFields(){
+      const title = (document.getElementById("newImgTitle").value || "").trim();
+      const data = (document.getElementById("newImgData").value || "").trim();
+      if (!title) return alert("Please add a title.");
+      if (!data.startsWith("data:image/")) return alert("Please paste a valid data URI starting with: data:image/ ...");
+
+      coloringImages.push({ title, data });
+      localStorage.setItem("coloringImages", JSON.stringify(coloringImages));
+      document.getElementById("newImgTitle").value = "";
+      document.getElementById("newImgData").value = "";
+      updateAdminImageList();
+      loadImageSelection();
+      updateStartEnabled();
+      alert("Image added!");
+    }
+
+    function exportImageLibrary(){
+      if (coloringImages.length === 0) return alert("No images to export.");
+      const blob = new Blob([JSON.stringify(coloringImages, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `paint_with_light_images_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importImageLibrary(event){
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const parsed = JSON.parse(reader.result);
+          if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Invalid library format.");
+          // basic validation
+          const ok = parsed.every(x => x && typeof x.title === "string" && typeof x.data === "string" && x.data.startsWith("data:image/"));
+          if (!ok) throw new Error("Library items must be {title, data} and data must be a data:image/... URI.");
+          coloringImages = parsed;
+          localStorage.setItem("coloringImages", JSON.stringify(coloringImages));
+          updateAdminImageList();
+          loadImageSelection();
+          updateStartEnabled();
+          alert("Image library imported!");
+        } catch(e){
+          alert("Import failed: " + e.message);
+        } finally {
+          event.target.value = "";
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, (m)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+    }
+
+    /* =========================================================================
+       Student Names
+    ========================================================================= */
+    function updateStudentNameList() {
+      const listContainer = document.getElementById("studentNameList");
+      const studentNames = JSON.parse(localStorage.getItem("studentNames") || "[]");
+      listContainer.innerHTML = "";
+
+      if (studentNames.length === 0) {
+        listContainer.innerHTML = '<p style="color:rgba(255,255,255,.6);text-align:center;">No student names recorded yet</p>';
+        return;
+      }
+
+      studentNames.forEach((name, index) => {
+        const item = document.createElement("div");
+        item.className = "admin-list-item";
+        item.innerHTML = `<span>${index + 1}. ${escapeHtml(name)}</span>`;
+        listContainer.appendChild(item);
+      });
+    }
+
+    function exportStudentNames() {
+      const studentNames = JSON.parse(localStorage.getItem("studentNames") || "[]");
+      if (studentNames.length === 0) return alert("No student names to export");
+
+      const text = studentNames.join("\n");
+      const blob = new Blob([text], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `student_names_${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearStudentNames() {
+      if (confirm("Are you sure you want to clear all student names?")) {
+        localStorage.removeItem("studentNames");
+        updateStudentNameList();
+        alert("Student names cleared!");
+      }
+    }
+
+    function resetAllData() {
+      if (confirm("⚠️ This will delete ALL data including images and student names. Are you sure?")) {
+        if (confirm("This cannot be undone. Really proceed?")) {
+          localStorage.clear();
+          alert("All data has been reset. Reloading page...");
+          location.reload();
+        }
+      }
+    }
+
+    function saveStudentName(name) {
+      if (!name) return;
+      const studentNames = JSON.parse(localStorage.getItem("studentNames") || "[]");
+      if (!studentNames.includes(name)) {
+        studentNames.push(name);
+        localStorage.setItem("studentNames", JSON.stringify(studentNames));
+      }
+    }
+
+    /* =========================================================================
+       HUB IMAGE GRID
+    ========================================================================= */
+    function loadImageSelection() {
+      const imageGrid = document.getElementById("imageGrid");
+      imageGrid.innerHTML = "";
+
+      if (coloringImages.length === 0) {
+        imageGrid.innerHTML = '<p style="color:rgba(255,255,255,.6);">No images available. Contact admin.</p>';
+        document.getElementById("startButton").disabled = true;
+        return;
+      }
+
+      coloringImages.forEach((imageData, index) => {
+        const imageOption = document.createElement("div");
+        imageOption.className = "image-option";
+        if (index === 0) {
+          imageOption.classList.add("selected");
+          appState.selectedImageIndex = 0;
+          document.getElementById("startButton").disabled = false;
+        }
+
+        imageOption.onclick = () => selectImage(index);
+
+        const img = document.createElement("img");
+        img.src = imageData.data;
+        img.alt = imageData.title;
+
+        const title = document.createElement("div");
+        title.className = "image-title";
+        title.textContent = imageData.title;
+
+        imageOption.appendChild(img);
+        imageOption.appendChild(title);
+        imageGrid.appendChild(imageOption);
+      });
+    }
+
+    function selectImage(index) {
+      appState.selectedImageIndex = index;
+      document.querySelectorAll(".image-option").forEach((option, i) => {
+        option.classList.toggle("selected", i === index);
+      });
+      document.getElementById("startButton").disabled = false;
+    }
+
+    function updateStartEnabled() {
+      document.getElementById("startButton").disabled = (coloringImages.length === 0);
+    }
+
+    /* =========================================================================
+       PALETTE UI
+    ========================================================================= */
+    function generateColorPalette() {
+      const paletteContainer = document.getElementById("colorPalette");
+      paletteContainer.innerHTML = "";
+
+      const colors = currentPalette.colors;
+
+      colors.forEach((color, index) => {
+        const colorDiv = document.createElement("div");
+        colorDiv.className = "color-option";
+        colorDiv.style.backgroundColor = color;
+        colorDiv.onclick = () => setColor(color);
+        if (index === 0) colorDiv.classList.add("active");
+        paletteContainer.appendChild(colorDiv);
+      });
+    }
+
+    function setColor(color) {
+      appState.currentColor = color;
+
+      if (appState.isEraserMode) toggleEraser(false);
+
+      document.querySelectorAll(".color-option").forEach((option) => {
+        option.classList.remove("active");
+        const bg = rgbToHex(option.style.backgroundColor);
+        if (bg.toLowerCase() === color.toLowerCase()) option.classList.add("active");
+      });
+
+      document.getElementById("customColorPicker").value = color;
+      canvas.style.cursor = appState.isFillMode ? "pointer" : "crosshair";
+    }
+
+    function rgbToHex(rgb) {
+      const result = rgb.match(/\d+/g);
+      if (!result) return rgb;
+      return (
+        "#" +
+        result.map((x) => {
+          const hex = parseInt(x).toString(16);
+          return hex.length === 1 ? "0" + hex : hex;
+        }).join("")
+      );
+    }
+
+    function setBrushSize(size, element) {
+      appState.brushSize = size;
+      document.querySelectorAll(".brush-size-option").forEach((option) => option.classList.remove("active"));
+      element.classList.add("active");
+    }
+
+    /* =========================================================================
+       BADGES
+    ========================================================================= */
+    function updateBadges() {
+      document.getElementById("fillBadge").textContent = `Fill: ${appState.isFillMode ? "ON" : "OFF"}`;
+      document.getElementById("paletteBadge").textContent = `Palette: ${appState.paletteName}`;
+    }
+
+    /* =========================================================================
+       TOOLS: FILL (persistent multi-fill)
+    ========================================================================= */
+    function toggleFillMode(force) {
+      appState.isFillMode = (typeof force === "boolean") ? force : !appState.isFillMode;
+      const btn = document.getElementById("fillButton");
+      btn.classList.toggle("active", appState.isFillMode);
+
+      canvas.style.cursor = appState.isFillMode ? "pointer" : "crosshair";
+
+      if (appState.isEraserMode) toggleEraser(false);
+
+      updateBadges();
+    }
+
+    /* =========================================================================
+       ERASER
+    ========================================================================= */
+    function toggleEraser(force) {
+      appState.isEraserMode = (typeof force === "boolean") ? force : !appState.isEraserMode;
+      const eraserButton = document.getElementById("eraserButton");
+
+      if (appState.isEraserMode) {
+        eraserButton.classList.add("active");
+        eraserButton.textContent = "Eraser Active ✓";
+        canvas.style.cursor = "grab";
+      } else {
+        eraserButton.classList.remove("active");
+        eraserButton.textContent = "Eraser Mode";
+        canvas.style.cursor = appState.isFillMode ? "pointer" : "crosshair";
+      }
+    }
+
+    /* =========================================================================
+       UNDO STACK
+    ========================================================================= */
+    function pushUndo() {
+      try {
+        if (!canvas || canvas.width === 0) return;
+        if (appState.undoStack.length >= appState.maxUndo) appState.undoStack.shift();
+        appState.undoStack.push(canvas.toDataURL("image/png"));
+      } catch {}
+    }
+
+    function undo() {
+      if (appState.undoStack.length === 0) return alert("Nothing to undo yet!");
+      const url = appState.undoStack.pop();
+      const img = new Image();
+      img.onload = () => {
+        ctx.globalCompositeOperation = "source-over";
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+      img.src = url;
+    }
+
+    /* =========================================================================
+       FLOOD FILL (line-protect)
+    ========================================================================= */
+    function floodFill(startX, startY, fillColor) {
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const pixels = imageData.data;
+      const width = canvas.width;
+      const height = canvas.height;
+
+      const targetColor = getPixelColor(pixels, startX, startY, width);
+      const fillRGB = hexToRgb(fillColor);
+
+      // don't fill if clicking a dark outline
+      const isLineStart = targetColor.r < 40 && targetColor.g < 40 && targetColor.b < 40 && targetColor.a > 50;
+      if (isLineStart) return;
+
+      if (colorsMatch(targetColor, fillRGB, 10)) return;
+
+      const tolerance = 28;
+      const stack = [[startX, startY]];
+
+      while (stack.length) {
+        const [x, y] = stack.pop();
+        if (x < 0 || x >= width || y < 0 || y >= height) continue;
+
+        const current = getPixelColor(pixels, x, y, width);
+
+        // protect outlines
+        const isLine = current.r < 40 && current.g < 40 && current.b < 40 && current.a > 50;
+        if (isLine) continue;
+
+        if (colorsMatch(current, targetColor, tolerance) && !colorsMatch(current, fillRGB, 10)) {
+          setPixelColor(pixels, x, y, width, fillRGB);
+          stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+        }
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    function getPixelColor(pixels, x, y, width) {
+      const i = (y * width + x) * 4;
+      return { r: pixels[i], g: pixels[i + 1], b: pixels[i + 2], a: pixels[i + 3] };
+    }
+    function setPixelColor(pixels, x, y, width, color) {
+      const i = (y * width + x) * 4;
+      pixels[i] = color.r;
+      pixels[i + 1] = color.g;
+      pixels[i + 2] = color.b;
+      pixels[i + 3] = 255;
+    }
+    function colorsMatch(c1, c2, tol) {
+      return (
+        Math.abs(c1.r - c2.r) <= tol &&
+        Math.abs(c1.g - c2.g) <= tol &&
+        Math.abs(c1.b - c2.b) <= tol
+      );
+    }
+    function hexToRgb(hex) {
+      const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return m ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) } : { r: 0, g: 0, b: 0 };
+    }
+
+    /* =========================================================================
+       SPICY: AUTO-COLOR WHOLE PAGE
+    ========================================================================= */
+    function makeItSpicyFull() {
+      if (appState.spicyBusy) return;
+
+      if (!bgSnapshot) {
+        alert("Spicy isn't ready yet — please wait for the image to finish loading.");
+        return;
+      }
+
+      appState.spicyBusy = true;
+      const spicyBtn = document.getElementById("spicyButton");
+      spicyBtn.disabled = true;
+
+      playZing();
+      pushUndo();
+
+      currentPalette = PALETTES[Math.floor(Math.random() * PALETTES.length)];
+      appState.paletteName = currentPalette.name;
+      generateColorPalette();
+      updateBadges();
+
+      ctx.putImageData(bgSnapshot, 0, 0);
+
+      const colors = currentPalette.colors.filter(c => !["#0b1220", "#ffffff"].includes(c.toLowerCase()));
+      const W = canvas.width, H = canvas.height;
+
+      const seeds = [];
+      const gridStep = Math.max(18, Math.floor(Math.min(W, H) / 25));
+      for (let y = gridStep; y < H; y += gridStep) {
+        for (let x = gridStep; x < W; x += gridStep) seeds.push([x, y]);
+      }
+      for (let i = 0; i < 260; i++) seeds.push([Math.floor(Math.random() * W), Math.floor(Math.random() * H)]);
+
+      for (let i = seeds.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [seeds[i], seeds[j]] = [seeds[j], seeds[i]];
+      }
+
+      let idx = 0;
+      function stepBatch() {
+        const start = performance.now();
+        while (idx < seeds.length && performance.now() - start < 12) {
+          const [sx, sy] = seeds[idx++];
+          const c = colors[Math.floor(Math.random() * colors.length)];
+          floodFill(sx, sy, c);
+        }
+        if (idx < seeds.length) {
+          requestAnimationFrame(stepBatch);
+        } else {
+          appState.spicyBusy = false;
+          spicyBtn.disabled = false;
+          alert("✨ Spicy Sparkle complete!");
+        }
+      }
+      requestAnimationFrame(stepBatch);
+    }
+
+    /* =========================================================================
+       BACKGROUND IMAGE LOAD + SNAPSHOT
+    ========================================================================= */
+    function loadBackgroundImage() {
+      const loadingProgress = document.getElementById("loadingProgress");
+      const loadingProgressBar = document.getElementById("loadingProgressBar");
+      const loadingText = document.getElementById("loadingText");
+      const loadingIndicator = document.getElementById("loadingIndicator");
+
+      loadingProgress.classList.add("active");
+      loadingText.classList.add("active");
+      loadingIndicator.classList.add("active");
+
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += 6;
+        loadingProgressBar.style.width = progress + "%";
+        if (progress >= 90) clearInterval(progressInterval);
+      }, 40);
+
+      backgroundImage.onload = () => {
+        clearInterval(progressInterval);
+        loadingProgressBar.style.width = "100%";
+
+        setTimeout(() => {
+          const maxWidth = 900;
+          const maxHeight = 700;
+
+          let w = backgroundImage.width;
+          let h = backgroundImage.height;
+
+          if (w > maxWidth) { h = (maxWidth / w) * h; w = maxWidth; }
+          if (h > maxHeight) { w = (maxHeight / h) * w; h = maxHeight; }
+
+          canvas.width = Math.round(w);
+          canvas.height = Math.round(h);
+
+          appState.undoStack = [];
+          document.getElementById("undoButton").disabled = false;
+
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.globalCompositeOperation = "source-over";
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+
+          try {
+            bgSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          } catch (e) {
+            bgSnapshot = null;
+            console.warn("Snapshot failed:", e);
+          }
+
+          loadingProgress.classList.remove("active");
+          loadingText.classList.remove("active");
+          loadingIndicator.classList.remove("active");
+          loadingProgressBar.style.width = "0%";
+        }, 250);
+      };
+
+      backgroundImage.onerror = () => {
+        clearInterval(progressInterval);
+        loadingProgress.classList.remove("active");
+        loadingText.classList.remove("active");
+        loadingIndicator.classList.remove("active");
+        alert("Error loading image. Please try again.");
+      };
+
+      const selectedImage = coloringImages[appState.selectedImageIndex];
+      document.getElementById("currentImageTitle").textContent = selectedImage.title;
+      backgroundImage.src = selectedImage.data;
+    }
+
+    /* =========================================================================
+       POINTER EVENTS
+    ========================================================================= */
+    function setupCanvasEventListeners() {
+      canvas.addEventListener("pointerdown", onPointerDown);
+      canvas.addEventListener("pointermove", onPointerMove);
+      canvas.addEventListener("pointerup", onPointerUp);
+      canvas.addEventListener("pointercancel", onPointerUp);
+      canvas.addEventListener("pointerleave", onPointerUp);
+    }
+
+    function getPosFromEvent(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+      };
+    }
+
+    function onPointerDown(e) {
+      e.preventDefault();
+      ensureAudio();
+      canvas.setPointerCapture(e.pointerId);
+
+      const pos = getPosFromEvent(e);
+
+      if (appState.isFillMode) {
+        pushUndo();
+        playPop();
+        floodFill(Math.floor(pos.x), Math.floor(pos.y), appState.currentColor);
+        return;
+      }
+
+      pushUndo();
+      pointerMap.set(e.pointerId, { x: pos.x, y: pos.y, isDown: true });
+      drawLine(pos.x, pos.y, pos.x + 0.01, pos.y + 0.01);
+    }
+
+    function onPointerMove(e) {
+      if (!pointerMap.has(e.pointerId)) return;
+      const data = pointerMap.get(e.pointerId);
+      if (!data.isDown) return;
+
+      e.preventDefault();
+      const pos = getPosFromEvent(e);
+      drawLine(data.x, data.y, pos.x, pos.y);
+      data.x = pos.x; data.y = pos.y;
+      pointerMap.set(e.pointerId, data);
+    }
+
+    function onPointerUp(e) {
+      if (pointerMap.has(e.pointerId)) pointerMap.delete(e.pointerId);
+    }
+
+    function drawLine(x1, y1, x2, y2) {
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+
+      if (appState.isEraserMode) {
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.lineWidth = appState.brushSize * 2;
+      } else {
+        ctx.globalCompositeOperation = "source-over";
+        ctx.strokeStyle = appState.currentColor;
+        ctx.lineWidth = appState.brushSize;
+      }
+
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.stroke();
+    }
+
+    /* =========================================================================
+       CLEAR ALL — snapshot restore
+    ========================================================================= */
+    function clearCanvas() {
+      if (!confirm("Clear your drawing? This cannot be undone.")) return;
+
+      pointerMap.clear();
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalCompositeOperation = "source-over";
+
+      if (bgSnapshot) {
+        ctx.putImageData(bgSnapshot, 0, 0);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+      }
+
+      appState.undoStack = [];
+      alert("Canvas cleared ✨");
+    }
+
+    /* =========================================================================
+       SIGN + SAVE
+    ========================================================================= */
+    function initiateSignature() {
+      document.getElementById("signatureModal").classList.add("active");
+      document.getElementById("signatureInput").value = appState.userName || "";
+      document.getElementById("signatureInput").focus();
+    }
+
+    function confirmSignature() {
+      const signature = document.getElementById("signatureInput").value.trim();
+      if (signature) addSignatureToCanvas(signature);
+      document.getElementById("signatureModal").classList.remove("active");
+      saveDrawing();
+    }
+
+    function skipSignature() {
+      document.getElementById("signatureModal").classList.remove("active");
+      saveDrawing();
+    }
+
+    function addSignatureToCanvas(signature) {
+      const prevComp = ctx.globalCompositeOperation;
+      const prevFill = ctx.fillStyle;
+      const prevStroke = ctx.strokeStyle;
+      const prevLine = ctx.lineWidth;
+      const prevShadow = ctx.shadowColor;
+
+      ctx.globalCompositeOperation = "source-over";
+      ctx.font = '32px "Brush Script MT", cursive';
+      ctx.textAlign = "right";
+      ctx.textBaseline = "bottom";
+
+      ctx.shadowColor = "rgba(0,0,0,0.35)";
+      ctx.shadowBlur = 6;
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = "rgba(255,255,255,0.9)";
+      ctx.fillStyle = "#111";
+
+      const pad = 18;
+      const x = canvas.width - pad;
+      const y = canvas.height - pad;
+
+      ctx.strokeText(signature, x, y);
+      ctx.fillText(signature, x, y);
+
+      ctx.globalCompositeOperation = prevComp;
+      ctx.fillStyle = prevFill;
+      ctx.strokeStyle = prevStroke;
+      ctx.lineWidth = prevLine;
+      ctx.shadowColor = prevShadow;
+      ctx.shadowBlur = 0;
+    }
+
+    function saveDrawing() {
+      try {
+        const dataURL = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        const selectedImage = coloringImages[appState.selectedImageIndex];
+
+        const fileName = appState.userName
+          ? `${appState.userName}_${selectedImage.title.replace(/\s+/g, "_")}_${Date.now()}.png`
+          : `paint_with_light_${selectedImage.title.replace(/\s+/g, "_")}_${Date.now()}.png`;
+
+        link.download = fileName;
+        link.href = dataURL;
+        link.click();
+
+        alert("Saved ✨");
+      } catch (error) {
+        alert("Error saving. Please try again.");
+        console.error("Save error:", error);
+      }
+    }
+
+    /* =========================================================================
+       START / BACK
+    ========================================================================= */
+    function startColoring() {
+      const nameInput = document.getElementById("userName").value.trim();
+
+      if (nameInput) {
+        appState.userName = nameInput;
+        saveStudentName(nameInput);
+        document.getElementById("welcomeMessage").textContent = `Welcome, ${nameInput}! ✨`;
+      } else {
+        document.getElementById("welcomeMessage").textContent = "Welcome, Light-Artist! ✨";
+      }
+
+      appState.isEraserMode = false;
+      appState.isFillMode = false;
+      currentPalette = PALETTES[0];
+      appState.paletteName = currentPalette.name;
+      generateColorPalette();
+      updateBadges();
+
+      document.getElementById("fillButton").classList.remove("active");
+      document.getElementById("eraserButton").classList.remove("active");
+      document.getElementById("eraserButton").textContent = "Eraser Mode";
+
+      document.getElementById("userHub").classList.add("hidden");
+      document.getElementById("coloringApp").classList.add("active");
+
+      loadBackgroundImage();
+    }
+
+    function goBackToHub() {
+      if (!confirm("Go back? Your current drawing will be lost if not saved.")) return;
+
+      pointerMap.clear();
+      appState.undoStack = [];
+      appState.isFillMode = false;
+      appState.isEraserMode = false;
+      appState.spicyBusy = false;
+      bgSnapshot = null;
+
+      document.getElementById("signatureModal").classList.remove("active");
+      document.getElementById("adminModal").classList.remove("active");
+
+      document.getElementById("fillButton").classList.remove("active");
+      document.getElementById("eraserButton").classList.remove("active");
+      document.getElementById("eraserButton").textContent = "Eraser Mode";
+      document.getElementById("spicyButton").disabled = false;
+
+      currentPalette = PALETTES[0];
+      appState.paletteName = currentPalette.name;
+      generateColorPalette();
+      updateBadges();
+
+      if (canvas && ctx) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.globalCompositeOperation = "source-over";
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      document.getElementById("userHub").classList.remove("hidden");
+      document.getElementById("coloringApp").classList.remove("active");
+      document.getElementById("userName").value = "";
+    }
+
+    /* =========================================================================
+       FINISH
+    ========================================================================= */
+    window.addEventListener("load", initializeApp);
+  </script>
+</body>
+</html>
