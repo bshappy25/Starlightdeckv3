@@ -489,7 +489,24 @@
     }
 
     let coloringImages = [
-      {
+      
+{
+  title: "NEW PAGE - My Template",
+  data: svgData(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700">
+      <rect width="100%" height="100%" fill="white"/>
+      <g stroke="#111" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <!-- draw your line art here -->
+        <circle cx="500" cy="320" r="170"/>
+        <path d="M380,520 C450,580 550,580 620,520"/>
+      </g>
+      <text x="500" y="660" text-anchor="middle" font-size="34" font-family="Comic Sans MS, cursive" fill="#111">My Template</text>
+    </svg>
+  `)
+},
+
+
+    {
         title: "Life Without Worries - Palm Scene",
         data: svgData(`
           <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700">
