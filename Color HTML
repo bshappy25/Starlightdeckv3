@@ -1,646 +1,359 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sandbox A — Paint With Light</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>URANIUM</title>
 
-  <!-- 🟢 STYLE ZONE -->
-  <style>
-    :root{
-      --ink1:#050714;
-      --ink2:#0a1030;
-      --panel: rgba(255,255,255,0.06);
-      --panel-border: rgba(255,255,255,0.12);
-      --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.70);
+<style>
+:root{
+  --ink1:#050714;
+  --ink2:#0e132b;
+  --ink3:#1c2038;
 
-      /* Ethereal palette (swatches use these) */
-      --ether-ink: #0f1224;
-      --ether-starlight: #f5f7ff;
-      --ether-lavender: #c9c2ff;
-      --ether-cyan: #8fe3ff;
-      --ether-rose: #f2a6c9;
-      --ether-gold: #ffd89e;
+  --ether-ink:#ffffff;
+  --ether-starlight:#e6e0ff;
+  --ether-lavender:#c8bfff;
+  --ether-cyan:#7fe3ff;
+  --ether-rose:#f7a8c9;
+  --ether-gold:#f5e39a;
 
-      /* Black (shape mode) */
-      --ether-black: #111111;
-    }
+  --panel:rgba(255,255,255,0.06);
+  --border:rgba(255,255,255,0.14);
+  --text:rgba(255,255,255,0.92);
+  --muted:rgba(255,255,255,0.65);
+}
 
-    /* Save Light button */
-    .save-light{
-      position: relative;
-      background: rgba(210, 230, 255, 0.10);
-      border: 1px solid rgba(255,255,255,0.18);
-      box-shadow:
-        0 0 10px rgba(180,220,255,0.18),
-        0 0 22px rgba(180,220,255,0.10);
-      animation: savePulse 2.2s ease-in-out infinite;
-    }
+*{box-sizing:border-box}
 
-    @keyframes savePulse{
-      0%, 100%{
-        box-shadow:
-          0 0 10px rgba(180,220,255,0.16),
-          0 0 22px rgba(180,220,255,0.08);
-      }
-      50%{
-        box-shadow:
-          0 0 14px rgba(200,240,255,0.28),
-          0 0 34px rgba(200,240,255,0.16);
-      }
-    }
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  background:
+    radial-gradient(900px 600px at 20% 10%, rgba(160,180,255,.08), transparent),
+    linear-gradient(180deg,var(--ink1),var(--ink2),var(--ink3));
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  color:var(--text);
+}
 
-    .clear-x{
-      margin-left:auto;
-      width:36px;
-      height:36px;
-      border-radius:50%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:1.2rem;
-      font-weight:700;
-      line-height:1;
-      background: rgba(255,255,255,0.06);
-      border:1px solid rgba(255,255,255,0.18);
-      color: rgba(255,255,255,0.8);
-    }
+.wrap{
+  width:min(980px,96vw);
+  padding:18px 0 28px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
 
-    .clear-x:hover{
-      background: rgba(255,255,255,0.12);
-    }
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
 
-    .clear-x:active{
-      transform: scale(0.96);
-    }
+.title{
+  font-weight:900;
+  letter-spacing:.12em;
+  font-size:.95rem;
+}
 
-    .color-swatch{
-      width:28px;
-      height:28px;
-      border-radius:50%;
-      border:1px solid rgba(255,255,255,0.35);
-      cursor:pointer;
-      box-shadow: 0 0 6px rgba(255,255,255,0.25);
-      transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
-    }
+.subtitle{
+  font-size:.85rem;
+  color:var(--muted);
+}
 
-    .color-swatch:hover{
-      transform: scale(1.05);
-    }
+.panel{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  border-radius:16px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  backdrop-filter:blur(8px);
+}
 
-    /* Active ring */
-    .color-swatch.active{
-      border-color: rgba(255,255,255,0.85);
-      box-shadow:
-        0 0 8px rgba(255,255,255,0.28),
-        0 0 18px rgba(190,220,255,0.18);
-    }
+.swatch{
+  width:28px;height:28px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.35);
+  cursor:pointer;
+}
 
-    body{
-      margin:0;
-      min-height:100vh;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:flex-start;
-      background:
-        radial-gradient(1200px 700px at 20% 10%, rgba(120,180,255,0.12), transparent 60%),
-        radial-gradient(900px 600px at 80% 0%, rgba(180,120,255,0.10), transparent 55%),
-        linear-gradient(180deg, var(--ink1), var(--ink2));
-      color:var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-    }
+.swatch[data-color="black"]{
+  background:#000;
+  clip-path:polygon(
+    50% 0%,61% 35%,98% 35%,68% 57%,
+    79% 91%,50% 70%,21% 91%,32% 57%,
+    2% 35%,39% 35%
+  );
+}
 
-    .wrap{
-      width:min(980px, 96vw);
-      margin:18px auto 28px;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-    }
+.range{width:120px}
 
-    .title{
-      letter-spacing:0.08em;
-      font-weight:800;
-      font-size:0.95rem;
-      opacity:0.95;
-    }
+button{
+  border:none;
+  border-radius:14px;
+  padding:10px 14px;
+  cursor:pointer;
+  background:rgba(255,255,255,.1);
+  color:var(--text);
+  border:1px solid var(--border);
+}
 
-    .subtitle{
-      margin-top:4px;
-      color:var(--muted);
-      font-size:0.9rem;
-    }
+.save-light{
+  box-shadow:
+    0 0 10px rgba(180,220,255,.18),
+    0 0 28px rgba(180,220,255,.12);
+  animation:pulse 2.4s ease-in-out infinite;
+}
 
-    /* 🟢 UI PANEL */
-    .panel{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      padding:12px 12px;
-      border-radius:16px;
-      background: var(--panel);
-      border: 1px solid var(--panel-border);
-      backdrop-filter: blur(8px);
-    }
+@keyframes pulse{
+  50%{
+    box-shadow:
+      0 0 16px rgba(200,240,255,.32),
+      0 0 42px rgba(200,240,255,.22);
+  }
+}
 
-    .pill{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 10px;
-      border-radius:14px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(0,0,0,0.18);
-      color: var(--muted);
-      font-size:0.88rem;
-    }
+.stage{
+  margin:0 auto;
+  padding:10px;
+  border-radius:18px;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border);
+}
 
-    .pill input[type="range"]{
-      width:120px;
-    }
+canvas{
+  width:100%;
+  height:min(68vh,560px);
+  border-radius:14px;
+  background:#0b0e1a;
+  display:block;
+  touch-action:none;
+  cursor:crosshair;
+}
 
-    button{
-      appearance:none;
-      border:none;
-      cursor:pointer;
-      padding:10px 12px;
-      border-radius:14px;
-      background: rgba(255,255,255,0.10);
-      color: var(--text);
-      border:1px solid rgba(255,255,255,0.14);
-      font-weight:650;
-      letter-spacing:0.02em;
-    }
+.footer{
+  font-size:.8rem;
+  color:var(--muted);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
 
-    button:active{
-      transform: translateY(1px);
-    }
+/* MODALS */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:20;
+}
 
-    /* Shape buttons */
-    .shape-btn{
-      padding:8px 10px;
-      border-radius:12px;
-      font-weight:700;
-      background: rgba(255,255,255,0.06);
-      border:1px solid rgba(255,255,255,0.14);
-      color: rgba(255,255,255,0.85);
-    }
+.modal .box{
+  background:#fff;
+  color:#000;
+  padding:22px;
+  border-radius:18px;
+  width:min(420px,90vw);
+  text-align:center;
+}
 
-    .shape-btn.active{
-      background: rgba(255,255,255,0.14);
-      border-color: rgba(255,255,255,0.28);
-      color: rgba(255,255,255,0.95);
-    }
+.modal input{
+  width:100%;
+  padding:14px;
+  margin:12px 0;
+  font-size:1.1rem;
+  border-radius:12px;
+  border:2px solid #7b8cff;
+}
 
-    /* CANVAS STAGE */
-    .stage{
-      position: relative;
-      border-radius:18px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.03);
-      padding:10px;
-      margin: 0 auto;
-      overflow: hidden; /* keeps animated bg rounded */
-    }
+.modal button{
+  margin:6px;
+  padding:12px 18px;
+  font-size:1rem;
+}
 
-    /* Animated grey/ink gradient behind the canvas (S2A) */
-    .stage::before{
-      content:"";
-      position:absolute;
-      inset:10px;
-      border-radius:14px;
-      background:
-        radial-gradient(900px 520px at 20% 20%, rgba(220,230,255,0.10), transparent 60%),
-        radial-gradient(700px 420px at 80% 10%, rgba(170,180,210,0.10), transparent 55%),
-        linear-gradient(180deg, #070a16, #1b1f2a);
-      filter: saturate(0.95) contrast(1.05);
-      animation: inkDrift 50s ease-in-out infinite alternate;
-      z-index:0;
-    }
-
-    @keyframes inkDrift{
-      0%{
-        transform: translate3d(-1.5%, -1%, 0) scale(1.02);
-        opacity: 0.95;
-      }
-      50%{
-        transform: translate3d(1.5%, 0.5%, 0) scale(1.03);
-        opacity: 1;
-      }
-      100%{
-        transform: translate3d(0.5%, 1.2%, 0) scale(1.02);
-        opacity: 0.92;
-      }
-    }
-
-    canvas{
-      position: relative;
-      z-index:1;
-      display:block;
-      width:100%;
-      height: min(70vh, 560px);
-      background: transparent; /* live background is the stage gradient */
-      border-radius:14px;
-      touch-action:none;
-
-      /* Magical wand cursor (canvas only) */
-      cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><path d='M6 26 L22 10' stroke='%238fe3ff' stroke-width='3' stroke-linecap='round'/><path d='M20 8 L24 12' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' opacity='0.9'/><circle cx='24' cy='8' r='2' fill='%238fe3ff'/><circle cx='26.5' cy='12' r='1.5' fill='%23ffffff' opacity='0.9'/></svg>") 4 28, auto;
-    }
-
-    @media (max-width: 520px){
-      canvas{
-        height: 62vh;
-      }
-    }
-
-    .footer{
-      color: var(--muted);
-      font-size:0.85rem;
-      text-align:left;
-      padding: 2px 4px;
-    }
-  </style>
+.green{background:#56d364;color:#fff}
+.gray{background:#9aa0a6;color:#fff}
+</style>
 </head>
 
 <body>
-  <div class="wrap">
+<div class="wrap">
+
+  <div class="header">
     <div>
-      <div class="title">✨ SANDBOX A — PAINT WITH LIGHT</div>
-      <div class="subtitle">Minimal. Calm. One change at a time.</div>
+      <div class="title">URANIUM</div>
+      <div class="subtitle" id="subtitle"></div>
     </div>
-
-    <div class="panel">
-      <div class="pill">
-        <span>Light</span>
-
-        <!-- Order: ink, starlight, lavender, cyan, rose, gold -->
-        <div class="color-swatch active" data-color="var(--ether-ink)" style="background:var(--ether-ink)"></div>
-        <div class="color-swatch" data-color="var(--ether-starlight)" style="background:var(--ether-starlight)"></div>
-        <div class="color-swatch" data-color="var(--ether-lavender)" style="background:var(--ether-lavender)"></div>
-        <div class="color-swatch" data-color="var(--ether-cyan)" style="background:var(--ether-cyan)"></div>
-        <div class="color-swatch" data-color="var(--ether-rose)" style="background:var(--ether-rose)"></div>
-        <div class="color-swatch" data-color="var(--ether-gold)" style="background:var(--ether-gold)"></div>
-
-        <!-- Black (shape mode) -->
-        <div class="color-swatch" data-color="var(--ether-black)" style="background:var(--ether-black)"></div>
-      </div>
-
-      <div class="pill">
-        <span>Size</span>
-        <input id="size" type="range" min="1" max="40" value="6" />
-        <span id="sizeLabel">6</span>
-      </div>
-
-      <div class="pill">
-        <span>Light+</span>
-        <input id="light" type="range" min="0.20" max="1.00" step="0.05" value="0.85" />
-        <span id="lightLabel">0.85</span>
-      </div>
-
-      <div class="pill">
-        <span>Shape</span>
-        <button class="shape-btn active" data-shape="square" type="button">□</button>
-        <button class="shape-btn" data-shape="circle" type="button">○</button>
-        <button class="shape-btn" data-shape="star" type="button">★</button>
-        <button class="shape-btn" data-shape="pentagon" type="button">⬟</button>
-      </div>
-
-      <button id="clearBtn" class="clear-x" type="button" aria-label="Clear canvas">
-        ×
-      </button>
-
-      <button id="saveBtn" class="save-light" type="button">Save Light</button>
-    </div>
-
-    <div class="stage">
-      <canvas id="c"></canvas>
-    </div>
-
-    <div class="footer">
-      Tip: if anything feels unstable, revert to the last working commit.
-    </div>
+    <button onclick="location.href='https://starlightdeckv3.streamlit.app'">Back to Hub</button>
   </div>
 
-  <!-- 🟢 LOGIC ZONE -->
-  <script>
-    // Explicit override (S1A): set false to export without background
-    const EXPORT_BACKGROUND = true;
+  <div class="panel">
+    <div>Light</div>
 
-    const canvas = document.getElementById("c");
-    const ctx = canvas.getContext("2d");
+    <div class="swatch" data-color="--ether-ink" style="background:var(--ether-ink)"></div>
+    <div class="swatch" data-color="--ether-starlight" style="background:var(--ether-starlight)"></div>
+    <div class="swatch" data-color="--ether-lavender" style="background:var(--ether-lavender)"></div>
+    <div class="swatch" data-color="--ether-cyan" style="background:var(--ether-cyan)"></div>
+    <div class="swatch" data-color="--ether-rose" style="background:var(--ether-rose)"></div>
+    <div class="swatch" data-color="--ether-gold" style="background:var(--ether-gold)"></div>
+    <div class="swatch" data-color="black"></div>
 
-    const sizeInput  = document.getElementById("size");
-    const sizeLabel  = document.getElementById("sizeLabel");
+    <input id="size" class="range" type="range" min="2" max="40" value="8">
+    <span id="sizeLabel">8</span>
 
-    const lightInput = document.getElementById("light");
-    const lightLabel = document.getElementById("lightLabel");
+    <button class="save-light" id="saveBtn">Save Light</button>
+  </div>
 
-    const clearBtn   = document.getElementById("clearBtn");
-    const saveBtn    = document.getElementById("saveBtn");
+  <div class="stage">
+    <canvas id="c"></canvas>
+  </div>
 
-    let brushSize = Number(sizeInput.value);
-    sizeLabel.textContent = brushSize;
+  <div class="footer">
+    <div>Ȼ <span id="careon">0000</span></div>
+    <div>hold light slowly to intensify glow</div>
+  </div>
+</div>
 
-    let brushAlpha = Number(lightInput.value);
-    lightLabel.textContent = brushAlpha.toFixed(2);
+<!-- SIGNATURE MODAL -->
+<div class="modal" id="sigModal">
+  <div class="box">
+    <h2>✍️ Sign Your Masterpiece</h2>
+    <p>Add a signature (optional)</p>
+    <input id="sigInput" placeholder="Your signature…">
+    <div>
+      <button class="green" onclick="confirmSave()">Add Signature & Save</button>
+      <button class="gray" onclick="skipSave()">Skip & Save</button>
+    </div>
+  </div>
+</div>
 
-    const rootStyle = getComputedStyle(document.documentElement);
-    const blackHex = rootStyle.getPropertyValue('--ether-black').trim();
+<!-- TOKEN MODAL -->
+<div class="modal" id="tokenModal">
+  <div class="box">
+    <h2>✨ LIGHT UNLOCKED</h2>
+    <p>Your Careon Token:</p>
+    <h1>LIGHT-0000</h1>
+    <button onclick="closeToken()">Continue</button>
+  </div>
+</div>
 
-    let brushColor = rootStyle.getPropertyValue('--ether-ink').trim();
+<script>
+const canvas=document.getElementById("c");
+const ctx=canvas.getContext("2d");
+const sizeInput=document.getElementById("size");
+const sizeLabel=document.getElementById("sizeLabel");
+const saveBtn=document.getElementById("saveBtn");
 
-    // Shape state (black-only)
-    let shapeMode = "square";
+let brushColor=getComputedStyle(document.documentElement).getPropertyValue('--ether-ink').trim();
+let isBlack=false;
+let drawing=false,last={x:0,y:0},lastTime=0;
 
-    // Swatches: set brushColor + active ring
-    const swatches = Array.from(document.querySelectorAll('.color-swatch'));
-    swatches.forEach(swatch => {
-      swatch.addEventListener('click', () => {
-        swatches.forEach(s => s.classList.remove('active'));
-        swatch.classList.add('active');
+const subtitles=[
+"latent light","slow light, held","quiet energy",
+"draw what glows","held radiation","soft decay",
+"controlled glow","intentional emission"
+];
+document.getElementById("subtitle").textContent =
+subtitles[Math.floor(Math.random()*subtitles.length)];
 
-        const varName = swatch.dataset.color.replace('var(','').replace(')','');
-        brushColor = getComputedStyle(document.documentElement)
-          .getPropertyValue(varName)
-          .trim();
-      });
-    });
+function resize(){
+ const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;
+ canvas.width=r.width*d;canvas.height=r.height*d;
+ ctx.fillStyle="#0b0e1a";ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+window.addEventListener("resize",resize);resize();
 
-    // Shape buttons
-    const shapeBtns = Array.from(document.querySelectorAll('.shape-btn'));
-    shapeBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        shapeBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        shapeMode = btn.dataset.shape;
-      });
-    });
+document.querySelectorAll(".swatch").forEach(s=>{
+ s.onclick=()=>{
+  isBlack=s.dataset.color==="black";
+  brushColor=isBlack?"#000":
+   getComputedStyle(document.documentElement).getPropertyValue(s.dataset.color).trim();
+ };
+});
 
-    // UI controls
-    sizeInput.addEventListener("input", () => {
-      brushSize = Number(sizeInput.value);
-      sizeLabel.textContent = brushSize;
-    });
+sizeInput.oninput=()=>sizeLabel.textContent=sizeInput.value;
 
-    lightInput.addEventListener("input", () => {
-      brushAlpha = Number(lightInput.value);
-      lightLabel.textContent = brushAlpha.toFixed(2);
-    });
+function pt(e){
+ const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;
+ const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+ const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+ return{x:x*d,y:y*d};
+}
 
-    // Canvas sizing (no white fill; background is the stage gradient)
-    function resizeCanvasToDisplaySize(){
-      const rect = canvas.getBoundingClientRect();
-      const dpr = Math.max(1, window.devicePixelRatio || 1);
+function start(e){
+ drawing=true;last=pt(e);lastTime=performance.now();e.preventDefault();
+}
 
-      const w = Math.floor(rect.width * dpr);
-      const h = Math.floor(rect.height * dpr);
+function move(e){
+ if(!drawing)return;
+ const p=pt(e),now=performance.now();
+ const speed=Math.max(0.2,(now-lastTime)/16);
+ ctx.lineCap="round";ctx.lineJoin="round";
+ ctx.strokeStyle=brushColor;
+ ctx.lineWidth=isBlack?sizeInput.value*speed:sizeInput.value;
+ ctx.shadowColor=brushColor;
+ ctx.shadowBlur=isBlack?0:20*speed;
+ ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();
+ last=p;lastTime=now;e.preventDefault();
+}
 
-      if (canvas.width !== w || canvas.height !== h){
-        canvas.width = w;
-        canvas.height = h;
-      }
-    }
+function end(){drawing=false}
 
-    window.addEventListener("resize", resizeCanvasToDisplaySize);
-    setTimeout(resizeCanvasToDisplaySize, 0);
+canvas.addEventListener("mousedown",start);
+canvas.addEventListener("mousemove",move);
+window.addEventListener("mouseup",end);
+canvas.addEventListener("touchstart",start,{passive:false});
+canvas.addEventListener("touchmove",move,{passive:false});
+canvas.addEventListener("touchend",end);
 
-    // Clear: return to empty (transparent) so dark bg shows through
-    clearBtn.addEventListener("click", () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    });
+let pending=false;
+saveBtn.onclick=()=>{pending=true;document.getElementById("sigModal").style.display="flex"}
 
-    // Save: ink/grey gradient baked behind (unless override off)
-    saveBtn.addEventListener("click", () => {
-      const d = new Date();
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      const dd = String(d.getDate()).padStart(2, "0");
-      const filename = `lightpaint_a_${yyyy}_${mm}_${dd}.png`;
+function exportImage(sig){
+ const out=document.createElement("canvas");
+ out.width=canvas.width;out.height=canvas.height;
+ const o=out.getContext("2d");
+ const g=o.createLinearGradient(0,0,0,out.height);
+ g.addColorStop(0,"#050714");g.addColorStop(1,"#2b2f3a");
+ o.fillStyle=g;o.fillRect(0,0,out.width,out.height);
+ o.drawImage(canvas,0,0);
+ if(sig){
+  o.font=`${out.width*0.03}px cursive`;
+  o.fillStyle="rgba(255,255,255,.7)";
+  o.textAlign="right";
+  o.fillText(sig,out.width-24,out.height-24);
+ }
+ const d=new Date();
+ const f=`uranium_${d.getFullYear()}_${String(d.getMonth()+1).padStart(2,"0")}_${String(d.getDate()).padStart(2,"0")}.png`;
+ const a=document.createElement("a");
+ a.download=f;a.href=out.toDataURL();a.click();
 
-      const out = document.createElement("canvas");
-      out.width = canvas.width;
-      out.height = canvas.height;
+ let c=Number(localStorage.getItem("saves")||0)+1;
+ localStorage.setItem("saves",c);
+ if(c>=3)document.getElementById("tokenModal").style.display="flex";
+}
 
-      const octx = out.getContext("2d");
+function confirmSave(){
+ exportImage(document.getElementById("sigInput").value);
+ document.getElementById("sigModal").style.display="none";
+}
 
-      if (EXPORT_BACKGROUND){
-        const g = octx.createLinearGradient(0, 0, 0, out.height);
-        g.addColorStop(0, "#070a16");
-        g.addColorStop(1, "#2b2f3a");
-        octx.fillStyle = g;
-        octx.fillRect(0, 0, out.width, out.height);
-      }
+function skipSave(){
+ exportImage("");
+ document.getElementById("sigModal").style.display="none";
+}
 
-      octx.drawImage(canvas, 0, 0);
-
-      const link = document.createElement("a");
-      link.download = filename;
-      link.href = out.toDataURL("image/png");
-      link.click();
-    });
-
-    // --- Shape preview (black mode): click-drag resize (S4A) ---
-    let shaping = false;
-    let shapeStart = { x: 0, y: 0 };
-    let shapeSnapshot = null;
-    let pendingFrame = false;
-    let lastPreviewPoint = null;
-
-    function polygonPath(cx, cy, radius, sides, rotation = -Math.PI / 2){
-      ctx.beginPath();
-      for (let i = 0; i < sides; i++){
-        const a = rotation + (i * 2 * Math.PI / sides);
-        const x = cx + radius * Math.cos(a);
-        const y = cy + radius * Math.sin(a);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-    }
-
-    function starPath(cx, cy, outerR, innerR, points = 5, rotation = -Math.PI / 2){
-      ctx.beginPath();
-      const step = Math.PI / points;
-      for (let i = 0; i < points * 2; i++){
-        const r = (i % 2 === 0) ? outerR : innerR;
-        const a = rotation + i * step;
-        const x = cx + r * Math.cos(a);
-        const y = cy + r * Math.sin(a);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-    }
-
-    function drawBlackShape(cx, cy, radius, preview = false){
-      ctx.save();
-      ctx.globalAlpha = Math.min(1, Math.max(0.05, brushAlpha));
-      ctx.fillStyle = blackHex;
-
-      // Slightly soften edges when previewing (optional, still simple)
-      if (preview){
-        ctx.shadowBlur = 0;
-      }
-
-      if (shapeMode === "square"){
-        const s = radius * 1.6;
-        ctx.beginPath();
-        ctx.rect(cx - s/2, cy - s/2, s, s);
-        ctx.fill();
-      } else if (shapeMode === "circle"){
-        ctx.beginPath();
-        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (shapeMode === "pentagon"){
-        polygonPath(cx, cy, radius, 5);
-        ctx.fill();
-      } else if (shapeMode === "star"){
-        starPath(cx, cy, radius, radius * 0.45, 5);
-        ctx.fill();
-      }
-
-      ctx.restore();
-    }
-
-    // --- Painting ---
-    let drawing = false;
-    let last = { x: 0, y: 0 };
-
-    function getPoint(e){
-      const rect = canvas.getBoundingClientRect();
-      const dpr = Math.max(1, window.devicePixelRatio || 1);
-
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-      return {
-        x: (clientX - rect.left) * dpr,
-        y: (clientY - rect.top) * dpr
-      };
-    }
-
-    function paintSegment(from, to){
-      ctx.save();
-
-      // Halo/glow (S3A): match stroke color
-      ctx.globalAlpha = Math.min(1, Math.max(0.05, brushAlpha));
-      ctx.shadowBlur = Math.max(6, brushSize * 2.2);
-      ctx.shadowColor = brushColor;
-
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.strokeStyle = brushColor;
-      ctx.lineWidth = brushSize;
-
-      ctx.beginPath();
-      ctx.moveTo(from.x, from.y);
-      ctx.lineTo(to.x, to.y);
-      ctx.stroke();
-
-      ctx.restore();
-    }
-
-    function start(e){
-      resizeCanvasToDisplaySize();
-      const p = getPoint(e);
-
-      // Black mode => shape drag-resize
-      if (brushColor === blackHex){
-        shaping = true;
-        shapeStart = p;
-        lastPreviewPoint = p;
-
-        // Snapshot once for clean preview restore
-        try{
-          shapeSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        }catch(err){
-          shapeSnapshot = null; // if browser blocks for any reason, we still commit on end
-        }
-
-        e.preventDefault();
-        return;
-      }
-
-      // Color paint mode
-      drawing = true;
-      last = p;
-      e.preventDefault();
-    }
-
-    function move(e){
-      const p = getPoint(e);
-
-      // Shape preview while dragging
-      if (shaping){
-        lastPreviewPoint = p;
-
-        if (!pendingFrame){
-          pendingFrame = true;
-          requestAnimationFrame(() => {
-            pendingFrame = false;
-
-            if (shapeSnapshot){
-              ctx.putImageData(shapeSnapshot, 0, 0);
-            } else {
-              // If we couldn't snapshot, do nothing preview-wise (still stable)
-              return;
-            }
-
-            const dx = lastPreviewPoint.x - shapeStart.x;
-            const dy = lastPreviewPoint.y - shapeStart.y;
-            const r = Math.max(4, Math.sqrt(dx*dx + dy*dy)); // radius from drag distance
-
-            drawBlackShape(shapeStart.x, shapeStart.y, r, true);
-          });
-        }
-
-        e.preventDefault();
-        return;
-      }
-
-      // Paint mode
-      if (!drawing) return;
-      paintSegment(last, p);
-      last = p;
-      e.preventDefault();
-    }
-
-    function end(){
-      // Commit shape on release
-      if (shaping){
-        shaping = false;
-
-        if (shapeSnapshot && lastPreviewPoint){
-          // Restore clean base then commit final shape (no preview artifacts)
-          ctx.putImageData(shapeSnapshot, 0, 0);
-
-          const dx = lastPreviewPoint.x - shapeStart.x;
-          const dy = lastPreviewPoint.y - shapeStart.y;
-          const r = Math.max(4, Math.sqrt(dx*dx + dy*dy));
-
-          drawBlackShape(shapeStart.x, shapeStart.y, r, false);
-        }
-
-        shapeSnapshot = null;
-        lastPreviewPoint = null;
-        return;
-      }
-
-      drawing = false;
-    }
-
-    // Mouse
-    canvas.addEventListener("mousedown", start);
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", end);
-
-    // Touch
-    canvas.addEventListener("touchstart", start, { passive:false });
-    canvas.addEventListener("touchmove", move, { passive:false });
-    canvas.addEventListener("touchend", end);
-  </script>
+function closeToken(){
+ document.getElementById("tokenModal").style.display="none";
+}
+</script>
 </body>
 </html>
+
