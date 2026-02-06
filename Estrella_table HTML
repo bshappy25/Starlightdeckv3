@@ -1,1 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Estrella's Table ✨</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --royal-purple: #6B46C1;
+            --deep-purple: #553C9A;
+            --mystic-purple: #9333EA;
+            --gold: #FFD700;
+            --bright-gold: #FFC107;
+            --cream: #FFF8E7;
+            --dark: #1a0a2e;
+            --shimmer: #E6D5FF;
+        }
+        
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--deep-purple) 50%, var(--royal-purple) 100%);
+            min-height: 100vh;
+            color: var(--cream);
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Sparkle particles */
+        .sparkle {
+            position: fixed;
+            width: 3px;
+            height: 3px;
+            background: var(--gold);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: sparkleFloat 8s infinite ease-in-out;
+            box-shadow: 0 0 10px var(--gold);
+        }
+        
+        @keyframes sparkleFloat {
+            0%, 100% { 
+                transform: translateY(0) scale(1);
+                opacity: 0.3;
+            }
+            25% { 
+                transform: translateY(-30px) scale(1.5);
+                opacity: 0.8;
+            }
+            50% { 
+                transform: translateY(-60px) scale(1);
+                opacity: 1;
+            }
+            75% { 
+                transform: translateY(-30px) scale(0.8);
+                opacity: 0.6;
+            }
+        }
+        
+        /* Golden shimmer effect */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        
+        .shimmer-text {
+            background: linear-gradient(90deg, var(--gold) 0%, var(--bright-gold) 50%, var(--gold) 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s linear infinite;
+        }
+        
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            animation: fadeInDown 1s ease-out;
+        }
+        
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .title {
+            font-family: 'Cinzel', serif;
+            font-size: 4.5rem;
+            font-weight: 900;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8),
+                         0 0 60px rgba(107, 70, 193, 0.6);
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.4rem;
+            font-style: italic;
+            opacity: 0.9;
+            letter-spacing: 2px;
+            color: var(--shimmer);
+        }
+        
+        /* Stats Dashboard */
+        .stats-dashboard {
+            background: rgba(0,0,0,0.5);
+            border: 2px solid var(--gold);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 25px 0;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stat-value {
+            font-family: 'Cinzel', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+        
+        .vibe-bars {
+            margin-top: 20px;
+        }
+        
+        .vibe-bar {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .vibe-icon {
+            font-size: 1.5rem;
+            min-width: 30px;
+        }
+        
+        .vibe-progress {
+            flex: 1;
+            height: 25px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .vibe-fill {
+            height: 100%;
+            transition: width 0.8s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        
+        .vibe-fill.acuity { background: linear-gradient(90deg, #3B82F6, #60A5FA); }
+        .vibe-fill.valor { background: linear-gradient(90deg, #EF4444, #F87171); }
+        .vibe-fill.variety { background: linear-gradient(90deg, #EAB308, #FCD34D); }
+        
+        .ticket-progress {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 12px;
+            border: 1px solid var(--gold);
+        }
+        
+        .progress-bar {
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            height: 30px;
+            margin: 10px 0;
+            overflow: hidden;
+            border: 1px solid var(--gold);
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, var(--gold), var(--bright-gold));
+            height: 100%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+        
+        /* Card Area */
+        .card-area {
+            margin: 30px 0;
+        }
+        
+        .current-card {
+            max-width: 450px;
+            margin: 0 auto 30px;
+            animation: cardFlipIn 0.6s ease-out;
+        }
+        
+        @keyframes cardFlipIn {
+            from { 
+                opacity: 0; 
+                transform: rotateY(90deg) scale(0.8);
+            }
+            to { 
+                opacity: 1; 
+                transform: rotateY(0deg) scale(1);
+            }
+        }
+        
+        .card {
+            background: linear-gradient(135deg, rgba(107, 70, 193, 0.3), rgba(147, 51, 234, 0.3));
+            border: 3px solid var(--gold);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.6),
+                        0 0 30px rgba(255, 215, 0, 0.3);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,215,0,0.1), transparent);
+            animation: cardShine 3s infinite;
+        }
+        
+        @keyframes cardShine {
+            0% { transform: rotate(0deg) translateY(-100%); }
+            100% { transform: rotate(0deg) translateY(100%); }
+        }
+        
+        .card-header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .card-emoji {
+            font-size: 4rem;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 10px rgba(255,215,0,0.5));
+        }
+        
+        .card-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+        
+        .card-level {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-style: italic;
+        }
+        
+        .zenith-badge {
+            background: linear-gradient(135deg, var(--gold), var(--bright-gold));
+            color: var(--dark);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            display: inline-block;
+            margin-top: 10px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            animation: zenithPulse 2s infinite;
+        }
+        
+        @keyframes zenithPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(255, 215, 0, 1); }
+        }
+        
+        .card-fields {
+            margin-top: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .field {
+            margin: 12px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            border-left: 3px solid var(--gold);
+        }
+        
+        .field-label {
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+        
+        .field-value {
+            font-size: 1.05rem;
+            line-height: 1.5;
+        }
+        
+        /* Card History */
+        .card-history {
+            margin-top: 30px;
+        }
+        
+        .history-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            color: var(--gold);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+        }
+        
+        .mini-card {
+            background: rgba(0,0,0,0.4);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .mini-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+        
+        .mini-card-emoji {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        
+        .mini-card-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        
+        .mini-card-level {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+        
+        /* Controls */
+        .controls {
+            max-width: 600px;
+            margin: 30px auto;
+        }
+        
+        .control-group {
+            margin: 20px 0;
+        }
+        
+        .draw-button {
+            width: 100%;
+            font-family: 'Cinzel', serif;
+            font-size: 1.8rem;
+            padding: 25px;
+            background: linear-gradient(135deg, var(--royal-purple), var(--mystic-purple));
+            border: 3px solid var(--gold);
+            border-radius: 15px;
+            color: var(--cream);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 25px rgba(107, 70, 193, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .draw-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,215,0,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .draw-button:hover::before {
+            width: 500px;
+            height: 500px;
+        }
+        
+        .draw-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 35px rgba(255, 215, 0, 0.6);
+        }
+        
+        .draw-button span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .zenith-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+        
+        .zenith-checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+        
+        .zenith-label {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--gold);
+            cursor: pointer;
+        }
+        
+        /* Buttons */
+        .btn {
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            padding: 15px 30px;
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 700;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+        }
+        
+        .btn-hub {
+            background: linear-gradient(135deg, #6B46C1, #9333EA);
+            color: var(--cream);
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .btn-hub:hover {
+            background: linear-gradient(135deg, #9333EA, #6B46C1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(107, 70, 193, 0.6);
+        }
+        
+        /* Celebration Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, var(--royal-purple), var(--deep-purple));
+            border: 4px solid var(--gold);
+            border-radius: 30px;
+            padding: 50px;
+            text-align: center;
+            max-width: 600px;
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.8);
+            animation: scaleIn 0.6s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.7); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .modal-title {
+            font-family: 'Cinzel', serif;
+            font-size: 3rem;
+            margin-bottom: 25px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+        
+        .token-code {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            background: rgba(255, 215, 0, 0.2);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+            border: 2px solid var(--gold);
+            letter-spacing: 3px;
+        }
+        
+        .modal-btn {
+            background: linear-gradient(135deg, var(--gold), var(--bright-gold));
+            color: var(--dark);
+            font-size: 1.4rem;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 1);
+        }
+        
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .draw-button {
+                font-size: 1.4rem;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sparkles -->
+    <script>
+        // Generate sparkles dynamically
+        for (let i = 0; i < 50; i++) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = Math.random() * 100 + '%';
+            sparkle.style.top = Math.random() * 100 + '%';
+            sparkle.style.animationDelay = Math.random() * 8 + 's';
+            sparkle.style.animationDuration = (5 + Math.random() * 5) + 's';
+            document.body.appendChild(sparkle);
+        }
+    </script>
 
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="title"><span class="shimmer-text">✨ ESTRELLA'S TABLE ✨</span></h1>
+            <p class="subtitle">Divine Guidance Through the Cards</p>
+        </div>
+
+        <!-- Stats Dashboard -->
+        <div class="stats-dashboard">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Draws</div>
+                    <div class="stat-value" id="drawCount">0/20</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Zeniths</div>
+                    <div class="stat-value" id="zenithCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Zenith Badges</div>
+                    <div class="stat-value" id="badgeCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">ESTR Tickets</div>
+                    <div class="stat-value" id="ticketCount">0</div>
+                </div>
+            </div>
+
+            <div class="vibe-bars">
+                <div class="vibe-bar">
+                    <span class="vibe-icon">🔵</span>
+                    <div class="vibe-progress">
+                        <div class="vibe-fill acuity" id="acuityBar" style="width: 0%">
+                            <span id="acuityCount">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="vibe-bar">
+                    <span class="vibe-icon">🔴</span>
+                    <div class="vibe-progress">
+                        <div class="vibe-fill valor" id="valorBar" style="width: 0%">
+                            <span id="valorCount">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="vibe-bar">
+                    <span class="vibe-icon">🟡</span>
+                    <div class="vibe-progress">
+                        <div class="vibe-fill variety" id="varietyBar" style="width: 0%">
+                            <span id="varietyCount">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ticket-progress">
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <strong style="color: var(--gold);">ESTR Ticket Collection</strong>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="tokenProgress" style="width: 0%">
+                        <span id="progressText">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <div id="modeSelection">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h3 style="font-family: 'Cinzel', serif; font-size: 1.8rem; color: var(--gold); margin-bottom: 15px;">
+                        Choose Your Path
+                    </h3>
+                </div>
+
+                <button class="draw-button" id="normalModeBtn" onclick="startNormalMode()" style="margin-bottom: 15px;">
+                    <span>✨ NORMAL MODE - The Alignment ✨</span>
+                </button>
+
+                <button class="draw-button" id="rapidModeBtn" onclick="startRapidMode()" 
+                        style="background: linear-gradient(135deg, var(--gold), var(--bright-gold)); color: var(--dark); margin-bottom: 15px;">
+                    <span>⚡ RAPID MODE - Zenith Hunt ⚡</span>
+                </button>
+            </div>
+
+            <div id="normalControls" class="hidden">
+                <div class="zenith-control">
+                    <input type="checkbox" id="forceZenith" class="zenith-checkbox">
+                    <label for="forceZenith" class="zenith-label">◇ Force Zenith</label>
+                </div>
+
+                <button class="draw-button" id="drawBtn" onclick="drawCard()">
+                    <span>✨ DRAW CARD ✨</span>
+                </button>
+            </div>
+
+            <div id="rapidControls" class="hidden">
+                <button class="draw-button" onclick="executeRapidMode()" 
+                        style="background: linear-gradient(135deg, var(--gold), var(--bright-gold)); color: var(--dark);">
+                    <span>⚡ DRAW 20 CARDS ⚡</span>
+                </button>
+                <button class="btn-hub" onclick="backToModeSelection()" style="margin-top: 15px;">
+                    ← Back to Mode Selection
+                </button>
+            </div>
+        </div>
+
+        <!-- Current Card -->
+        <div id="currentCardArea" class="card-area hidden">
+            <div class="current-card" id="currentCard">
+                <!-- Card will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Card History -->
+        <div id="historyArea" class="card-history hidden">
+            <h3 class="history-title">✨ Your Journey ✨</h3>
+            <div class="history-grid" id="cardHistory">
+                <!-- Mini cards will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Back to Hub -->
+        <a href="https://starlightdeckv3.streamlit.app" target="_blank" class="btn btn-hub">
+            ← BACK TO HUB
+        </a>
+    </div>
+
+    <!-- Token Celebration Modal -->
+    <div id="tokenModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-title">🌟 ALIGNMENT ACHIEVED 🌟</div>
+            <p style="font-size: 1.3rem; margin: 20px 0;">You have aligned with Estrella's wisdom.</p>
+            <div class="token-code" id="modalTokenCode">ESTR-0000</div>
+            <p style="font-size: 1.1rem; opacity: 0.9; margin: 20px 0; line-height: 1.8;">
+                The stars have witnessed your journey.<br>
+                Return tomorrow for new revelations.
+            </p>
+            <button class="modal-btn" onclick="returnToHub()">✨ RETURN TO HUB ✨</button>
+        </div>
+    </div>
+
+    <!-- Rapid Success Modal -->
+    <div id="rapidSuccessModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-title">◇ ZENITH BADGE EARNED ◇</div>
+            <p style="font-size: 1.3rem; margin: 20px 0;">You found <span id="rapidZenithCount">2</span> Zeniths!</p>
+            <p style="font-size: 1.5rem; color: var(--gold); margin: 20px 0;">+50 ESTR Tickets</p>
+            <p style="font-size: 1.1rem; opacity: 0.9; line-height: 1.8; margin: 20px 0;">
+                A Zenith Badge reveals secret meanings.<br>
+                These will guide you in your alignment.
+            </p>
+            <button class="modal-btn" onclick="rapidReflection()">✨ I'VE REFLECTED ✨</button>
+        </div>
+    </div>
+
+    <script>
+        // Card Definitions
+        const CARDS = {
+            acuity: { color: "#3B82F6", name: "ACUITY", emoji: "🔵" },
+            valor: { color: "#EF4444", name: "VALOR", emoji: "🔴" },
+            variety: { color: "#EAB308", name: "VARIETY", emoji: "🟡" }
+        };
+
+        const LEVELS = {
+            1: { name: "Common", weight: 75 },
+            2: { name: "Rare", weight: 20 },
+            3: { name: "Legendary", weight: 5 }
+        };
+
+        const VIBE_FIELDS = {
+            acuity: {
+                1: { intention: "Clarity", goal: "Reduce noise.", value: "Truth over comfort." },
+                2: { intention: "Insight", goal: "See structure.", value: "Depth and precision." },
+                3: { intention: "Revelation", goal: "Cut illusion.", value: "Crystalline wisdom." }
+            },
+            valor: {
+                1: { intention: "Courage", goal: "Act once.", value: "Action beats fear." },
+                2: { intention: "Resolve", goal: "Commit fully.", value: "Strength with purpose." },
+                3: { intention: "Command", goal: "Lead boldly.", value: "Transform through will." }
+            },
+            variety: {
+                1: { intention: "Play", goal: "Try new paths.", value: "Curiosity first." },
+                2: { intention: "Surprise", goal: "Break pattern.", value: "Creative risk." },
+                3: { intention: "Wonder", goal: "Transcend limits.", value: "Reality bending." }
+            }
+        };
+
+        // Estrella's Wisdom (pre-written responses)
+        const ESTRELLA_WISDOM = {
+            10: [
+                "You've walked ten steps into the starlight. Each card reveals a truth you already know but needed to see. Trust what emerges.",
+                "The first ten draws show your foundation. Notice which energies call to you most—they're not random, they're revealing your path forward."
+            ],
+            20: [
+                "Twenty cards laid bare. The pattern is complete. What you've drawn isn't prediction—it's reflection. You're seeing yourself clearly now.",
+                "Your journey through these cards mirrors your inner landscape. The balance of forces you've called forth shows where you stand today. Move with this knowing."
+            ],
+            zenith: [
+                "Alignment creates power. This Zenith moment marks where intention meets reality. Pay attention to what comes next.",
+                "The stars have noticed. Zenith energy flows through you now—this is a moment of crystallized clarity. What will you do with it?"
+            ]
+        };
+
+        // Game State
+        let gameState = {
+            // Normal Mode
+            draws: 0,
+            zeniths: 0,
+            vibes: { acuity: 0, valor: 0, variety: 0 },
+            levels: { 1: 0, 2: 0, 3: 0 },
+            history: [],
+            normalModeComplete: false,
+            
+            // Rapid Mode
+            rapidAttempts: 0,
+            zenithBadges: 0,
+            zenithSecrets: [], // Stores secret meanings unlocked
+            
+            // Rewards
+            tickets: 0,
+            tokens: 0,
+            tokenCodes: [],
+            
+            // Daily tracking
+            lastResetDate: new Date().toDateString(),
+            alignmentAchieved: false
+        };
+
+        // Load saved state
+        function loadState() {
+            const saved = localStorage.getItem('estrellasTable');
+            if (saved) {
+                gameState = JSON.parse(saved);
+                checkDailyReset();
+            }
+            updateUI();
+        }
+
+        // Save state
+        function saveState() {
+            localStorage.setItem('estrellasTable', JSON.stringify(gameState));
+        }
+
+        // Daily reset
+        function checkDailyReset() {
+            const today = new Date().toDateString();
+            if (gameState.lastResetDate !== today) {
+                // Reset daily progress
+                gameState.draws = 0;
+                gameState.zeniths = 0;
+                gameState.vibes = { acuity: 0, valor: 0, variety: 0 };
+                gameState.levels = { 1: 0, 2: 0, 3: 0 };
+                gameState.history = [];
+                gameState.normalModeComplete = false;
+                gameState.alignmentAchieved = false;
+                gameState.rapidAttempts = 0;
+                gameState.lastResetDate = today;
+                saveState();
+            }
+        }
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('drawCount').textContent = `${gameState.draws}/20`;
+            document.getElementById('zenithCount').textContent = gameState.zeniths;
+            document.getElementById('badgeCount').textContent = gameState.zenithBadges;
+            document.getElementById('ticketCount').textContent = gameState.tickets;
+
+            // Update vibe bars
+            const maxVibe = Math.max(gameState.vibes.acuity, gameState.vibes.valor, gameState.vibes.variety, 1);
+            updateVibeBar('acuity', gameState.vibes.acuity, maxVibe);
+            updateVibeBar('valor', gameState.vibes.valor, maxVibe);
+            updateVibeBar('variety', gameState.vibes.variety, maxVibe);
+
+            // Update ticket progress (just show count, no 250 limit display)
+            const progressPercent = Math.min((gameState.tickets / 250) * 100, 100);
+            document.getElementById('tokenProgress').style.width = progressPercent + '%';
+            document.getElementById('progressText').textContent = gameState.tickets;
+
+            // Show/hide history
+            if (gameState.history.length > 0) {
+                document.getElementById('historyArea').classList.remove('hidden');
+            }
+
+            // Check if modes should be locked
+            if (gameState.normalModeComplete && gameState.alignmentAchieved) {
+                document.getElementById('modeSelection').classList.add('hidden');
+                document.getElementById('normalControls').classList.add('hidden');
+                document.getElementById('rapidControls').classList.add('hidden');
+            }
+        }
+
+        function updateVibeBar(vibe, count, max) {
+            const percentage = (count / max) * 100;
+            document.getElementById(`${vibe}Bar`).style.width = percentage + '%';
+            document.getElementById(`${vibe}Count`).textContent = count;
+        }
+
+        // Draw card logic
+        function drawCardData() {
+            const vibes = Object.keys(CARDS);
+            const vibe = vibes[Math.floor(Math.random() * vibes.length)];
+            
+            const roll = Math.random() * 100;
+            let level = 1;
+            if (roll > 75 && roll <= 95) level = 2;
+            else if (roll > 95) level = 3;
+
+            return { vibe, level };
+        }
+
+        // Check for Zenith
+        function checkZenith(forced) {
+            if (forced) return true;
+            return Math.random() * 100 <= 5; // 5% chance
+        }
+
+        // Draw card
+        function drawCard() {
+            if (gameState.draws >= 20) {
+                // Normal mode complete - show alignment screen
+                showAlignmentScreen();
+                return;
+            }
+
+            const { vibe, level } = drawCardData();
+            const forceZenith = document.getElementById('forceZenith').checked;
+            const isZenith = checkZenith(forceZenith);
+
+            // Update stats
+            gameState.draws++;
+            gameState.vibes[vibe]++;
+            gameState.levels[level]++;
+            if (isZenith) gameState.zeniths++;
+
+            // Get fields
+            let fields = VIBE_FIELDS[vibe][level];
+            if (isZenith) {
+                fields = {
+                    intention: `ZENITH: ${fields.intention}`,
+                    goal: "Focus intention.",
+                    value: "Alignment creates power."
+                };
+            }
+
+            // Add to history
+            gameState.history.push({ vibe, level, isZenith });
+
+            // Save state
+            saveState();
+            updateUI();
+
+            // Display card
+            displayCard(vibe, level, isZenith, fields);
+            addToHistory(vibe, level, isZenith);
+
+            // Reset force zenith checkbox
+            document.getElementById('forceZenith').checked = false;
+
+            // Check for 10-draw milestone
+            if (gameState.draws === 10) {
+                setTimeout(() => {
+                    showEstrella(10);
+                }, 800);
+            }
+        }
+
+        // Display current card
+        function displayCard(vibe, level, isZenith, fields) {
+            const card = CARDS[vibe];
+            const levelData = LEVELS[level];
+
+            const cardHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-emoji">${card.emoji}</div>
+                        <div class="card-title" style="color: ${card.color};">${card.name}</div>
+                        <div class="card-level">Level ${level} - ${levelData.name}</div>
+                        ${isZenith ? '<div class="zenith-badge">◇ ZENITH ◇</div>' : ''}
+                    </div>
+                    <div class="card-fields">
+                        <div class="field">
+                            <div class="field-label">Intention:</div>
+                            <div class="field-value">${fields.intention}</div>
+                        </div>
+                        <div class="field">
+                            <div class="field-label">Personal Goal:</div>
+                            <div class="field-value">${fields.goal}</div>
+                        </div>
+                        <div class="field">
+                            <div class="field-label">Affixing Value:</div>
+                            <div class="field-value">${fields.value}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('currentCard').innerHTML = cardHTML;
+            document.getElementById('currentCardArea').classList.remove('hidden');
+
+            // Scroll to card
+            document.getElementById('currentCardArea').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Add to history grid
+        function addToHistory(vibe, level, isZenith) {
+            const card = CARDS[vibe];
+            const levelData = LEVELS[level];
+
+            const miniCard = document.createElement('div');
+            miniCard.className = 'mini-card';
+            miniCard.innerHTML = `
+                <div class="mini-card-emoji">${card.emoji}</div>
+                <div class="mini-card-name" style="color: ${card.color};">${card.name}</div>
+                <div class="mini-card-level">${levelData.name}</div>
+                ${isZenith ? '<div style="font-size: 0.8rem; color: var(--gold); margin-top: 3px;">◇ ZENITH</div>' : ''}
+            `;
+
+            document.getElementById('cardHistory').appendChild(miniCard);
+        }
+
+        // Mode selection
+        function startNormalMode() {
+            if (gameState.normalModeComplete) {
+                alert('You have completed today\'s alignment. Return tomorrow for new wisdom. ✨');
+                return;
+            }
+            document.getElementById('modeSelection').classList.add('hidden');
+            document.getElementById('normalControls').classList.remove('hidden');
+        }
+
+        function startRapidMode() {
+            if (gameState.normalModeComplete && gameState.alignmentAchieved) {
+                alert('Today\'s journey is complete. Return tomorrow. ✨');
+                return;
+            }
+            document.getElementById('modeSelection').classList.add('hidden');
+            document.getElementById('rapidControls').classList.remove('hidden');
+        }
+
+        function backToModeSelection() {
+            document.getElementById('normalControls').classList.add('hidden');
+            document.getElementById('rapidControls').classList.add('hidden');
+            document.getElementById('modeSelection').classList.remove('hidden');
+        }
+
+        // Rapid Mode Execution
+        function executeRapidMode() {
+            gameState.rapidAttempts++;
+            
+            // Simulate 20 card draws
+            let zenithsFound = 0;
+            const rapidHistory = [];
+
+            for (let i = 0; i < 20; i++) {
+                const { vibe, level } = drawCardData();
+                const isZenith = checkZenith(false); // No forcing in rapid mode
+                
+                if (isZenith) zenithsFound++;
+                rapidHistory.push({ vibe, level, isZenith });
+            }
+
+            // Check for success (2+ Zeniths)
+            if (zenithsFound >= 2) {
+                gameState.tickets += 50;
+                gameState.zenithBadges++;
+                saveState();
+                updateUI();
+                showRapidSuccess(zenithsFound);
+            } else {
+                alert(`⚡ Rapid Hunt Complete\n\nZeniths found: ${zenithsFound}/2\n\nTry again to earn tickets and badges! ✨`);
+            }
+        }
+
+        function showRapidSuccess(count) {
+            document.getElementById('rapidZenithCount').textContent = count;
+            document.getElementById('rapidSuccessModal').classList.remove('hidden');
+        }
+
+        function rapidReflection() {
+            document.getElementById('rapidSuccessModal').classList.add('hidden');
+            // User can continue rapid mode or go back to menu
+        }
+
+        // Alignment Screen (Normal Mode completion)
+        function showAlignmentScreen() {
+            gameState.normalModeComplete = true;
+            saveState();
+
+            const wisdom = ESTRELLA_WISDOM[20].join('\n\n');
+            const reflection = prompt(
+                `✨ ESTRELLA SPEAKS ✨\n\n${wisdom}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n\nReflect on your journey.\nWhat did the cards reveal to you?`
+            );
+
+            if (reflection && reflection.trim()) {
+                // AI placeholder - auto-approve for now
+                achieveAlignment();
+            } else {
+                alert('Take time to reflect. The stars will wait. ✨');
+            }
+        }
+
+        function achieveAlignment() {
+            gameState.alignmentAchieved = true;
+            const tokenCode = `ESTR-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+            gameState.tokenCodes.push(tokenCode);
+            saveState();
+            updateUI();
+
+            document.getElementById('modalTokenCode').textContent = tokenCode;
+            document.getElementById('tokenModal').classList.remove('hidden');
+        }
+
+        function returnToHub() {
+            window.location.href = 'https://starlightdeckv3.streamlit.app';
+        }
+
+        // Show Estrella wisdom
+        function showEstrella(milestone) {
+            const wisdom = ESTRELLA_WISDOM[milestone];
+            const message = wisdom.join('\n\n');
+            
+            setTimeout(() => {
+                alert(`✨ Estrella Speaks ✨\n\n${message}`);
+            }, 500);
+        }
+
+        // Initialize
+        window.onload = loadState;
+    </script>
+</body>
+</html>
