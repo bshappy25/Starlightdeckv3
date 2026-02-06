@@ -75,6 +75,22 @@ body{
   backdrop-filter:blur(8px);
 }
 
+.clear-x{
+  margin-left:auto;   /* pushes X to the far right */
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.2rem;
+  font-weight:700;
+  line-height:1;
+  background:rgba(255,255,255,.06);
+  border:1px solid var(--border);
+  color:var(--text);
+}
+
 .swatch{
   width:28px;height:28px;border-radius:50%;
   border:1px solid rgba(255,255,255,.35);
@@ -197,13 +213,26 @@ canvas{
   <div class="panel">
     <div>Light</div>
 
-    <div class="swatch" data-color="--ether-ink" style="background:var(--ether-ink)"></div>
-    <div class="swatch" data-color="--ether-starlight" style="background:var(--ether-starlight)"></div>
-    <div class="swatch" data-color="--ether-lavender" style="background:var(--ether-lavender)"></div>
-    <div class="swatch" data-color="--ether-cyan" style="background:var(--ether-cyan)"></div>
-    <div class="swatch" data-color="--ether-rose" style="background:var(--ether-rose)"></div>
-    <div class="swatch" data-color="--ether-gold" style="background:var(--ether-gold)"></div>
-    <div class="swatch" data-color="black"></div>
+   <div class="panel">
+
+  <!-- color swatches -->
+  <div class="swatch" data-color="ink"></div>
+  <div class="swatch" data-color="starlight"></div>
+  <div class="swatch" data-color="lavender"></div>
+  <div class="swatch" data-color="cyan"></div>
+  <div class="swatch" data-color="rose"></div>
+  <div class="swatch" data-color="gold"></div>
+
+  <!-- size control -->
+  <input class="range" type="range" />
+
+  <!-- save -->
+  <button id="saveBtn" class="save-light">Save Light</button>
+
+  <!-- X clear ALWAYS LAST -->
+  <button id="clearBtn" class="clear-x" aria-label="Clear canvas">×</button>
+
+</div>
 
     <input id="size" class="range" type="range" min="2" max="40" value="8">
     <span id="sizeLabel">8</span>
