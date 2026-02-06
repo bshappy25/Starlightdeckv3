@@ -23,7 +23,7 @@
       --ether-rose: #f2a6c9;
       --ether-gold: #ffd89e;
 
-      /* Black (shape-stamp mode) */
+      /* Black (shape mode) */
       --ether-black: #111111;
     }
 
@@ -48,17 +48,6 @@
         box-shadow:
           0 0 14px rgba(200,240,255,0.28),
           0 0 34px rgba(200,240,255,0.16);
-      }
-    }
-
-    /* Mobile: keep stage centered + comfortable */
-    .stage{
-      margin: 0 auto;
-    }
-
-    @media (max-width: 520px){
-      canvas{
-        height: 62vh;
       }
     }
 
@@ -100,7 +89,7 @@
       transform: scale(1.05);
     }
 
-    /* Active ring (S5) */
+    /* Active ring */
     .color-swatch.active{
       border-color: rgba(255,255,255,0.85);
       box-shadow:
@@ -190,7 +179,7 @@
       transform: translateY(1px);
     }
 
-    /* Shape buttons (black-only stamping) */
+    /* Shape buttons */
     .shape-btn{
       padding:8px 10px;
       border-radius:12px;
@@ -206,21 +195,65 @@
       color: rgba(255,255,255,0.95);
     }
 
-    /* CANVAS */
+    /* CANVAS STAGE */
     .stage{
+      position: relative;
       border-radius:18px;
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(255,255,255,0.03);
       padding:10px;
+      margin: 0 auto;
+      overflow: hidden; /* keeps animated bg rounded */
+    }
+
+    /* Animated grey/ink gradient behind the canvas (S2A) */
+    .stage::before{
+      content:"";
+      position:absolute;
+      inset:10px;
+      border-radius:14px;
+      background:
+        radial-gradient(900px 520px at 20% 20%, rgba(220,230,255,0.10), transparent 60%),
+        radial-gradient(700px 420px at 80% 10%, rgba(170,180,210,0.10), transparent 55%),
+        linear-gradient(180deg, #070a16, #1b1f2a);
+      filter: saturate(0.95) contrast(1.05);
+      animation: inkDrift 50s ease-in-out infinite alternate;
+      z-index:0;
+    }
+
+    @keyframes inkDrift{
+      0%{
+        transform: translate3d(-1.5%, -1%, 0) scale(1.02);
+        opacity: 0.95;
+      }
+      50%{
+        transform: translate3d(1.5%, 0.5%, 0) scale(1.03);
+        opacity: 1;
+      }
+      100%{
+        transform: translate3d(0.5%, 1.2%, 0) scale(1.02);
+        opacity: 0.92;
+      }
     }
 
     canvas{
+      position: relative;
+      z-index:1;
       display:block;
       width:100%;
       height: min(70vh, 560px);
-      background:#ffffff;
+      background: transparent; /* live background is the stage gradient */
       border-radius:14px;
       touch-action:none;
+
+      /* Magical wand cursor (canvas only) */
+      cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><path d='M6 26 L22 10' stroke='%238fe3ff' stroke-width='3' stroke-linecap='round'/><path d='M20 8 L24 12' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' opacity='0.9'/><circle cx='24' cy='8' r='2' fill='%238fe3ff'/><circle cx='26.5' cy='12' r='1.5' fill='%23ffffff' opacity='0.9'/></svg>") 4 28, auto;
+    }
+
+    @media (max-width: 520px){
+      canvas{
+        height: 62vh;
+      }
     }
 
     .footer{
@@ -243,7 +276,7 @@
       <div class="pill">
         <span>Light</span>
 
-        <!-- S3 order -->
+        <!-- Order: ink, starlight, lavender, cyan, rose, gold -->
         <div class="color-swatch active" data-color="var(--ether-ink)" style="background:var(--ether-ink)"></div>
         <div class="color-swatch" data-color="var(--ether-starlight)" style="background:var(--ether-starlight)"></div>
         <div class="color-swatch" data-color="var(--ether-lavender)" style="background:var(--ether-lavender)"></div>
@@ -251,7 +284,7 @@
         <div class="color-swatch" data-color="var(--ether-rose)" style="background:var(--ether-rose)"></div>
         <div class="color-swatch" data-color="var(--ether-gold)" style="background:var(--ether-gold)"></div>
 
-        <!-- Black (shape-stamp mode) -->
+        <!-- Black (shape mode) -->
         <div class="color-swatch" data-color="var(--ether-black)" style="background:var(--ether-black)"></div>
       </div>
 
@@ -261,14 +294,12 @@
         <span id="sizeLabel">6</span>
       </div>
 
-      <!-- S1: dim/enhance light -->
       <div class="pill">
         <span>Light+</span>
         <input id="light" type="range" min="0.20" max="1.00" step="0.05" value="0.85" />
         <span id="lightLabel">0.85</span>
       </div>
 
-      <!-- S2: black only as shapes -->
       <div class="pill">
         <span>Shape</span>
         <button class="shape-btn active" data-shape="square" type="button">□</button>
@@ -295,6 +326,9 @@
 
   <!-- 🟢 LOGIC ZONE -->
   <script>
+    // Explicit override (S1A): set false to export without background
+    const EXPORT_BACKGROUND = true;
+
     const canvas = document.getElementById("c");
     const ctx = canvas.getContext("2d");
 
@@ -307,23 +341,21 @@
     const clearBtn   = document.getElementById("clearBtn");
     const saveBtn    = document.getElementById("saveBtn");
 
-    // Brush state
     let brushSize = Number(sizeInput.value);
     sizeLabel.textContent = brushSize;
 
     let brushAlpha = Number(lightInput.value);
     lightLabel.textContent = brushAlpha.toFixed(2);
 
-    // Color state (default: ether-ink)
     const rootStyle = getComputedStyle(document.documentElement);
     const blackHex = rootStyle.getPropertyValue('--ether-black').trim();
 
     let brushColor = rootStyle.getPropertyValue('--ether-ink').trim();
 
-    // Shape state (black-only stamping)
+    // Shape state (black-only)
     let shapeMode = "square";
 
-    // Swatch click: set brushColor + active ring (S5)
+    // Swatches: set brushColor + active ring
     const swatches = Array.from(document.querySelectorAll('.color-swatch'));
     swatches.forEach(swatch => {
       swatch.addEventListener('click', () => {
@@ -337,7 +369,7 @@
       });
     });
 
-    // Shape button selection
+    // Shape buttons
     const shapeBtns = Array.from(document.querySelectorAll('.shape-btn'));
     shapeBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -358,7 +390,7 @@
       lightLabel.textContent = brushAlpha.toFixed(2);
     });
 
-    // Canvas sizing
+    // Canvas sizing (no white fill; background is the stage gradient)
     function resizeCanvasToDisplaySize(){
       const rect = canvas.getBoundingClientRect();
       const dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -369,22 +401,18 @@
       if (canvas.width !== w || canvas.height !== h){
         canvas.width = w;
         canvas.height = h;
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
     }
 
     window.addEventListener("resize", resizeCanvasToDisplaySize);
     setTimeout(resizeCanvasToDisplaySize, 0);
 
-    // Clear
+    // Clear: return to empty (transparent) so dark bg shows through
     clearBtn.addEventListener("click", () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
     });
 
-    // Save (ink/grey gradient baked behind)
+    // Save: ink/grey gradient baked behind (unless override off)
     saveBtn.addEventListener("click", () => {
       const d = new Date();
       const yyyy = d.getFullYear();
@@ -398,11 +426,13 @@
 
       const octx = out.getContext("2d");
 
-      const g = octx.createLinearGradient(0, 0, 0, out.height);
-      g.addColorStop(0, "#0a0f24");  // ink top
-      g.addColorStop(1, "#2b2f3a");  // smoky grey bottom
-      octx.fillStyle = g;
-      octx.fillRect(0, 0, out.width, out.height);
+      if (EXPORT_BACKGROUND){
+        const g = octx.createLinearGradient(0, 0, 0, out.height);
+        g.addColorStop(0, "#070a16");
+        g.addColorStop(1, "#2b2f3a");
+        octx.fillStyle = g;
+        octx.fillRect(0, 0, out.width, out.height);
+      }
 
       octx.drawImage(canvas, 0, 0);
 
@@ -412,7 +442,13 @@
       link.click();
     });
 
-    // Shape drawing helpers (black-only)
+    // --- Shape preview (black mode): click-drag resize (S4A) ---
+    let shaping = false;
+    let shapeStart = { x: 0, y: 0 };
+    let shapeSnapshot = null;
+    let pendingFrame = false;
+    let lastPreviewPoint = null;
+
     function polygonPath(cx, cy, radius, sides, rotation = -Math.PI / 2){
       ctx.beginPath();
       for (let i = 0; i < sides; i++){
@@ -439,32 +475,37 @@
       ctx.closePath();
     }
 
-    function stampShape(x, y){
-      const s = Math.max(6, brushSize * 3); // stamp size tied to brush size
+    function drawBlackShape(cx, cy, radius, preview = false){
       ctx.save();
       ctx.globalAlpha = Math.min(1, Math.max(0.05, brushAlpha));
       ctx.fillStyle = blackHex;
 
+      // Slightly soften edges when previewing (optional, still simple)
+      if (preview){
+        ctx.shadowBlur = 0;
+      }
+
       if (shapeMode === "square"){
+        const s = radius * 1.6;
         ctx.beginPath();
-        ctx.rect(x - s/2, y - s/2, s, s);
+        ctx.rect(cx - s/2, cy - s/2, s, s);
         ctx.fill();
       } else if (shapeMode === "circle"){
         ctx.beginPath();
-        ctx.arc(x, y, s/2, 0, Math.PI * 2);
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
         ctx.fill();
       } else if (shapeMode === "pentagon"){
-        polygonPath(x, y, s/2, 5);
+        polygonPath(cx, cy, radius, 5);
         ctx.fill();
       } else if (shapeMode === "star"){
-        starPath(x, y, s/2, (s/2) * 0.45, 5);
+        starPath(cx, cy, radius, radius * 0.45, 5);
         ctx.fill();
       }
 
       ctx.restore();
     }
 
-    // Drawing
+    // --- Painting ---
     let drawing = false;
     let last = { x: 0, y: 0 };
 
@@ -481,45 +522,113 @@
       };
     }
 
-    function start(e){
-      resizeCanvasToDisplaySize();
-      const p = getPoint(e);
-
-      // If black is selected: stamp shapes only (S2)
-      if (brushColor === blackHex){
-        stampShape(p.x, p.y);
-        e.preventDefault();
-        return;
-      }
-
-      drawing = true;
-      last = p;
-      e.preventDefault();
-    }
-
-    function move(e){
-      if (!drawing) return;
-
-      const p = getPoint(e);
-
+    function paintSegment(from, to){
       ctx.save();
+
+      // Halo/glow (S3A): match stroke color
       ctx.globalAlpha = Math.min(1, Math.max(0.05, brushAlpha));
+      ctx.shadowBlur = Math.max(6, brushSize * 2.2);
+      ctx.shadowColor = brushColor;
+
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.strokeStyle = brushColor;
       ctx.lineWidth = brushSize;
 
       ctx.beginPath();
-      ctx.moveTo(last.x, last.y);
-      ctx.lineTo(p.x, p.y);
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
       ctx.stroke();
-      ctx.restore();
 
+      ctx.restore();
+    }
+
+    function start(e){
+      resizeCanvasToDisplaySize();
+      const p = getPoint(e);
+
+      // Black mode => shape drag-resize
+      if (brushColor === blackHex){
+        shaping = true;
+        shapeStart = p;
+        lastPreviewPoint = p;
+
+        // Snapshot once for clean preview restore
+        try{
+          shapeSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        }catch(err){
+          shapeSnapshot = null; // if browser blocks for any reason, we still commit on end
+        }
+
+        e.preventDefault();
+        return;
+      }
+
+      // Color paint mode
+      drawing = true;
+      last = p;
+      e.preventDefault();
+    }
+
+    function move(e){
+      const p = getPoint(e);
+
+      // Shape preview while dragging
+      if (shaping){
+        lastPreviewPoint = p;
+
+        if (!pendingFrame){
+          pendingFrame = true;
+          requestAnimationFrame(() => {
+            pendingFrame = false;
+
+            if (shapeSnapshot){
+              ctx.putImageData(shapeSnapshot, 0, 0);
+            } else {
+              // If we couldn't snapshot, do nothing preview-wise (still stable)
+              return;
+            }
+
+            const dx = lastPreviewPoint.x - shapeStart.x;
+            const dy = lastPreviewPoint.y - shapeStart.y;
+            const r = Math.max(4, Math.sqrt(dx*dx + dy*dy)); // radius from drag distance
+
+            drawBlackShape(shapeStart.x, shapeStart.y, r, true);
+          });
+        }
+
+        e.preventDefault();
+        return;
+      }
+
+      // Paint mode
+      if (!drawing) return;
+      paintSegment(last, p);
       last = p;
       e.preventDefault();
     }
 
     function end(){
+      // Commit shape on release
+      if (shaping){
+        shaping = false;
+
+        if (shapeSnapshot && lastPreviewPoint){
+          // Restore clean base then commit final shape (no preview artifacts)
+          ctx.putImageData(shapeSnapshot, 0, 0);
+
+          const dx = lastPreviewPoint.x - shapeStart.x;
+          const dy = lastPreviewPoint.y - shapeStart.y;
+          const r = Math.max(4, Math.sqrt(dx*dx + dy*dy));
+
+          drawBlackShape(shapeStart.x, shapeStart.y, r, false);
+        }
+
+        shapeSnapshot = null;
+        lastPreviewPoint = null;
+        return;
+      }
+
       drawing = false;
     }
 
@@ -535,4 +644,3 @@
   </script>
 </body>
 </html>
-
