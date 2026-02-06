@@ -892,9 +892,6 @@
         localStorage.setItem("studentNames", JSON.stringify(studentNames));
       }
     }
-document
-  .getElementById("adminPalm")
-  .addEventListener("click", handlePalmClick);
 
     /* =========================================================================
        HUB IMAGE GRID
@@ -1452,8 +1449,16 @@ document
     }
 
     // Initialize app
-    window.addEventListener("load", () => {
-      initializeApp();
+window.addEventListener("load", () => {
+  initializeApp();
+  updateBadges();
+
+  const palm = document.getElementById("adminPalm");
+  if (palm) {
+    palm.addEventListener("click", handlePalmClick);
+  }
+});
+
 document
   .getElementById("adminPalm")
   .addEventListener("click", handlePalmClick);
