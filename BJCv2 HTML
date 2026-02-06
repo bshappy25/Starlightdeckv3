@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mr. Benji's Coloring App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body{
+      font-family:'Comic Sans MS','Chalkboard SE','Comic Neue',cursive,sans-serif;
+      background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px;
+    }
+    .container{ max-width:1400px; width:100%; }
+
+    /* Loading */
+    .loading-progress{ position:fixed; top:0; left:0; width:100%; height:4px; background:rgba(255,255,255,.3); z-index:10000; display:none; }
+    .loading-progress.active{ display:block; }
+    .loading-progress-bar{
+      height:100%;
+      background: linear-gradient(90deg,#4ECDC4,#45B7D1,#667eea);
+      width:0%;
+      transition: width .25s ease;
+      box-shadow:0 0 10px rgba(102,126,234,.8);
+    }
+    .loading-text{
+      position:fixed; top:20px; left:50%; transform:translateX(-50%);
+      background:rgba(255,255,255,.95); padding:12px 22px; border-radius:50px;
+      font-size:1.1em; color:#667eea; font-weight:bold; box-shadow:0 4px 12px rgba(0,0,0,.2);
+      z-index:10001; display:none;
+    }
+    .loading-text.active{ display:block; }
+
+    /* Hub */
+    .user-hub{
+      background:#fff; border-radius:20px; padding:40px;
+      box-shadow:0 20px 60px rgba(0,0,0,.3); text-align:center;
+      animation:fadeIn .5s ease-out;
+    }
+    .user-hub.hidden{ display:none; }
+    .hub-title{ font-size:3em; color:#667eea; margin-bottom:20px; text-shadow:2px 2px 4px rgba(0,0,0,.1); cursor:pointer; user-select:none; }
+    .hub-subtitle{ font-size:1.3em; color:#555; margin-bottom:40px; }
+
+    .user-input-section{ margin-bottom:40px; }
+    .user-input-section label{ display:block; font-size:1.2em; color:#333; margin-bottom:10px; }
+    .user-input-section input{
+      padding:15px 20px; font-size:1.1em; border:3px solid #667eea; border-radius:10px;
+      width:100%; max-width:400px; font-family:inherit;
+    }
+
+    .image-selection{ margin-bottom:30px; }
+    .image-selection h3{ font-size:1.5em; color:#333; margin-bottom:20px; }
+    .image-grid{
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:20px; max-width:900px; margin:0 auto;
+    }
+    .image-option{
+      border:4px solid #ddd; border-radius:15px; padding:10px; cursor:pointer;
+      transition: all .25s; background:#fff;
+    }
+    .image-option:hover{
+      border-color:#667eea; transform:translateY(-5px); box-shadow:0 8px 20px rgba(102,126,234,.3);
+    }
+    .image-option.selected{
+      border-color:#667eea; background:#f0f4ff; box-shadow:0 8px 20px rgba(102,126,234,.4);
+    }
+    .image-option img{ width:100%; height:150px; object-fit:contain; border-radius:10px; background:#f8f9fa; }
+    .image-option .image-title{ text-align:center; margin-top:10px; font-size:1.05em; color:#333; font-weight:bold; }
+
+    .start-button{
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      color:#fff; border:none; padding:18px 56px; font-size:1.45em; border-radius:50px; cursor:pointer;
+      transition: transform .25s, box-shadow .25s; font-family:inherit; font-weight:bold;
+    }
+    .start-button:hover{ transform:translateY(-3px); box-shadow:0 10px 30px rgba(102,126,234,.4); }
+    .start-button:disabled{ opacity:.5; cursor:not-allowed; }
+
+    /* Admin Modal */
+    .admin-modal{
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,.8); z-index:9999; justify-content:center; align-items:center;
+    }
+    .admin-modal.active{ display:flex; }
+    .admin-content{
+      background:#fff; border-radius:20px; padding:40px; max-width:720px; width:92%;
+      max-height:84vh; overflow-y:auto; position:relative;
+    }
+    .admin-close{ position:absolute; top:16px; right:16px; background:#868e96; color:#fff; border:none; padding:10px 16px; border-radius:10px; cursor:pointer; font-family:inherit; }
+    .admin-close:hover{ background:#495057; }
+    .admin-header{ text-align:center; margin-bottom:22px; }
+    .admin-header h2{ color:#667eea; font-size:2em; margin-bottom:6px; }
+    .admin-section{ margin-bottom:18px; padding:16px; background:#f8f9fa; border-radius:12px; }
+    .admin-section h3{ color:#333; margin-bottom:10px; font-size:1.25em; }
+    .admin-input{
+      width:100%; padding:12px; border:2px solid #ddd; border-radius:10px; font-size:1em; font-family:inherit; margin-bottom:10px;
+    }
+    .admin-button{
+      padding:12px 18px; border:none; border-radius:10px; font-size:1em; cursor:pointer; font-family:inherit; font-weight:bold;
+      transition: all .2s; margin-right:10px; margin-bottom:10px;
+    }
+    .admin-button.primary{ background:#667eea; color:#fff; }
+    .admin-button.primary:hover{ background:#5568d3; }
+    .admin-button.danger{ background:#ff6b6b; color:#fff; }
+    .admin-button.danger:hover{ background:#ff5252; }
+    .admin-button.secondary{ background:#868e96; color:#fff; }
+    .admin-button.secondary:hover{ background:#495057; }
+    .admin-list{
+      max-height:240px; overflow-y:auto; background:#fff; padding:12px; border-radius:10px; border:2px solid #ddd;
+    }
+    .admin-list-item{ padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .admin-list-item:last-child{ border-bottom:none; }
+    .mini{ font-size:.92em; color:#666; line-height:1.35; }
+
+    /* App */
+    .coloring-app{
+      background:#fff; border-radius:20px; padding:30px;
+      box-shadow:0 20px 60px rgba(0,0,0,.3); display:none; animation:fadeIn .5s ease-out;
+    }
+    .coloring-app.active{ display:block; }
+    .back-button{
+      position:absolute; top:20px; left:20px; background:#868e96; color:#fff; border:none;
+      padding:10px 18px; border-radius:10px; cursor:pointer; font-family:inherit; font-size:1em; transition:all .2s;
+    }
+    .back-button:hover{ background:#495057; transform:translateY(-2px); }
+
+    .app-header{ text-align:center; margin-bottom:22px; }
+    .welcome-message{ font-size:2em; color:#667eea; margin-bottom:6px; }
+    .app-title{ font-size:1.25em; color:#555; }
+    .status-badges{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px; }
+    .badge{
+      background:#f0f4ff; color:#445; border:1px solid rgba(102,126,234,.25);
+      padding:8px 12px; border-radius:999px; font-size:.95em; font-weight:bold;
+    }
+    .badge.hot{ background: linear-gradient(135deg, rgba(255,107,107,.15), rgba(255,142,83,.15)); border-color: rgba(255,107,107,.35); }
+
+    .main-content{ display:flex; gap:30px; margin-bottom:20px; position:relative; }
+    .tools-panel{ flex:0 0 270px; background:#f8f9fa; border-radius:15px; padding:18px; }
+
+    .tools-section{ margin-bottom:18px; }
+    .tools-section h3{ color:#333; margin-bottom:12px; font-size:1.15em; }
+
+    .color-palette{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px; }
+    .color-option{
+      width:52px; height:52px; border-radius:12px; cursor:pointer; border:3px solid transparent;
+      transition: transform .15s, border-color .15s;
+    }
+    .color-option:hover{ transform:scale(1.08); }
+    .color-option.active{ border-color:#333; transform:scale(1.12); box-shadow:0 4px 12px rgba(0,0,0,.25); }
+    .custom-color-picker{ width:100%; height:50px; border-radius:12px; border:3px solid #ddd; cursor:pointer; }
+
+    .brush-sizes{ display:flex; gap:10px; justify-content:space-around; }
+    .brush-size-option{
+      width:50px; height:50px; border-radius:50%; background:#ddd;
+      display:flex; align-items:center; justify-content:center; cursor:pointer; border:3px solid transparent; transition:all .15s;
+    }
+    .brush-size-option:hover{ background:#ccc; }
+    .brush-size-option.active{ border-color:#667eea; background:#e0e7ff; }
+    .size-indicator{ width:10px; height:10px; background:#333; border-radius:50%; }
+    .brush-size-option.medium .size-indicator{ width:20px; height:20px; }
+    .brush-size-option.large .size-indicator{ width:30px; height:30px; }
+
+    .action-buttons{ display:flex; flex-direction:column; gap:10px; }
+    .tool-button{
+      padding:12px 16px; border:none; border-radius:12px; font-size:1em; cursor:pointer;
+      font-family:inherit; transition: all .2s; font-weight:bold;
+    }
+
+    /* NEW: separate Fill + Spicy */
+    .fill-button{
+      background: linear-gradient(135deg, #45B7D1 0%, #4ECDC4 100%);
+      color:#fff;
+    }
+    .fill-button:hover{ transform:translateY(-2px); box-shadow:0 4px 12px rgba(69,183,209,.35); }
+    .fill-button.active{ box-shadow: inset 0 2px 8px rgba(0,0,0,.18); filter:saturate(1.15); }
+
+    .spicy-button{
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+      color:#fff;
+      font-size:1.05em;
+    }
+    .spicy-button:hover{ transform:translateY(-2px); box-shadow:0 4px 12px rgba(255,107,107,.35); }
+    .spicy-button.active{ box-shadow: inset 0 2px 8px rgba(0,0,0,.18); filter:saturate(1.2); }
+
+    .eraser-button{ background:#ffd43b; color:#333; }
+    .eraser-button:hover{ background:#fcc419; transform:translateY(-2px); }
+    .eraser-button.active{ background:#fab005; box-shadow: inset 0 2px 4px rgba(0,0,0,.2); }
+
+    .undo-button{ background:#845ef7; color:#fff; }
+    .undo-button:hover{ background:#7048e8; transform:translateY(-2px); }
+
+    .clear-button{ background:#ff6b6b; color:#fff; }
+    .clear-button:hover{ background:#ff5252; transform:translateY(-2px); }
+
+    .save-button{ background:#51cf66; color:#fff; }
+    .save-button:hover{ background:#40c057; transform:translateY(-2px); }
+
+    .canvas-container{
+      flex:1; background:#fff; border-radius:15px; padding:16px;
+      box-shadow:0 4px 12px rgba(0,0,0,.1); position:relative;
+    }
+    #coloringCanvas{
+      border:3px solid #ddd; border-radius:12px; cursor:crosshair;
+      display:block; margin:0 auto; max-width:100%; height:auto; background:#fff;
+
+      /* IMPORTANT for multitouch pointer events */
+      touch-action: none;
+    }
+    .loading-indicator{
+      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+      font-size:1.35em; color:#667eea; display:none; font-weight:bold;
+    }
+    .loading-indicator.active{ display:block; }
+
+    /* Quote + Education */
+    .quote-section{
+      background: linear-gradient(135deg,#ffd43b 0%,#fcc419 100%);
+      border-radius:15px; padding:20px; text-align:center;
+    }
+    .quote-text{ font-size:1.8em; color:#333; font-weight:bold; text-shadow:1px 1px 2px rgba(255,255,255,.5); }
+
+    .education{
+      margin-top:14px; background:#ffffff; border:2px dashed rgba(102,126,234,.35);
+      border-radius:15px; padding:16px;
+    }
+    .education summary{
+      cursor:pointer; font-weight:900; color:#667eea; font-size:1.1em;
+      list-style:none;
+    }
+    .education summary::-webkit-details-marker{ display:none; }
+    .edu-grid{
+      margin-top:12px;
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:12px;
+      text-align:left;
+    }
+    .edu-card{
+      background:#f8f9fa; border-radius:12px; padding:12px; border:1px solid rgba(0,0,0,.06);
+    }
+    .edu-card h4{ margin-bottom:6px; color:#333; }
+    .edu-card ul{ padding-left:18px; color:#555; line-height:1.35; }
+    .kbd{
+      display:inline-block; padding:2px 8px; border-radius:8px; background:#fff; border:1px solid #ddd; font-weight:bold; font-size:.9em; color:#333;
+    }
+
+    /* Signature Modal */
+    .signature-modal{
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,.8); z-index:9998; justify-content:center; align-items:center;
+    }
+    .signature-modal.active{ display:flex; }
+    .signature-content{
+      background:#fff; border-radius:20px; padding:40px; max-width:520px; width:92%; text-align:center;
+    }
+    .signature-content h2{ color:#667eea; font-size:2em; margin-bottom:16px; }
+    .signature-content p{ color:#555; font-size:1.1em; margin-bottom:20px; }
+    .signature-input{
+      width:100%; padding:15px; font-size:1.25em; border:3px solid #667eea; border-radius:12px;
+      font-family:'Brush Script MT',cursive,'Comic Sans MS',cursive; text-align:center; margin-bottom:18px;
+    }
+    .signature-buttons{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    .signature-button{ padding:14px 28px; border:none; border-radius:12px; font-size:1.1em; cursor:pointer; font-family:inherit; font-weight:bold; transition:all .2s; }
+    .signature-button.confirm{ background:#51cf66; color:#fff; }
+    .signature-button.confirm:hover{ background:#40c057; transform:translateY(-2px); }
+    .signature-button.skip{ background:#868e96; color:#fff; }
+    .signature-button.skip:hover{ background:#495057; transform:translateY(-2px); }
+
+    @media (max-width: 968px){
+      .main-content{ flex-direction:column; }
+      .tools-panel{ flex:1; }
+      .color-palette{ grid-template-columns:repeat(6,1fr); }
+      .hub-title{ font-size:2em; }
+      .welcome-message{ font-size:1.5em; }
+      .image-grid{ grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); }
+    }
+
+    .tooltip{ position:relative; }
+    .tooltip::after{
+      content:attr(data-tooltip);
+      position:absolute; bottom:100%; left:50%; transform:translateX(-50%);
+      background:#333; color:#fff; padding:5px 10px; border-radius:8px; font-size:.8em; white-space:nowrap;
+      opacity:0; pointer-events:none; transition:opacity .2s; margin-bottom:6px;
+    }
+    .tooltip:hover::after{ opacity:1; }
+
+    @keyframes fadeIn{
+      from{ opacity:0; transform:translateY(20px); }
+      to{ opacity:1; transform:translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Progress Bar -->
+  <div class="loading-progress" id="loadingProgress">
+    <div class="loading-progress-bar" id="loadingProgressBar"></div>
+  </div>
+  <div class="loading-text" id="loadingText">Loading your canvas...</div>
+
+  <div class="container">
+    <!-- User Hub -->
+    <div class="user-hub" id="userHub">
+      <h1 class="hub-title" id="hubTitle" onclick="handleTitleClick()">🎨 Welcome to Mr. Benji's Coloring Studio! 🌴</h1>
+      <p class="hub-subtitle">Draw, fill, and spice it up — now with true multi-touch fill!</p>
+
+      <div class="user-input-section">
+        <label for="userName">What's your name, artist?</label>
+        <input type="text" id="userName" placeholder="Enter your name here..." maxlength="30" />
+      </div>
+
+      <div class="image-selection">
+        <h3>Choose a coloring page:</h3>
+        <div class="image-grid" id="imageGrid"></div>
+      </div>
+
+      <button class="start-button" id="startButton" onclick="startColoring()" disabled>Start Coloring! 🖍️</button>
+    </div>
+
+    <!-- Admin Modal -->
+    <div class="admin-modal" id="adminModal">
+      <div class="admin-content">
+        <button class="admin-close" onclick="closeAdminPanel()">✕ Close</button>
+        <div class="admin-header">
+          <h2>🔐 Admin Panel</h2>
+          <p class="mini">Quick controls for images + student names (stored locally on this device/browser).</p>
+        </div>
+
+        <div class="admin-section">
+          <h3>🖼️ Current Images</h3>
+          <div class="admin-list" id="adminImageList"></div>
+          <p class="mini">
+            Tip: You can store your own images by editing the <span class="kbd">coloringImages</span> array.
+            (Your original “Drive import” is removed here because it was a placeholder and confused users.)
+          </p>
+        </div>
+
+        <div class="admin-section">
+          <h3>👥 Student Names</h3>
+          <div class="admin-list" id="studentNameList"></div>
+          <button class="admin-button secondary" onclick="exportStudentNames()">Export Names</button>
+          <button class="admin-button danger" onclick="clearStudentNames()">Clear All Names</button>
+        </div>
+
+        <div class="admin-section">
+          <h3>⚙️ Settings</h3>
+          <button class="admin-button danger" onclick="resetAllData()">Reset All App Data</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Signature Modal -->
+    <div class="signature-modal" id="signatureModal">
+      <div class="signature-content">
+        <h2>✍️ Sign Your Masterpiece!</h2>
+        <p>Add your signature to the bottom-right corner</p>
+        <input type="text" class="signature-input" id="signatureInput" placeholder="Your signature..." maxlength="30" />
+        <div class="signature-buttons">
+          <button class="signature-button confirm" onclick="confirmSignature()">Add Signature & Save</button>
+          <button class="signature-button skip" onclick="skipSignature()">Skip & Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coloring App -->
+    <div class="coloring-app" id="coloringApp" style="position:relative;">
+      <button class="back-button" onclick="goBackToHub()">← Back to Hub</button>
+
+      <div class="app-header">
+        <h2 class="welcome-message" id="welcomeMessage">Welcome, Artist!</h2>
+        <h3 class="app-title" id="currentImageTitle">Coloring Page</h3>
+        <div class="status-badges">
+          <span class="badge" id="fillBadge">Fill: OFF</span>
+          <span class="badge hot" id="spiceBadge">Spice: OFF</span>
+          <span class="badge" id="paletteBadge">Palette: Classic</span>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <!-- Tools -->
+        <div class="tools-panel">
+          <div class="tools-section">
+            <h3>🎨 Colors</h3>
+            <div class="color-palette" id="colorPalette"></div>
+            <input type="color" class="custom-color-picker" id="customColorPicker" value="#FF6B6B" />
+          </div>
+
+          <div class="tools-section">
+            <h3>🖌️ Brush Size</h3>
+            <div class="brush-sizes">
+              <div class="brush-size-option small active tooltip" data-tooltip="Small" onclick="setBrushSize(5, this)">
+                <div class="size-indicator"></div>
+              </div>
+              <div class="brush-size-option medium tooltip" data-tooltip="Medium" onclick="setBrushSize(10, this)">
+                <div class="size-indicator"></div>
+              </div>
+              <div class="brush-size-option large tooltip" data-tooltip="Large" onclick="setBrushSize(20, this)">
+                <div class="size-indicator"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tools-section">
+            <h3>🛠️ Tools</h3>
+            <div class="action-buttons">
+              <!-- NEW: separate Fill + Spicy -->
+              <button class="tool-button fill-button" id="fillButton" onclick="toggleFillMode()">
+                🪣 Fill (Multi-touch)
+              </button>
+              <button class="tool-button spicy-button" id="spicyButton" onclick="toggleSpiceMode()">
+                🌶️ Make it Spicy (Random Fill Colors)
+              </button>
+
+              <button class="tool-button eraser-button" id="eraserButton" onclick="toggleEraser()">Eraser Mode</button>
+
+              <button class="tool-button undo-button" onclick="undo()">Undo</button>
+
+              <button class="tool-button clear-button" onclick="clearCanvas()">Clear All</button>
+              <button class="tool-button save-button" onclick="initiateSignature()">Save Drawing</button>
+            </div>
+            <p class="mini" style="margin-top:10px;">
+              Fill stays ON until you turn it off. Spicy stays ON and picks a new color every fill tap.
+            </p>
+          </div>
+        </div>
+
+        <!-- Canvas -->
+        <div class="canvas-container">
+          <div class="loading-indicator" id="loadingIndicator">Loading canvas...</div>
+          <canvas id="coloringCanvas"></canvas>
+        </div>
+      </div>
+
+      <div class="quote-section">
+        <p class="quote-text">Keep life Spicy 🌶️</p>
+      </div>
+
+      <!-- NEW: Educational Section -->
+      <details class="education">
+        <summary>📚 Educational Section (tap to open) — color smarter, not harder</summary>
+        <div class="edu-grid">
+          <div class="edu-card">
+            <h4>Color Theory Mini-Lesson</h4>
+            <ul>
+              <li><b>Warm</b> colors (reds/oranges) feel energetic.</li>
+              <li><b>Cool</b> colors (blues/greens) feel calm.</li>
+              <li><b>Complementary</b> pairs pop (blue/orange, red/green, purple/yellow).</li>
+            </ul>
+          </div>
+          <div class="edu-card">
+            <h4>Quick “Artist Moves”</h4>
+            <ul>
+              <li>Pick <b>3 main colors</b> + 1 accent.</li>
+              <li>Use Fill for big zones, brush for details.</li>
+              <li>Try “light source”: brighter on one side, darker on the other.</li>
+            </ul>
+          </div>
+          <div class="edu-card">
+            <h4>Classroom-Friendly Prompts</h4>
+            <ul>
+              <li>“Show <b>calm</b> with cool colors.”</li>
+              <li>“Show <b>energy</b> with warm colors.”</li>
+              <li>“Find 2 complementary pairs and use them.”</li>
+            </ul>
+          </div>
+          <div class="edu-card">
+            <h4>Included Improvements</h4>
+            <ul>
+              <li>✅ <b>Fill</b> is its own button (no more mixed behavior).</li>
+              <li>✅ <b>Multi-touch Fill</b> (tap multiple areas fast, even with two fingers).</li>
+              <li>✅ <b>Spicy</b> randomizes from themed palettes + new color each fill.</li>
+              <li>✅ <b>Undo</b> added for easy recovery.</li>
+              <li>✅ <b>Clear All</b> re-draws the original page reliably.</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       IMAGE LIBRARY
+       - Your original code had an EMPTY "data:" which breaks loading.
+       - Here: default images are SVG data URIs so the app works out of the box.
+       - You can still replace these with base64 PNG/JPG later.
+    ========================================================================= */
+
+    function svgData(svg) {
+      return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    }
+
+    let coloringImages = [
+      {
+        title: "Life Without Worries - Palm Scene",
+        data: svgData(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700">
+            <rect width="100%" height="100%" fill="white"/>
+            <g stroke="#111" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M120,520 C170,420 210,350 250,280"/>
+              <path d="M250,280 C210,260 180,240 150,210"/>
+              <path d="M250,280 C280,250 320,235 370,235"/>
+              <path d="M250,280 C235,240 235,205 255,165"/>
+              <path d="M250,280 C220,300 200,330 185,370"/>
+              <path d="M240,300 C260,320 285,350 305,390"/>
+              <path d="M630,560 C690,470 740,400 810,310"/>
+              <path d="M810,310 C770,285 740,255 710,220"/>
+              <path d="M810,310 C845,280 885,265 935,265"/>
+              <path d="M810,310 C800,260 805,220 835,180"/>
+              <path d="M810,310 C780,340 755,375 745,420"/>
+              <path d="M805,330 C830,350 860,380 885,420"/>
+              <path d="M70,600 C220,560 320,570 470,610 C620,650 740,650 930,600"/>
+              <path d="M350,490 C380,460 410,460 440,490"/>
+              <path d="M370,520 C385,505 405,505 420,520"/>
+              <path d="M470,500 C520,450 580,450 630,500"/>
+              <circle cx="520" cy="200" r="70"/>
+              <path d="M480,200 C510,180 530,180 560,200"/>
+              <path d="M495,225 C520,210 540,210 565,225"/>
+              <path d="M150,620 C160,590 180,590 190,620"/>
+              <path d="M195,620 C205,590 225,590 235,620"/>
+              <path d="M240,620 C250,590 270,590 280,620"/>
+            </g>
+            <text x="500" y="660" text-anchor="middle" font-size="34" font-family="Comic Sans MS, cursive" fill="#111">Life Without Worries</text>
+          </svg>
+        `)
+      },
+      {
+        title: "Ocean Adventure - Shell + Waves",
+        data: svgData(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700">
+            <rect width="100%" height="100%" fill="white"/>
+            <g stroke="#111" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M70,520 C140,470 220,470 290,520 C360,570 440,570 510,520 C580,470 660,470 730,520 C800,570 880,570 950,520"/>
+              <path d="M70,580 C140,530 220,530 290,580 C360,630 440,630 510,580 C580,530 660,530 730,580 C800,630 880,630 950,580"/>
+              <path d="M500,450 C440,420 380,360 390,290 C400,220 470,180 500,170 C530,180 600,220 610,290 C620,360 560,420 500,450 Z"/>
+              <path d="M500,170 L500,450"/>
+              <path d="M460,190 L500,450"/>
+              <path d="M540,190 L500,450"/>
+              <path d="M420,230 L500,450"/>
+              <path d="M580,230 L500,450"/>
+              <circle cx="820" cy="160" r="60"/>
+              <path d="M780,160 C805,140 835,140 860,160"/>
+              <path d="M795,185 C820,170 840,170 865,185"/>
+            </g>
+            <text x="500" y="660" text-anchor="middle" font-size="34" font-family="Comic Sans MS, cursive" fill="#111">Ocean Adventure</text>
+          </svg>
+        `)
+      },
+
+      /* ===================== ADDED TWO NEW IMAGES (MAN + WOMAN) ===================== */
+      {
+        title: "Portrait - Friendly Man (Face)",
+        data: svgData(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700">
+            <rect width="100%" height="100%" fill="white"/>
+            <g stroke="#111" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <!-- head -->
+              <path d="M500,150
+                       C620,150 700,240 700,360
+                       C700,520 610,590 500,590
+                       C390,590 300,520 300,360
+                       C300,240 380,150 500,150 Z"/>
+              <!-- hair -->
+              <path d="M320,320 C340,210 420,150 500,150 C585,150 665,210 680,330"/>
+              <path d="M340,280 C390,210 450,185 500,185 C560,185 625,215 660,285"/>
+              <!-- ears -->
+              <path d="M300,360 C260,360 260,440 300,440"/>
+              <path d="M700,360 C740,360 740,440 700,440"/>
+              <!-- eyes -->
+              <path d="M410,360 C440,335 480,335 510,360"/>
+              <path d="M490,360 C520,335 560,335 590,360"/>
+              <circle cx="460" cy="378" r="10"/>
+              <circle cx="540" cy="378" r="10"/>
+              <!-- eyebrows -->
+              <path d="M395,335 C435,310 485,310 525,335"/>
+              <path d="M475,335 C515,310 565,310 605,335"/>
+              <!-- nose -->
+              <path d="M505,395 C495,430 495,450 510,470"/>
+              <path d="M510,470 C525,480 540,475 550,465"/>
+              <!-- moustache -->
+              <path d="M430,490 C470,465 530,465 570,490"/>
+              <path d="M430,490 C460,515 490,520 500,515"/>
+              <path d="M570,490 C540,515 510,520 500,515"/>
+              <!-- mouth -->
+              <path d="M440,545 C480,575 520,575 560,545"/>
+              <!-- neck -->
+              <path d="M420,590 C420,650 580,650 580,590"/>
+              <!-- shoulders -->
+              <path d="M240,690 C290,625 370,610 420,610"/>
+              <path d="M760,690 C710,625 630,610 580,610"/>
+            </g>
+            <text x="500" y="660" text-anchor="middle" font-size="34" font-family="Comic Sans MS, cursive" fill="#111">Friendly Man</text>
+          </svg>
+        `)
+      },
+      {
+        title: "Portrait - Friendly Woman (Face)",
+        data: svgData(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700">
+            <rect width="100%" height="100%" fill="white"/>
+            <g stroke="#111" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <!-- hair outline (long) -->
+              <path d="M280,360
+                       C280,200 400,120 500,120
+                       C600,120 720,200 720,360
+                       C720,520 660,610 620,650
+                       C590,680 560,690 500,690
+                       C440,690 410,680 380,650
+                       C340,610 280,520 280,360 Z"/>
+              <!-- face -->
+              <path d="M500,170
+                       C620,170 690,255 690,360
+                       C690,515 600,585 500,585
+                       C400,585 310,515 310,360
+                       C310,255 380,170 500,170 Z"/>
+              <!-- hair part + waves -->
+              <path d="M500,120 C445,130 400,160 365,205"/>
+              <path d="M500,120 C555,130 600,160 635,205"/>
+              <path d="M320,430 C300,520 320,590 360,640"/>
+              <path d="M680,430 C700,520 680,590 640,640"/>
+              <!-- ears -->
+              <path d="M310,360 C280,360 280,435 310,435"/>
+              <path d="M690,360 C720,360 720,435 690,435"/>
+              <!-- eyes -->
+              <path d="M410,360 C440,335 480,335 510,360"/>
+              <path d="M490,360 C520,335 560,335 590,360"/>
+              <circle cx="460" cy="378" r="10"/>
+              <circle cx="540" cy="378" r="10"/>
+              <!-- lashes -->
+              <path d="M405,350 L385,338"/>
+              <path d="M430,340 L410,325"/>
+              <path d="M595,350 L615,338"/>
+              <path d="M570,340 L590,325"/>
+              <!-- eyebrows -->
+              <path d="M395,335 C435,315 485,315 525,335"/>
+              <path d="M475,335 C515,315 565,315 605,335"/>
+              <!-- nose -->
+              <path d="M505,395 C495,430 500,450 515,468"/>
+              <path d="M515,468 C530,478 545,472 555,462"/>
+              <!-- mouth -->
+              <path d="M440,525 C480,555 520,555 560,525"/>
+              <path d="M455,535 C485,555 515,555 545,535"/>
+              <!-- cheeks (light hint) -->
+              <path d="M360,460 C375,475 395,485 415,492"/>
+              <path d="M640,460 C625,475 605,485 585,492"/>
+              <!-- neck -->
+              <path d="M420,585 C420,650 580,650 580,585"/>
+              <!-- shoulders -->
+              <path d="M220,690 C280,620 350,610 420,610"/>
+              <path d="M780,690 C720,620 650,610 580,610"/>
+            </g>
+            <text x="500" y="660" text-anchor="middle" font-size="34" font-family="Comic Sans MS, cursive" fill="#111">Friendly Woman</text>
+          </svg>
+        `)
+      }
+      /* ===================== END ADDED IMAGES ===================== */
+    ];
+
+    // Load images from localStorage if available
+    const savedImages = localStorage.getItem("coloringImages");
+    if (savedImages) {
+      try {
+        const parsed = JSON.parse(savedImages);
+        if (Array.isArray(parsed) && parsed.length > 0) coloringImages = parsed;
+      } catch (e) {
+        console.log("Using default images");
+      }
+    }
+
+    /* =========================================================================
+       STATE
+    ========================================================================= */
+    const appState = {
+      userName: "",
+      currentColor: "#FF6B6B",
+      brushSize: 5,
+      isDrawing: false,
+      isEraserMode: false,
+      isFillMode: false,     // NEW: persistent fill toggle
+      isSpiceMode: false,    // NEW: persistent spicy toggle
+      lastX: 0,
+      lastY: 0,
+      selectedImageIndex: 0,
+      adminClickCount: 0,
+      adminClickTimeout: null,
+      undoStack: [],
+      maxUndo: 20,
+      paletteName: "Classic"
+    };
+
+    let canvas, ctx;
+    let backgroundImage = new Image();
+
+    // Track multiple pointers for drawing
+    const pointerMap = new Map(); // pointerId -> {x,y,isDown}
+
+    /* =========================================================================
+       PALETTES
+       - Spicy mode randomizes colors from these templates.
+       - It also refreshes the visible palette so kids feel the “theme”.
+    ========================================================================= */
+    const PALETTES = [
+      { name: "Classic", colors: [
+        "#FF6B6B","#4ECDC4","#45B7D1","#FFA07A",
+        "#98D8C8","#F7DC6F","#BB8FCE","#85C1E2",
+        "#F8B739","#52BE80","#EC7063","#AF7AC5",
+        "#5DADE2","#48C9B0","#F5B041","#EB984E",
+        "#000000","#FFFFFF","#795548","#9E9E9E"
+      ]},
+      { name: "Tropical", colors: [
+        "#00C2FF","#00E5A8","#FFE066","#FF6B6B",
+        "#7C3AED","#22C55E","#FB7185","#F97316",
+        "#06B6D4","#A3E635","#FDE047","#38BDF8",
+        "#34D399","#F472B6","#F59E0B","#10B981",
+        "#111827","#FFFFFF","#14532D","#0EA5E9"
+      ]},
+      { name: "Sunset", colors: [
+        "#FF5E5B","#FF9F1C","#FFD93D","#FF6B6B",
+        "#F15BB5","#9B5DE5","#00BBF9","#00F5D4",
+        "#F97316","#FB7185","#F59E0B","#FDE047",
+        "#A78BFA","#38BDF8","#34D399","#FDBA74",
+        "#0F172A","#FFFFFF","#7C2D12","#475569"
+      ]},
+      { name: "Calm Ocean", colors: [
+        "#0EA5E9","#38BDF8","#22D3EE","#14B8A6",
+        "#10B981","#A7F3D0","#93C5FD","#1D4ED8",
+        "#0F766E","#67E8F9","#60A5FA","#3B82F6",
+        "#99F6E4","#5EEAD4","#BAE6FD","#0EA5A5",
+        "#0B1220","#FFFFFF","#0F172A","#64748B"
+      ]}
+    ];
+
+    // Current palette reference
+    let currentPalette = PALETTES[0].colors;
+
+    /* =========================================================================
+       INIT
+    ========================================================================= */
+    function initializeApp() {
+      canvas = document.getElementById("coloringCanvas");
+      ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+      generateColorPalette();
+      loadImageSelection();
+      setupCanvasEventListeners();
+
+      // color picker
+      document.getElementById("customColorPicker").addEventListener("input", (e) => setColor(e.target.value));
+
+      // Enter key on name input
+      document.getElementById("userName").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") startColoring();
+      });
+
+      // Enter key on signature input
+      document.getElementById("signatureInput").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") confirmSignature();
+      });
+
+      // prevent context menu
+      canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+    }
+
+    /* =========================================================================
+       ADMIN (title 3 clicks + password)
+    ========================================================================= */
+    function handleTitleClick() {
+      appState.adminClickCount++;
+
+      if (appState.adminClickTimeout) clearTimeout(appState.adminClickTimeout);
+      appState.adminClickTimeout = setTimeout(() => (appState.adminClickCount = 0), 2000);
+
+      if (appState.adminClickCount === 3) {
+        const password = prompt("Enter admin password:");
+        if (password === "bshapp") openAdminPanel();
+        else alert("Incorrect password!");
+        appState.adminClickCount = 0;
+      }
+    }
+
+    function openAdminPanel() {
+      document.getElementById("adminModal").classList.add("active");
+      updateAdminImageList();
+      updateStudentNameList();
+    }
+    function closeAdminPanel() {
+      document.getElementById("adminModal").classList.remove("active");
+    }
+
+    function updateAdminImageList() {
+      const listContainer = document.getElementById("adminImageList");
+      listContainer.innerHTML = "";
+
+      if (coloringImages.length === 0) {
+        listContainer.innerHTML = '<p style="color:#999;text-align:center;">No images loaded</p>';
+        return;
+      }
+
+      coloringImages.forEach((img, index) => {
+        const item = document.createElement("div");
+        item.className = "admin-list-item";
+        item.innerHTML = `
+          <span>${index + 1}. ${img.title}</span>
+          <button class="admin-button danger" style="padding:6px 10px;margin:0;" onclick="deleteImage(${index})">Delete</button>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+
+    function deleteImage(index) {
+      if (confirm(`Delete "${coloringImages[index].title}"?`)) {
+        coloringImages.splice(index, 1);
+        localStorage.setItem("coloringImages", JSON.stringify(coloringImages));
+        updateAdminImageList();
+        loadImageSelection();
+      }
+    }
+
+    function updateStudentNameList() {
+      const listContainer = document.getElementById("studentNameList");
+      const studentNames = JSON.parse(localStorage.getItem("studentNames") || "[]");
+      listContainer.innerHTML = "";
+
+      if (studentNames.length === 0) {
+        listContainer.innerHTML = '<p style="color:#999;text-align:center;">No student names recorded yet</p>';
+        return;
+      }
+
+      studentNames.forEach((name, index) => {
+        const item = document.createElement("div");
+        item.className = "admin-list-item";
+        item.innerHTML = `<span>${index + 1}. ${name}</span>`;
+        listContainer.appendChild(item);
+      });
+    }
+
+    function exportStudentNames() {
+      const studentNames = JSON.parse(localStorage.getItem("studentNames") || "[]");
+      if (studentNames.length === 0) return alert("No student names to export");
+
+      const text = studentNames.join("\n");
+      const blob = new Blob([text], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `student_names_${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearStudentNames() {
+      if (confirm("Are you sure you want to clear all student names?")) {
+        localStorage.removeItem("studentNames");
+        updateStudentNameList();
+        alert("Student names cleared!");
+      }
+    }
+
+    function resetAllData() {
+      if (confirm("⚠️ This will delete ALL data including images and student names. Are you sure?")) {
+        if (confirm("This cannot be undone. Really proceed?")) {
+          localStorage.clear();
+          alert("All data has been reset. Reloading page...");
+          location.reload();
+        }
+      }
+    }
+
+    function saveStudentName(name) {
+      if (!name) return;
+      const studentNames = JSON.parse(localStorage.getItem("studentNames") || "[]");
+      if (!studentNames.includes(name)) {
+        studentNames.push(name);
+        localStorage.setItem("studentNames", JSON.stringify(studentNames));
+      }
+    }
+
+    /* =========================================================================
+       HUB IMAGE GRID
+    ========================================================================= */
+    function loadImageSelection() {
+      const imageGrid = document.getElementById("imageGrid");
+      imageGrid.innerHTML = "";
+
+      if (coloringImages.length === 0) {
+        imageGrid.innerHTML = '<p style="color:#999;">No images available. Contact admin.</p>';
+        document.getElementById("startButton").disabled = true;
+        return;
+      }
+
+      coloringImages.forEach((imageData, index) => {
+        const imageOption = document.createElement("div");
+        imageOption.className = "image-option";
+        if (index === 0) {
+          imageOption.classList.add("selected");
+          appState.selectedImageIndex = 0;
+          document.getElementById("startButton").disabled = false;
+        }
+
+        imageOption.onclick = () => selectImage(index);
+
+        const img = document.createElement("img");
+        img.src = imageData.data;
+        img.alt = imageData.title;
+
+        const title = document.createElement("div");
+        title.className = "image-title";
+        title.textContent = imageData.title;
+
+        imageOption.appendChild(img);
+        imageOption.appendChild(title);
+        imageGrid.appendChild(imageOption);
+      });
+    }
+
+    function selectImage(index) {
+      appState.selectedImageIndex = index;
+      document.querySelectorAll(".image-option").forEach((option, i) => {
+        option.classList.toggle("selected", i === index);
+      });
+      document.getElementById("startButton").disabled = false;
+    }
+
+    /* =========================================================================
+       PALETTE UI
+    ========================================================================= */
+    function generateColorPalette() {
+      const paletteContainer = document.getElementById("colorPalette");
+      paletteContainer.innerHTML = "";
+
+      currentPalette.forEach((color, index) => {
+        const colorDiv = document.createElement("div");
+        colorDiv.className = "color-option tooltip";
+        colorDiv.style.backgroundColor = color;
+        colorDiv.setAttribute("data-tooltip", color);
+        colorDiv.onclick = () => setColor(color);
+
+        if (index === 0) colorDiv.classList.add("active");
+        paletteContainer.appendChild(colorDiv);
+      });
+    }
+
+    function setColor(color) {
+      appState.currentColor = color;
+
+      // turning color OFF should exit eraser (but NOT exit fill/spice)
+      if (appState.isEraserMode) toggleEraser(false);
+
+      // Update active color indicator
+      document.querySelectorAll(".color-option").forEach((option) => {
+        option.classList.remove("active");
+        const bg = rgbToHex(option.style.backgroundColor);
+        if (bg.toLowerCase() === color.toLowerCase()) option.classList.add("active");
+      });
+
+      document.getElementById("customColorPicker").value = color;
+
+      // cursor depends on fill mode
+      canvas.style.cursor = appState.isFillMode ? "pointer" : "crosshair";
+    }
+
+    function rgbToHex(rgb) {
+      const result = rgb.match(/\d+/g);
+      if (!result) return rgb;
+      return (
+        "#" +
+        result
+          .map((x) => {
+            const hex = parseInt(x).toString(16);
+            return hex.length === 1 ? "0" + hex : hex;
+          })
+          .join("")
+      );
+    }
+
+    function setBrushSize(size, element) {
+      appState.brushSize = size;
+      document.querySelectorAll(".brush-size-option").forEach((option) => option.classList.remove("active"));
+      element.classList.add("active");
+    }
+
+    /* =========================================================================
+       TOOLS: FILL + SPICY (separate buttons)
+       - Fill stays ON until toggled off (multi-touch supported)
+       - Spicy toggles ON; each fill tap chooses a random palette color
+       - Spicy also cycles palettes (so it “feels” spicy)
+    ========================================================================= */
+    function updateBadges() {
+      document.getElementById("fillBadge").textContent = `Fill: ${appState.isFillMode ? "ON" : "OFF"}`;
+      document.getElementById("spiceBadge").textContent = `Spice: ${appState.isSpiceMode ? "ON" : "OFF"}`;
+      document.getElementById("paletteBadge").textContent = `Palette: ${appState.paletteName}`;
+    }
+
+    function toggleFillMode(force) {
+      appState.isFillMode = typeof force === "boolean" ? force : !appState.isFillMode;
+
+      // Fill + drawing are mutually exclusive by interaction, not by mode.
+      // If fill is on, cursor pointer. If off, crosshair.
+      const btn = document.getElementById("fillButton");
+      btn.classList.toggle("active", appState.isFillMode);
+      canvas.style.cursor = appState.isFillMode ? "pointer" : "crosshair";
+
+      // Fill should not imply eraser
+      if (appState.isEraserMode) toggleEraser(false);
+
+      updateBadges();
+    }
+
+    function toggleSpiceMode() {
+      appState.isSpiceMode = !appState.isSpiceMode;
+
+      // When spicy turns on, pick a new palette theme immediately
+      if (appState.isSpiceMode) {
+        const theme = PALETTES[Math.floor(Math.random() * PALETTES.length)];
+        currentPalette = theme.colors;
+        appState.paletteName = theme.name;
+        generateColorPalette();
+
+        // ensure fill is on (spicy without fill is confusing)
+        if (!appState.isFillMode) toggleFillMode(true);
+      }
+
+      const btn = document.getElementById("spicyButton");
+      btn.classList.toggle("active", appState.isSpiceMode);
+
+      updateBadges();
+    }
+
+    function pickSpicyColor() {
+      // choose from current palette but avoid pure white/black sometimes
+      const filtered = currentPalette.filter((c) => !["#ffffff", "#000000"].includes(c.toLowerCase()));
+      const pool = filtered.length ? filtered : currentPalette;
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    /* =========================================================================
+       ERASER
+    ========================================================================= */
+    function toggleEraser(force) {
+      appState.isEraserMode = typeof force === "boolean" ? force : !appState.isEraserMode;
+
+      const eraserButton = document.getElementById("eraserButton");
+      if (appState.isEraserMode) {
+        eraserButton.classList.add("active");
+        eraserButton.textContent = "Eraser Active ✓";
+        canvas.style.cursor = "grab";
+      } else {
+        eraserButton.classList.remove("active");
+        eraserButton.textContent = "Eraser Mode";
+        canvas.style.cursor = appState.isFillMode ? "pointer" : "crosshair";
+      }
+
+      // Eraser shouldn't silently turn off fill/spice; but interaction-wise,
+      // if user is in fill mode, eraser isn't relevant (still allowed).
+      updateBadges();
+    }
+
+    /* =========================================================================
+       UNDO STACK
+       - Save snapshots before each stroke and before each fill
+    ========================================================================= */
+    function pushUndo() {
+      try {
+        if (!canvas || canvas.width === 0) return;
+        if (appState.undoStack.length >= appState.maxUndo) appState.undoStack.shift();
+        appState.undoStack.push(canvas.toDataURL("image/png"));
+      } catch (e) {
+        console.log("Undo push skipped:", e);
+      }
+    }
+
+    function undo() {
+      if (appState.undoStack.length === 0) return alert("Nothing to undo yet!");
+      const url = appState.undoStack.pop();
+      const img = new Image();
+      img.onload = () => {
+        ctx.globalCompositeOperation = "source-over";
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+      img.src = url;
+    }
+
+    /* =========================================================================
+       FLOOD FILL (improved + no “auto turn off fill”)
+       - FILL stays on; user can tap multiple areas (including multi-touch).
+       - If SPICY is on, each fill tap uses a new random color.
+    ========================================================================= */
+    function floodFill(startX, startY, fillColor) {
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const pixels = imageData.data;
+      const width = canvas.width;
+      const height = canvas.height;
+
+      const targetColor = getPixelColor(pixels, startX, startY, width);
+      const fillRGB = hexToRgb(fillColor);
+
+      // If click is outside painted area (alpha 0) on some browsers, still fill it.
+      const tolerance = 28;
+
+      // Do nothing if near-same color
+      if (colorsMatch(targetColor, fillRGB, 12)) return;
+
+      const stack = [[startX, startY]];
+      while (stack.length) {
+        const [x, y] = stack.pop();
+        if (x < 0 || x >= width || y < 0 || y >= height) continue;
+
+        const current = getPixelColor(pixels, x, y, width);
+
+        // avoid overwriting line art: if it's very dark, skip
+        const isLine = current.r < 40 && current.g < 40 && current.b < 40 && current.a > 50;
+        if (isLine) continue;
+
+        if (colorsMatch(current, targetColor, tolerance) && !colorsMatch(current, fillRGB, 10)) {
+          setPixelColor(pixels, x, y, width, fillRGB);
+          stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+        }
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    function getPixelColor(pixels, x, y, width) {
+      const i = (y * width + x) * 4;
+      return { r: pixels[i], g: pixels[i + 1], b: pixels[i + 2], a: pixels[i + 3] };
+    }
+    function setPixelColor(pixels, x, y, width, color) {
+      const i = (y * width + x) * 4;
+      pixels[i] = color.r;
+      pixels[i + 1] = color.g;
+      pixels[i + 2] = color.b;
+      pixels[i + 3] = 255;
+    }
+    function colorsMatch(c1, c2, tol) {
+      return (
+        Math.abs(c1.r - c2.r) <= tol &&
+        Math.abs(c1.g - c2.g) <= tol &&
+        Math.abs(c1.b - c2.b) <= tol
+      );
+    }
+    function hexToRgb(hex) {
+      const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return m
+        ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) }
+        : { r: 0, g: 0, b: 0 };
+    }
+
+    /* =========================================================================
+       BACKGROUND IMAGE LOAD
+    ========================================================================= */
+    function loadBackgroundImage() {
+      const loadingProgress = document.getElementById("loadingProgress");
+      const loadingProgressBar = document.getElementById("loadingProgressBar");
+      const loadingText = document.getElementById("loadingText");
+      const loadingIndicator = document.getElementById("loadingIndicator");
+
+      loadingProgress.classList.add("active");
+      loadingText.classList.add("active");
+      loadingIndicator.classList.add("active");
+
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += 6;
+        loadingProgressBar.style.width = progress + "%";
+        if (progress >= 90) clearInterval(progressInterval);
+      }, 40);
+
+      backgroundImage.onload = () => {
+        clearInterval(progressInterval);
+        loadingProgressBar.style.width = "100%";
+
+        setTimeout(() => {
+          // scale to fit
+          const maxWidth = 900;
+          const maxHeight = 700;
+
+          let w = backgroundImage.width;
+          let h = backgroundImage.height;
+
+          if (w > maxWidth) { h = (maxWidth / w) * h; w = maxWidth; }
+          if (h > maxHeight) { w = (maxHeight / h) * w; h = maxHeight; }
+
+          canvas.width = Math.round(w);
+          canvas.height = Math.round(h);
+
+          // reset undo
+          appState.undoStack = [];
+
+          // draw
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.globalCompositeOperation = "source-over";
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+
+          loadingProgress.classList.remove("active");
+          loadingText.classList.remove("active");
+          loadingIndicator.classList.remove("active");
+          loadingProgressBar.style.width = "0%";
+        }, 250);
+      };
+
+      backgroundImage.onerror = () => {
+        clearInterval(progressInterval);
+        loadingProgress.classList.remove("active");
+        loadingText.classList.remove("active");
+        loadingIndicator.classList.remove("active");
+        alert("Error loading image. Please try again.");
+      };
+
+      const selectedImage = coloringImages[appState.selectedImageIndex];
+      document.getElementById("currentImageTitle").textContent = selectedImage.title;
+      backgroundImage.src = selectedImage.data;
+    }
+
+    /* =========================================================================
+       POINTER EVENTS (best for multi-touch)
+    ========================================================================= */
+    function setupCanvasEventListeners() {
+      canvas.addEventListener("pointerdown", onPointerDown);
+      canvas.addEventListener("pointermove", onPointerMove);
+      canvas.addEventListener("pointerup", onPointerUp);
+      canvas.addEventListener("pointercancel", onPointerUp);
+      canvas.addEventListener("pointerout", onPointerUp);
+      canvas.addEventListener("pointerleave", onPointerUp);
+    }
+
+    function getPosFromEvent(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+      };
+    }
+
+    function onPointerDown(e) {
+      e.preventDefault();
+      canvas.setPointerCapture(e.pointerId);
+
+      const pos = getPosFromEvent(e);
+
+      // FILL MODE (persistent + multi-touch)
+      if (appState.isFillMode) {
+        pushUndo();
+
+        // Choose color:
+        let fillColor = appState.currentColor;
+        if (appState.isSpiceMode) {
+          // each tap: new random fill color
+          fillColor = pickSpicyColor();
+          setColor(fillColor); // reflect in UI + picker
+        }
+
+        floodFill(Math.floor(pos.x), Math.floor(pos.y), fillColor);
+        return;
+      }
+
+      // DRAW MODE
+      pushUndo();
+      pointerMap.set(e.pointerId, { x: pos.x, y: pos.y, isDown: true });
+      appState.isDrawing = true;
+
+      // draw a dot on tap
+      drawLine(pos.x, pos.y, pos.x + 0.01, pos.y + 0.01);
+    }
+
+    function onPointerMove(e) {
+      if (!pointerMap.has(e.pointerId)) return;
+      const data = pointerMap.get(e.pointerId);
+      if (!data.isDown) return;
+
+      e.preventDefault();
+      const pos = getPosFromEvent(e);
+
+      drawLine(data.x, data.y, pos.x, pos.y);
+
+      data.x = pos.x;
+      data.y = pos.y;
+      pointerMap.set(e.pointerId, data);
+    }
+
+    function onPointerUp(e) {
+      if (pointerMap.has(e.pointerId)) {
+        const data = pointerMap.get(e.pointerId);
+        data.isDown = false;
+        pointerMap.set(e.pointerId, data);
+        pointerMap.delete(e.pointerId);
+      }
+      if (pointerMap.size === 0) appState.isDrawing = false;
+    }
+
+    function drawLine(x1, y1, x2, y2) {
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+
+      if (appState.isEraserMode) {
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.lineWidth = appState.brushSize * 2;
+      } else {
+        ctx.globalCompositeOperation = "source-over";
+        ctx.strokeStyle = appState.currentColor;
+        ctx.lineWidth = appState.brushSize;
+      }
+
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.stroke();
+    }
+
+    /* =========================================================================
+       CLEAR (reliable)
+    ========================================================================= */
+    function clearCanvas() {
+      if (!confirm("Are you sure you want to clear your drawing? This cannot be undone!")) return;
+
+      // Reset blending
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalCompositeOperation = "source-over";
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Redraw the background exactly
+      ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+
+      // Reset undo (optional)
+      appState.undoStack = [];
+
+      alert("Canvas cleared! ✨");
+    }
+
+    /* =========================================================================
+       SIGN + SAVE
+    ========================================================================= */
+    function initiateSignature() {
+      document.getElementById("signatureModal").classList.add("active");
+      document.getElementById("signatureInput").value = appState.userName || "";
+      document.getElementById("signatureInput").focus();
+    }
+
+    function confirmSignature() {
+      const signature = document.getElementById("signatureInput").value.trim();
+      if (signature) addSignatureToCanvas(signature);
+      document.getElementById("signatureModal").classList.remove("active");
+      saveDrawing();
+    }
+
+    function skipSignature() {
+      document.getElementById("signatureModal").classList.remove("active");
+      saveDrawing();
+    }
+
+    function addSignatureToCanvas(signature) {
+      const prevComp = ctx.globalCompositeOperation;
+      const prevFill = ctx.fillStyle;
+
+      ctx.globalCompositeOperation = "source-over";
+      ctx.font = '20px "Brush Script MT", cursive';
+      ctx.fillStyle = "#333";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "bottom";
+
+      const pad = 15;
+      ctx.fillText(signature, canvas.width - pad, canvas.height - pad);
+
+      ctx.globalCompositeOperation = prevComp;
+      ctx.fillStyle = prevFill;
+    }
+
+    function saveDrawing() {
+      try {
+        const dataURL = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        const selectedImage = coloringImages[appState.selectedImageIndex];
+
+        const fileName = appState.userName
+          ? `${appState.userName}_${selectedImage.title.replace(/\s+/g, "_")}_${Date.now()}.png`
+          : `coloring_${selectedImage.title.replace(/\s+/g, "_")}_${Date.now()}.png`;
+
+        link.download = fileName;
+        link.href = dataURL;
+        link.click();
+
+        alert("Your masterpiece has been saved! 🎨");
+      } catch (error) {
+        alert("Oops! There was an error saving your drawing. Please try again.");
+        console.error("Save error:", error);
+      }
+    }
+
+    /* =========================================================================
+       START / BACK
+    ========================================================================= */
+    function startColoring() {
+      const nameInput = document.getElementById("userName").value.trim();
+
+      if (nameInput) {
+        appState.userName = nameInput;
+        saveStudentName(nameInput);
+        document.getElementById("welcomeMessage").textContent = `Welcome, ${nameInput}! 🎨`;
+      } else {
+        document.getElementById("welcomeMessage").textContent = "Welcome, Artist! 🎨";
+      }
+
+      // Reset modes to safe defaults each session
+      appState.isEraserMode = false;
+      appState.isFillMode = false;
+      appState.isSpiceMode = false;
+      appState.paletteName = "Classic";
+      currentPalette = PALETTES[0].colors;
+      generateColorPalette();
+      updateBadges();
+
+      document.getElementById("fillButton").classList.remove("active");
+      document.getElementById("spicyButton").classList.remove("active");
+      document.getElementById("eraserButton").classList.remove("active");
+      document.getElementById("eraserButton").textContent = "Eraser Mode";
+
+      document.getElementById("userHub").classList.add("hidden");
+      document.getElementById("coloringApp").classList.add("active");
+
+      loadBackgroundImage();
+    }
+
+    function goBackToHub() {
+      if (!confirm("Are you sure you want to go back? Your current drawing will be lost if not saved!")) return;
+      document.getElementById("userHub").classList.remove("hidden");
+      document.getElementById("coloringApp").classList.remove("active");
+      document.getElementById("userName").value = "";
+    }
+
+    // Initialize app
+    window.addEventListener("load", () => {
+      initializeApp();
+      updateBadges();
+    });
+  </script>
+</body>
+</html>
