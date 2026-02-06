@@ -75,22 +75,6 @@ body{
   backdrop-filter:blur(8px);
 }
 
-.clear-x{
-  margin-left:auto;   /* pushes X to the far right */
-  width:36px;
-  height:36px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:1.2rem;
-  font-weight:700;
-  line-height:1;
-  background:rgba(255,255,255,.06);
-  border:1px solid var(--border);
-  color:var(--text);
-}
-
 .swatch{
   width:28px;height:28px;border-radius:50%;
   border:1px solid rgba(255,255,255,.35);
@@ -133,6 +117,26 @@ button{
   }
 }
 
+/* ✅ CLEAR X (added) */
+.clear-x{
+  margin-left:auto;
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  font-size:1.35rem;
+  font-weight:800;
+  line-height:1;
+  background:rgba(255,255,255,.06);
+  border:1px solid var(--border);
+  color:var(--text);
+}
+.clear-x:hover{ background:rgba(255,255,255,.12); }
+.clear-x:active{ transform:scale(.96); }
+
 .stage{
   margin:0 auto;
   padding:10px;
@@ -148,7 +152,9 @@ canvas{
   background:#0b0e1a;
   display:block;
   touch-action:none;
-  cursor:crosshair;
+
+  /* ✅ MAGIC WAND CURSOR (canvas only) */
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><path d='M7 25 L22 10' stroke='%237fe3ff' stroke-width='3' stroke-linecap='round'/><path d='M20 8 L24 12' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' opacity='0.9'/><circle cx='24' cy='8' r='2' fill='%237fe3ff'/><circle cx='26.5' cy='12' r='1.5' fill='%23ffffff' opacity='0.9'/></svg>") 4 28, auto;
 }
 
 .footer{
@@ -213,31 +219,21 @@ canvas{
   <div class="panel">
     <div>Light</div>
 
-   <div class="panel">
-
-  <!-- color swatches -->
-  <div class="swatch" data-color="ink"></div>
-  <div class="swatch" data-color="starlight"></div>
-  <div class="swatch" data-color="lavender"></div>
-  <div class="swatch" data-color="cyan"></div>
-  <div class="swatch" data-color="rose"></div>
-  <div class="swatch" data-color="gold"></div>
-
-  <!-- size control -->
-  <input class="range" type="range" />
-
-  <!-- save -->
-  <button id="saveBtn" class="save-light">Save Light</button>
-
-  <!-- X clear ALWAYS LAST -->
-  <button id="clearBtn" class="clear-x" aria-label="Clear canvas">×</button>
-
-</div>
+    <div class="swatch" data-color="--ether-ink" style="background:var(--ether-ink)"></div>
+    <div class="swatch" data-color="--ether-starlight" style="background:var(--ether-starlight)"></div>
+    <div class="swatch" data-color="--ether-lavender" style="background:var(--ether-lavender)"></div>
+    <div class="swatch" data-color="--ether-cyan" style="background:var(--ether-cyan)"></div>
+    <div class="swatch" data-color="--ether-rose" style="background:var(--ether-rose)"></div>
+    <div class="swatch" data-color="--ether-gold" style="background:var(--ether-gold)"></div>
+    <div class="swatch" data-color="black"></div>
 
     <input id="size" class="range" type="range" min="2" max="40" value="8">
     <span id="sizeLabel">8</span>
 
     <button class="save-light" id="saveBtn">Save Light</button>
+
+    <!-- ✅ CLEAR BUTTON (added, far right) -->
+    <button id="clearBtn" class="clear-x" type="button" aria-label="Clear canvas">×</button>
   </div>
 
   <div class="stage">
@@ -279,6 +275,7 @@ const ctx=canvas.getContext("2d");
 const sizeInput=document.getElementById("size");
 const sizeLabel=document.getElementById("sizeLabel");
 const saveBtn=document.getElementById("saveBtn");
+const clearBtn=document.getElementById("clearBtn"); // ✅ added
 
 let brushColor=getComputedStyle(document.documentElement).getPropertyValue('--ether-ink').trim();
 let isBlack=false;
@@ -344,6 +341,13 @@ canvas.addEventListener("touchend",end);
 
 let pending=false;
 saveBtn.onclick=()=>{pending=true;document.getElementById("sigModal").style.display="flex"}
+
+// ✅ CLEAR logic (added): reset to base dark
+clearBtn.onclick=()=>{
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ ctx.fillStyle="#0b0e1a";
+ ctx.fillRect(0,0,canvas.width,canvas.height);
+};
 
 function exportImage(sig){
  const out=document.createElement("canvas");
