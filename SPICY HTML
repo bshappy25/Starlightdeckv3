@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌶️ Make Life Spicy</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Passion+One:wght@400;700;900&family=Space+Mono:wght@400;700&family=Brush+Script+MT&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --spicy-red: #FF3B30;
+            --spicy-orange: #FF9500;
+            --hot-pink: #FF2D55;
+            --fire-yellow: #FFCC00;
+            --dark-char: #1a1a1a;
+            --cream: #FFF8F0;
+        }
+        
+        body {
+            font-family: 'Space Mono', monospace;
+            background: linear-gradient(135deg, var(--spicy-red) 0%, var(--spicy-orange) 100%);
+            min-height: 100vh;
+            color: var(--cream);
+            overflow-x: hidden;
+        }
+        
+        /* Animated background peppers */
+        .pepper-bg {
+            position: fixed;
+            font-size: 3rem;
+            opacity: 0.1;
+            animation: float 20s infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-30px) rotate(5deg); }
+            50% { transform: translateY(-60px) rotate(-5deg); }
+            75% { transform: translateY(-30px) rotate(5deg); }
+        }
+        
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            animation: slideDown 0.8s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .title {
+            font-family: 'Passion One', cursive;
+            font-size: 4rem;
+            font-weight: 900;
+            text-shadow: 4px 4px 0 rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+        
+        /* Stat Display */
+        .stats {
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-family: 'Passion One', cursive;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .progress-bar {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            height: 20px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, var(--fire-yellow), var(--spicy-orange));
+            height: 100%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--dark-char);
+        }
+        
+        /* Menu Buttons */
+        .menu {
+            display: grid;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .btn {
+            font-family: 'Passion One', cursive;
+            font-size: 1.5rem;
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:hover:before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--hot-pink), var(--spicy-red));
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--spicy-orange), var(--fire-yellow));
+            color: var(--dark-char);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-small {
+            font-size: 1.2rem;
+            padding: 15px;
+        }
+        
+        .btn-hub {
+            background: linear-gradient(135deg, #6B46C1, #9333EA);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        /* Polaroid Creator */
+        .polaroid-creator {
+            background: var(--cream);
+            border-radius: 20px;
+            padding: 30px;
+            color: var(--dark-char);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+        
+        .polaroid-frame {
+            background: white;
+            padding: 20px 20px 60px 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            max-width: 400px;
+            margin: 20px auto;
+            position: relative;
+        }
+        
+        .polaroid-content {
+            aspect-ratio: 1;
+            background: #f0f0f0;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .gradient-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .polaroid-emoji {
+            font-size: 8rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .polaroid-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .polaroid-quote {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px;
+            font-size: 0.9rem;
+            text-align: center;
+            z-index: 2;
+        }
+        
+        .polaroid-signature {
+            position: absolute;
+            bottom: 70px;
+            right: 20px;
+            font-family: 'Brush Script MT', cursive;
+            font-size: 2rem;
+            color: #1a1a1a;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+            z-index: 3;
+            font-weight: 400;
+        }
+        
+        /* Controls */
+        .controls {
+            display: grid;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        label {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        input[type="file"],
+        input[type="text"],
+        textarea {
+            font-family: 'Space Mono', monospace;
+            padding: 12px;
+            border: 2px solid var(--spicy-orange);
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .emoji-picker {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .emoji-btn {
+            font-size: 2rem;
+            padding: 15px;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .emoji-btn:hover {
+            border-color: var(--spicy-orange);
+            transform: scale(1.1);
+        }
+        
+        .emoji-btn.selected {
+            border-color: var(--spicy-red);
+            background: #ffe6e6;
+        }
+        
+        /* Token Celebration */
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .celebration-content {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, var(--spicy-red), var(--spicy-orange));
+            border-radius: 30px;
+            max-width: 500px;
+            animation: bounce 0.6s;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .celebration-title {
+            font-family: 'Passion One', cursive;
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .token-code {
+            font-family: 'Space Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            letter-spacing: 2px;
+        }
+        
+        /* Hidden elements */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .polaroid-emoji {
+                font-size: 5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating background peppers -->
+    <div class="pepper-bg" style="top: 10%; left: 10%; animation-delay: 0s;">🌶️</div>
+    <div class="pepper-bg" style="top: 60%; right: 15%; animation-delay: 3s;">🌶️</div>
+    <div class="pepper-bg" style="top: 80%; left: 20%; animation-delay: 6s;">🌶️</div>
+    <div class="pepper-bg" style="top: 30%; right: 25%; animation-delay: 9s;">🌶️</div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="title">🌶️ MAKE LIFE SPICY 🌶️</h1>
+            <p class="subtitle">Process Over Product • Action Over Perfection</p>
+        </div>
+
+        <!-- Stats Display -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">SPICE Tickets</div>
+                <div class="stat-value" id="ticketCount">0</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar" style="width: 0%">
+                        <span id="progressText">0/250</span>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">CAREON Tokens</div>
+                <div class="stat-value" id="tokenCount">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Polaroids Today</div>
+                <div class="stat-value" id="polaroidCount">0/3</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Custom Prompt</div>
+                <div class="stat-value" id="customPromptStatus">✓</div>
+            </div>
+        </div>
+
+        <!-- Main Menu -->
+        <div id="menuScreen" class="menu">
+            <button class="btn btn-primary" onclick="showPolaroidCreator()">
+                <span>🌶️ CREATE SPICY POLAROID</span>
+            </button>
+            <button class="btn btn-secondary" onclick="showCustomPrompt()">
+                <span>✍️ WRITE YOUR OWN SPICE</span>
+            </button>
+            <button class="btn btn-small btn-secondary" onclick="showTokens()">
+                <span>📜 VIEW TOKENS</span>
+            </button>
+            <a href="https://starlightdeckv3.streamlit.app" target="_blank" style="text-decoration: none;">
+                <button class="btn btn-small btn-hub" style="width: 100%;">
+                    <span>← BACK TO HUB</span>
+                </button>
+            </a>
+        </div>
+
+        <!-- Polaroid Creator -->
+        <div id="polaroidScreen" class="polaroid-creator hidden">
+            <h2 style="font-family: 'Passion One', cursive; font-size: 2rem; margin-bottom: 20px; text-align: center;">
+                Create Your Spicy Polaroid
+            </h2>
+
+            <!-- Polaroid Preview -->
+            <div class="polaroid-frame" id="polaroidPreview">
+                <div class="polaroid-content" id="polaroidContent">
+                    <div class="gradient-bg" id="gradientBg"></div>
+                    <div class="polaroid-emoji" id="displayEmoji">🌶️</div>
+                    <img id="uploadedImage" class="polaroid-image hidden" alt="Uploaded">
+                    <div class="polaroid-signature" id="signatureDisplay"></div>
+                    <div class="polaroid-quote" id="quoteDisplay">Click to get a spicy challenge!</div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <div class="control-group">
+                    <label>Choose Image Source:</label>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-small btn-secondary" style="flex: 1;" onclick="showEmojiPicker()">
+                            <span>📱 Use Emoji</span>
+                        </button>
+                        <button class="btn btn-small btn-secondary" style="flex: 1;" onclick="document.getElementById('imageUpload').click()">
+                            <span>📸 Upload Image</span>
+                        </button>
+                    </div>
+                    <input type="file" id="imageUpload" accept="image/*" onchange="handleImageUpload(event)" class="hidden">
+                </div>
+
+                <div id="emojiPickerArea" class="hidden">
+                    <label>Select Emoji:</label>
+                    <div class="emoji-picker" id="emojiPicker"></div>
+                </div>
+
+                <div class="control-group">
+                    <button class="btn btn-primary" onclick="generateSpicyChallenge()">
+                        <span>🎲 GET SPICY CHALLENGE</span>
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" style="flex: 1;" onclick="savePolaroid()">
+                        <span>💾 SAVE POLAROID</span>
+                    </button>
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="backToMenu()">
+                        <span>← BACK</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Prompt Screen -->
+        <div id="customPromptScreen" class="polaroid-creator hidden">
+            <h2 style="font-family: 'Passion One', cursive; font-size: 2rem; margin-bottom: 20px; text-align: center;">
+                Write Your Own Spicy Challenge
+            </h2>
+            <p style="text-align: center; margin-bottom: 20px;">
+                Share a challenge that pushes you toward action. Process over product. 🌶️
+            </p>
+            <div class="controls">
+                <div class="control-group">
+                    <label>Your Spicy Prompt:</label>
+                    <textarea id="customPromptInput" placeholder="Example: 'Start the project you've been avoiding for weeks'"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" style="flex: 1;" onclick="submitCustomPrompt()">
+                        <span>🔥 SUBMIT (+100 TICKETS)</span>
+                    </button>
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="backToMenu()">
+                        <span>← BACK</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Token Display Screen -->
+        <div id="tokenScreen" class="polaroid-creator hidden">
+            <h2 style="font-family: 'Passion One', cursive; font-size: 2rem; margin-bottom: 20px; text-align: center;">
+                Your CAREON Tokens
+            </h2>
+            <div id="tokenList" style="text-align: center; font-size: 1.2rem; line-height: 2;">
+                <!-- Token codes will be displayed here -->
+            </div>
+            <button class="btn btn-secondary" onclick="backToMenu()" style="margin-top: 20px;">
+                <span>← BACK TO MENU</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Token Celebration Modal -->
+    <div id="celebrationModal" class="celebration hidden">
+        <div class="celebration-content">
+            <div class="celebration-title">🎉 CAREON TOKEN EARNED! 🎉</div>
+            <p style="font-size: 1.2rem; margin-bottom: 20px;">You've earned a CAREON token!</p>
+            <div class="token-code" id="celebrationTokenCode">CAREON-0000</div>
+            <p style="margin: 20px 0;">Redeem in the Streamlit hub!</p>
+            <button class="btn btn-primary" onclick="closeCelebration()">
+                <span>✨ CONTINUE ✨</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Spicy Challenge Prompts (25 total)
+        const SPICY_CHALLENGES = [
+            "Try one thing that scares you today",
+            "Break a pattern you've repeated for weeks",
+            "Say the thing you've been avoiding",
+            "Choose discomfort over comfort once",
+            "Start before you feel ready",
+            "Ask the question you're afraid to hear answered",
+            "Do something imperfectly instead of not at all",
+            "Take the harder right over the easier wrong",
+            "Share something you usually keep private",
+            "Make a decision you've been postponing",
+            "Reach out to someone you've lost touch with",
+            "Admit you were wrong about something",
+            "Try a new path to a familiar destination",
+            "Challenge an assumption you take for granted",
+            "Create something without planning it first",
+            "Say no to something you'd usually accept",
+            "Embrace uncertainty for one decision today",
+            "Take action on the idea you've been sitting on",
+            "Be vulnerable when you want to be guarded",
+            "Do the task you've been avoiding first",
+            "Express gratitude to someone unexpected",
+            "Change your routine in one small way",
+            "Pursue curiosity over certainty",
+            "Trust yourself before seeking validation",
+            "Move forward even when the path isn't clear"
+        ];
+
+        const EMOJIS = ["🌶️", "🔥", "⚡", "💥", "✨", "🚀", "💪", "🎯", "⭐", "🌟", "💫", "🎨", "🎭", "🎪", "🎬"];
+
+        // Game State
+        let gameState = {
+            username: null,
+            tickets: 0,
+            tokens: 0,
+            tokenCodes: [],
+            polaroidsToday: 0,
+            customPromptUsed: false,
+            lastResetDate: new Date().toDateString(),
+            currentEmoji: "🌶️",
+            currentImage: null,
+            currentQuote: ""
+        };
+
+        // Load saved state
+        function loadState() {
+            const saved = localStorage.getItem('makeLifeSpicy');
+            if (saved) {
+                gameState = JSON.parse(saved);
+                checkDailyReset();
+                updateUI();
+            }
+            
+            // Prompt for username if not set
+            if (!gameState.username) {
+                gameState.username = prompt('Welcome to Make Life Spicy! 🌶️\n\nEnter your name for signatures:');
+                if (!gameState.username) {
+                    gameState.username = 'Spicy';
+                }
+                saveState();
+            }
+            
+            // Update signature display
+            document.getElementById('signatureDisplay').textContent = gameState.username;
+            
+            initEmojiPicker();
+        }
+
+        // Save state
+        function saveState() {
+            localStorage.setItem('makeLifeSpicy', JSON.stringify(gameState));
+        }
+
+        // Check if we need to reset daily limits
+        function checkDailyReset() {
+            const today = new Date().toDateString();
+            if (gameState.lastResetDate !== today) {
+                gameState.polaroidsToday = 0;
+                gameState.customPromptUsed = false;
+                gameState.lastResetDate = today;
+                saveState();
+            }
+        }
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('ticketCount').textContent = gameState.tickets;
+            document.getElementById('tokenCount').textContent = gameState.tokens;
+            document.getElementById('polaroidCount').textContent = `${gameState.polaroidsToday}/3`;
+            document.getElementById('customPromptStatus').textContent = gameState.customPromptUsed ? '✗' : '✓';
+            
+            const progress = (gameState.tickets % 250) / 250 * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `${gameState.tickets % 250}/250`;
+        }
+
+        // Generate random gradient
+        function generateGradient() {
+            const colors = [
+                ['#FF3B30', '#FF9500'],
+                ['#FF2D55', '#FFCC00'],
+                ['#FF6B6B', '#FFA500'],
+                ['#FF4757', '#FF8C42'],
+                ['#E63946', '#F77F00']
+            ];
+            const [color1, color2] = colors[Math.floor(Math.random() * colors.length)];
+            const angle = Math.floor(Math.random() * 360);
+            return `linear-gradient(${angle}deg, ${color1}, ${color2})`;
+        }
+
+        // Initialize emoji picker
+        function initEmojiPicker() {
+            const picker = document.getElementById('emojiPicker');
+            picker.innerHTML = '';
+            EMOJIS.forEach(emoji => {
+                const btn = document.createElement('button');
+                btn.className = 'emoji-btn';
+                btn.textContent = emoji;
+                btn.onclick = () => selectEmoji(emoji);
+                picker.appendChild(btn);
+            });
+        }
+
+        // Show/hide emoji picker
+        function showEmojiPicker() {
+            document.getElementById('emojiPickerArea').classList.remove('hidden');
+            document.getElementById('uploadedImage').classList.add('hidden');
+            document.getElementById('displayEmoji').classList.remove('hidden');
+            gameState.currentImage = null;
+        }
+
+        // Select emoji
+        function selectEmoji(emoji) {
+            gameState.currentEmoji = emoji;
+            document.getElementById('displayEmoji').textContent = emoji;
+            document.querySelectorAll('.emoji-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.textContent === emoji);
+            });
+            document.getElementById('gradientBg').style.background = generateGradient();
+        }
+
+        // Handle image upload
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    gameState.currentImage = e.target.result;
+                    document.getElementById('uploadedImage').src = e.target.result;
+                    document.getElementById('uploadedImage').classList.remove('hidden');
+                    document.getElementById('displayEmoji').classList.add('hidden');
+                    document.getElementById('emojiPickerArea').classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Generate spicy challenge
+        function generateSpicyChallenge() {
+            const quote = SPICY_CHALLENGES[Math.floor(Math.random() * SPICY_CHALLENGES.length)];
+            gameState.currentQuote = quote;
+            document.getElementById('quoteDisplay').textContent = quote;
+            document.getElementById('gradientBg').style.background = generateGradient();
+        }
+
+        // Save polaroid
+        function savePolaroid() {
+            if (gameState.polaroidsToday >= 3) {
+                alert('You\'ve reached the daily limit of 3 polaroids! Come back tomorrow. 🌶️');
+                return;
+            }
+
+            if (!gameState.currentQuote) {
+                alert('Generate a spicy challenge first! 🎲');
+                return;
+            }
+
+            // Create composite image
+            const polaroid = document.getElementById('polaroidPreview');
+            
+            // Award tickets
+            awardTickets(50, 'POLAROID');
+            gameState.polaroidsToday++;
+            saveState();
+            updateUI();
+
+            // Download polaroid
+            html2canvas(polaroid).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `spicy-polaroid-${Date.now()}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+
+            alert('Polaroid saved! +50 SPICE tickets earned! 🌶️');
+        }
+
+        // Award tickets and check for token
+        function awardTickets(amount, source) {
+            gameState.tickets += amount;
+            
+            // Check if we hit 250 tickets
+            while (gameState.tickets >= 250) {
+                gameState.tickets -= 250;
+                gameState.tokens++;
+                const tokenCode = generateTokenCode();
+                gameState.tokenCodes.push(tokenCode);
+                showTokenCelebration(tokenCode);
+            }
+            
+            saveState();
+            updateUI();
+        }
+
+        // Generate CAREON token code
+        function generateTokenCode() {
+            return `CAREON-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+        }
+
+        // Show token celebration
+        function showTokenCelebration(code) {
+            document.getElementById('celebrationTokenCode').textContent = code;
+            document.getElementById('celebrationModal').classList.remove('hidden');
+        }
+
+        function closeCelebration() {
+            document.getElementById('celebrationModal').classList.add('hidden');
+        }
+
+        // Custom prompt submission
+        function submitCustomPrompt() {
+            if (gameState.customPromptUsed) {
+                alert('You\'ve already submitted a custom prompt today! Come back tomorrow. 🌶️');
+                return;
+            }
+
+            const prompt = document.getElementById('customPromptInput').value.trim();
+            if (!prompt) {
+                alert('Write your spicy challenge first! ✍️');
+                return;
+            }
+
+            awardTickets(100, 'CUSTOM_PROMPT');
+            gameState.customPromptUsed = true;
+            saveState();
+            updateUI();
+
+            alert(`Custom prompt submitted! +100 SPICE tickets earned! 🔥\n\n"${prompt}"`);
+            document.getElementById('customPromptInput').value = '';
+            backToMenu();
+        }
+
+        // Navigation
+        function showPolaroidCreator() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('polaroidScreen').classList.remove('hidden');
+            document.getElementById('gradientBg').style.background = generateGradient();
+        }
+
+        function showCustomPrompt() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('customPromptScreen').classList.remove('hidden');
+        }
+
+        function showTokens() {
+            const tokenList = document.getElementById('tokenList');
+            if (gameState.tokenCodes.length === 0) {
+                tokenList.innerHTML = '<p style="opacity: 0.6;">No tokens earned yet. Keep creating! 🌶️</p>';
+            } else {
+                tokenList.innerHTML = gameState.tokenCodes.map((code, i) => 
+                    `<div style="background: rgba(0,0,0,0.1); padding: 15px; margin: 10px 0; border-radius: 10px; font-family: 'Space Mono', monospace; font-weight: 700;">
+                        ${code}
+                    </div>`
+                ).join('');
+            }
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('tokenScreen').classList.remove('hidden');
+        }
+
+        function backToMenu() {
+            document.getElementById('polaroidScreen').classList.add('hidden');
+            document.getElementById('customPromptScreen').classList.add('hidden');
+            document.getElementById('tokenScreen').classList.add('hidden');
+            document.getElementById('menuScreen').classList.remove('hidden');
+        }
+
+        // Initialize on load
+        window.onload = loadState;
+    </script>
+
+    <!-- HTML2Canvas for polaroid download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</body>
+</html>
