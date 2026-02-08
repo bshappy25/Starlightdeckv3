@@ -1,0 +1,167 @@
+{
+  "app_id": "calm_paper",
+  "app_name": "Calm Paper — STARPLACE",
+  "catalog_version": "v1",
+  "schema_version": 1,
+  "max_upgrade_packs": 3,
+
+  "defaults": {
+    "start_pack_id": "base",
+    "start_paper_type": "postit",
+    "start_paper_color_cssvar": "--p1",
+    "hide_stamps_default": false,
+    "music_enabled_default": true,
+    "sfx_enabled_default": true
+  },
+
+  "notes": {
+    "host_mode": "static",
+    "output_mode": "screenshot_primary",
+    "upgrade_rule": "Careon deposit receipt unlock (manual now, hub later)",
+    "templates_do_not_change": true
+  },
+
+  "packs": [
+    {
+      "id": "base",
+      "name": "Base Game",
+      "locked": false,
+      "unlock_type": "none",
+      "badge": "BASE",
+      "ui_accent": "neonA",
+      "stamps": { "left": "★ STAR", "right": "❤ CUTE" },
+      "textures": {
+        "none": null,
+        "subtle": "url('assets/images/textures/base/paper_subtle.png')"
+      },
+      "music_tracks": [
+        { "id": "off",  "label": "Off",            "src": null },
+        { "id": "chip", "label": "Chill Chiptune", "src": "assets/audio/music/base/calm_chip.mp3" },
+        { "id": "pad",  "label": "Lo-fi Pad",      "src": "assets/audio/music/base/soft_pad.mp3" },
+        { "id": "bell", "label": "Ambient Bells",  "src": "assets/audio/music/base/ambient_bells.mp3" }
+      ]
+    },
+
+    {
+      "id": "radiant",
+      "name": "Radiant Pages",
+      "locked": true,
+      "unlock_type": "careon_receipt",
+      "badge": "RADIANT",
+      "ui_accent": "neonB",
+      "stamps": { "left": "✨ RADIANT", "right": "🌈 GLOW" },
+      "textures": {
+        "none": null,
+        "subtle": "url('assets/images/textures/radiant/radiant_glow.png')"
+      },
+      "music_tracks": [
+        { "id": "rad1", "label": "Radiant Drift", "src": "assets/audio/music/packs/radiant/radiant_01.mp3" },
+        { "id": "rad2", "label": "Sunwash",       "src": "assets/audio/music/packs/radiant/radiant_02.mp3" }
+      ]
+    },
+
+    {
+      "id": "noir",
+      "name": "Noir Pages",
+      "locked": true,
+      "unlock_type": "careon_receipt",
+      "badge": "NOIR",
+      "ui_accent": "neonA",
+      "stamps": { "left": "◆ NOIR", "right": "✦ INK" },
+      "textures": {
+        "none": null,
+        "subtle": "url('assets/images/textures/noir/noir_ink.png')"
+      },
+      "music_tracks": [
+        { "id": "no1", "label": "Noir Alley",    "src": "assets/audio/music/packs/noir/noir_01.mp3" },
+        { "id": "no2", "label": "Midnight Ink", "src": "assets/audio/music/packs/noir/noir_02.mp3" }
+      ]
+    },
+
+    {
+      "id": "vintage",
+      "name": "Vintage Pages",
+      "locked": true,
+      "unlock_type": "careon_receipt",
+      "badge": "VINTAGE",
+      "ui_accent": "warn",
+      "stamps": { "left": "✿ VINTAGE", "right": "⌁ PARCH" },
+      "textures": {
+        "none": null,
+        "subtle": "url('assets/images/textures/vintage/vintage_parchment.png')"
+      },
+      "music_tracks": [
+        { "id": "v1", "label": "Vintage Paper", "src": "assets/audio/music/packs/vintage/vintage_01.mp3" },
+        { "id": "v2", "label": "Warm Tape",     "src": "assets/audio/music/packs/vintage/vintage_02.mp3" }
+      ]
+    }
+  ],
+
+  "receipt_unlocks": {
+    "SLD-RAD-100": "radiant",
+    "SLD-NOIR-100": "noir",
+    "SLD-VINT-100": "vintage"
+  },
+
+  "paper_palette": {
+    "css_vars": [
+      { "id": "--p1", "label": "Ivory" },
+      { "id": "--p2", "label": "Lavender Mist" },
+      { "id": "--p3", "label": "Mint Fog" },
+      { "id": "--p4", "label": "Peach Veil" },
+      { "id": "--p5", "label": "Slate" },
+      { "id": "--p6", "label": "Lilac" },
+      { "id": "--p7", "label": "Butter" },
+      { "id": "--p8", "label": "Sky" }
+    ]
+  },
+
+  "templates": {
+    "postit": {
+      "label": "Post-it",
+      "fields": [
+        { "type": "textarea", "placeholder": "Box 1..." },
+        { "type": "textarea", "placeholder": "Box 2..." },
+        { "type": "textarea", "placeholder": "Box 3..." }
+      ]
+    },
+    "note": {
+      "label": "Notebook",
+      "fields": [
+        { "type": "text", "placeholder": "Title..." },
+        { "type": "textarea", "placeholder": "Write your note..." },
+        { "type": "text", "placeholder": "Signature..." }
+      ]
+    },
+    "book": {
+      "label": "Book Cover",
+      "fields": [
+        { "type": "text", "placeholder": "BOOK TITLE..." },
+        { "type": "text", "placeholder": "Subtitle..." },
+        { "type": "text", "placeholder": "Author..." }
+      ]
+    },
+    "blank": {
+      "label": "Blank",
+      "fields": [
+        { "type": "textarea", "placeholder": "Free write..." }
+      ]
+    }
+  },
+
+  "assets_folders_expected": [
+    "assets/audio/music/base/",
+    "assets/audio/music/packs/radiant/",
+    "assets/audio/music/packs/noir/",
+    "assets/audio/music/packs/vintage/",
+    "assets/audio/sfx/",
+    "assets/images/textures/base/",
+    "assets/images/textures/radiant/",
+    "assets/images/textures/noir/",
+    "assets/images/textures/vintage/",
+    "assets/images/stamps/base/",
+    "assets/images/stamps/radiant/",
+    "assets/images/stamps/noir/",
+    "assets/images/stamps/vintage/"
+  ]
+}
